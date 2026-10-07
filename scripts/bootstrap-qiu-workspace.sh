@@ -107,7 +107,7 @@ install_dependencies() {
 
   log "恢复个人网站依赖"
   (
-    cd "$WORKSPACE_ROOT/qianqiulp.github.io"
+    cd "$WORKSPACE_ROOT/qiu-sites"
     "$MISE_BIN" exec "node@${NODE_VERSION}" -- npm ci
   )
 
@@ -128,7 +128,7 @@ install_dependencies() {
 run_checks() {
   log "验证个人网站生产构建"
   (
-    cd "$WORKSPACE_ROOT/qianqiulp.github.io"
+    cd "$WORKSPACE_ROOT/qiu-sites"
     "$MISE_BIN" exec "node@${NODE_VERSION}" -- npm run build
   )
 
@@ -164,8 +164,8 @@ main() {
   install_user_tools
 
   checkout_repo \
-    qianqiulp.github.io \
-    https://github.com/QianQIUlp/qianqiulp.github.io.git \
+    qiu-sites \
+    https://github.com/QianQIUlp/qiu-sites.git \
     "$SITE_REF"
   checkout_repo \
     Crewlight \
@@ -191,7 +191,7 @@ main() {
   log "工作区恢复完成"
   printf '%s\n' \
     "位置：$WORKSPACE_ROOT" \
-    "网站开发：cd '$WORKSPACE_ROOT/qianqiulp.github.io' && '$MISE_BIN' exec node@${NODE_VERSION} -- npm run dev" \
+    "网站开发：cd '$WORKSPACE_ROOT/qiu-sites' && '$MISE_BIN' exec node@${NODE_VERSION} -- npm run dev" \
     "MealCircuit 的私密数据、API 密钥、SSH/GitHub/Codex 凭据未被复制，请按 docs/workspace-migration.md 单独迁移。"
 }
 

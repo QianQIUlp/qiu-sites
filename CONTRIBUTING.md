@@ -1,4 +1,4 @@
-# Contributing to qianqiulp.github.io
+# Contributing to qiu-sites
 
 感谢你对本项目的关注！为了能高效地协同开发和审查，请在提交贡献前遵循以下指引。
 
@@ -8,8 +8,8 @@
 
 1. **克隆仓库**：
    ```bash
-   git clone https://github.com/qianqiulp/qianqiulp.github.io.git
-   cd qianqiulp.github.io
+   git clone https://github.com/qianqiulp/qiu-sites.git
+   cd qiu-sites
    ```
 2. **安装依赖**：
    确保你的本地环境已安装 Node.js (推荐 v22+)。
