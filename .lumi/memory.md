@@ -55,7 +55,7 @@
 
 ## 怎么测
 
-- [ ]  打开 https://qianqiulp.github.io/blog/ 看页面正常
+- [ ]  打开 https://me.qiu.works/blog/ 看页面正常
 - [ ]  DevTools Console 无报错
 - [ ]  在移动端尺寸下视觉正常
 

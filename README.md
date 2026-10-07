@@ -4,7 +4,7 @@
 
 [![Astro](https://img.shields.io/badge/Astro-7.1-FF5D01.svg?style=flat&logo=astro&logoColor=white)](https://astro.build)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Build both Astro sites](https://github.com/qianqiulp/qianqiulp.github.io/actions/workflows/deploy.yml/badge.svg)](https://github.com/qianqiulp/qianqiulp.github.io/actions/workflows/deploy.yml)
+[![Build both Astro sites](https://github.com/qianqiulp/qiu-sites/actions/workflows/deploy.yml/badge.svg)](https://github.com/qianqiulp/qiu-sites/actions/workflows/deploy.yml)
 
 ## 站点边界
 
@@ -55,7 +55,7 @@ npm run build:all
 ## 仓库结构
 
 ```text
-qianqiulp.github.io/
+qiu-sites/
 ├── developer/               # qiu.works 独立 Astro 应用
 │   ├── public/              # 产品实图、Room 裁图、分享卡与 favicon
 │   └── src/                 # 双语单页、布局、内容与样式
