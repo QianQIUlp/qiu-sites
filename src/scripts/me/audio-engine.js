@@ -9,13 +9,43 @@ export const tones={
 };
 
 export function makePluck(context,frequency){
-  const rate=context.sampleRate,length=Math.ceil(rate*3.2),period=Math.round(rate/frequency-.5);
-  const ring=new Float32Array(period),samples=new Float32Array(length);
+  const rate=context.sampleRate,seconds=clamp(5.2-frequency/260,2.4,5),length=Math.ceil(rate*seconds);
+  const samples=new Float32Array(length);
   let seed=2026+Math.round(frequency*31);
-  for(let i=0;i<period;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;ring[i]=(seed/4294967296*2-1)*.9;}
-  // A plucked-string delay line. The half-sample loss filter sets both decay and tuning.
-  for(let i=0;i<length;i++){const k=i%period;samples[i]=ring[k]*Math.min(1,i/(rate*.0015))*Math.min(1,(length-i)/(rate*.06));ring[k]=.4985*(ring[k]+ring[(k+1)%period]);}
+  const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296*2-1;};
+  // Two strings a hair apart in pitch, like a real string's two planes of motion.
+  for(const [detune,weight] of [[1,.78],[1.0011,.34]]){
+    const exact=rate/(frequency*detune)-.5,period=Math.floor(exact),fraction=exact-period;
+    const allpass=(1-fraction)/(1+fraction),ring=new Float32Array(period);
+    // A pick near the bridge: comb the burst, then soften it like a thumb, not a click.
+    const pick=Math.max(1,Math.round(period*.13));let soft=0;
+    const burst=Array.from({length:period},random);
+    for(let i=0;i<period;i++){const v=burst[i]-burst[(i+pick)%period]*.9;soft+=(v-soft)*.55;ring[i]=soft*.95;}
+    let last=0,previous=0;const loss=.4992+Math.min(.0006,frequency/2e6);
+    for(let i=0;i<length;i++){
+      const k=i%period,next=ring[(k+1)%period];
+      const averaged=loss*(ring[k]+next);
+      const tuned=allpass*averaged+previous-allpass*last;previous=averaged;last=tuned;
+      samples[i]+=ring[k]*weight*Math.min(1,i/(rate*.0012))*Math.min(1,(length-i)/(rate*.08));
+      ring[k]=tuned;
+    }
+  }
+  let peak=0;for(const v of samples)peak=Math.max(peak,Math.abs(v));
+  if(peak>0)for(let i=0;i<length;i++)samples[i]*=.9/peak;
   const buffer=context.createBuffer(1,length,rate);buffer.copyToChannel(samples,0);return buffer;
+}
+function makeRoom(context,seconds=2.3){
+  // A small wooden room: dense early reflections, then a soft, darkening tail.
+  const rate=context.sampleRate,length=Math.ceil(rate*seconds),impulse=context.createBuffer(2,length,rate);
+  for(let channel=0;channel<2;channel++){
+    const data=impulse.getChannelData(channel);let seed=77+channel*991,soft=0;
+    for(let i=0;i<length;i++){
+      seed=(Math.imul(seed,1664525)+1013904223)>>>0;const t=i/rate,white=seed/4294967296*2-1;
+      soft+=(white-soft)*Math.max(.08,.7-t*.3);
+      data[i]=soft*Math.pow(1-i/length,2.6)*(t<.012?t/.012:1)*.55;
+    }
+  }
+  return impulse;
 }
 export function createAudioRig(context,destination=context.destination){
   const input=context.createGain(),master=context.createGain(),analyser=context.createAnalyser();
@@ -37,12 +67,16 @@ export function createAudioRig(context,destination=context.destination){
     return{entry,output,dry,wet,pre,post,tone};
   }
   const gold=driveStage(),blue=driveStage(true);
-  const highpass=filter('highpass',65),cabinet=filter('lowpass',6600);
-  input.connect(highpass).connect(gold.entry);gold.output.connect(blue.entry);blue.output.connect(filter('highpass',35)).connect(cabinet);
+  const highpass=filter('highpass',65),cabinet=filter('lowpass',6600),presence=filter('peaking',2600,.9);
+  presence.gain.value=2.5;
+  input.connect(highpass).connect(gold.entry);gold.output.connect(blue.entry);blue.output.connect(filter('highpass',35)).connect(presence).connect(cabinet);
   const delay=context.createDelay(1),feedback=gain(.34),delaySend=gain(0),delayMix=gain(0),damping=filter('lowpass',3300);
   cabinet.connect(master);cabinet.connect(delaySend).connect(delay);
   delay.connect(damping).connect(feedback).connect(delay);
   delay.connect(delayMix).connect(master);
+  // Every note gets a little air, whichever pedals are on.
+  const room=context.createConvolver(),roomSend=gain(.2),roomTone=filter('lowpass',4200);
+  room.buffer=makeRoom(context);cabinet.connect(roomSend).connect(roomTone).connect(room).connect(master);delayMix.connect(roomSend);
   const compressor=context.createDynamicsCompressor();
   compressor.threshold.value=-12;compressor.knee.value=10;compressor.ratio.value=10;compressor.attack.value=.003;compressor.release.value=.14;
   // Catch short transients that can pass through the compressor's attack.
