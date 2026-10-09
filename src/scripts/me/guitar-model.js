@@ -39,13 +39,15 @@ async function init() {
   const photoImage=document.querySelector('#guitar-photo');
   photoImage.loading='eager';
   const originalPhoto=photoImage.decode().then(()=>{const texture=new THREE.Texture(photoImage);texture.needsUpdate=true;return texture;});
-  const [photo,bareBody,official,headOriginal]=await Promise.all([
+  const [photo,bareBody,official,backPhoto,headOriginal]=await Promise.all([
     loader.loadAsync(new URL('../../assets/me/qiu-potbelly-stringless.webp',import.meta.url).href),
     loader.loadAsync(new URL('../../assets/me/qiu-potbelly-bare-body.webp',import.meta.url).href),
     loader.loadAsync(new URL('../../assets/me/bangdream-potbelly-stringless.webp',import.meta.url).href),
+    // ESP's official back photograph, mirrored into the front photograph's frame (x = 2392 − x) and cropped at x = 760.
+    loader.loadAsync(new URL('../../assets/me/esp-rana-back.webp',import.meta.url).href),
     originalPhoto
   ]);
-  [photo,bareBody,official,headOriginal].forEach(t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());});
+  [photo,bareBody,official,backPhoto,headOriginal].forEach(t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());});
   await yieldTask();
 
   // A small studio environment supplies real moving reflections on the metal.
@@ -79,18 +81,99 @@ async function init() {
   };
   lighting.studio();
 
-  const metal=new THREE.MeshStandardMaterial({color:'#bfc3c1',metalness:1,roughness:.24,envMapIntensity:.85});
+  // Aged nickel rather than polished chrome.
+  const metal=new THREE.MeshStandardMaterial({color:'#c4bfb2',metalness:1,roughness:.3,envMapIntensity:.8});
   const darkMetal=new THREE.MeshStandardMaterial({color:'#424341',metalness:.8,roughness:.32});
   const cream=new THREE.MeshStandardMaterial({color:'#d9ca91',roughness:.38});
   const black=new THREE.MeshStandardMaterial({color:'#121513',roughness:.36});
-  const side=new THREE.MeshPhysicalMaterial({color:'#351015',roughness:.37,clearcoat:.35,clearcoatRoughness:.3});
-  const varnish=new THREE.MeshPhysicalMaterial({map:bareBody,roughness:.62,clearcoat:.55,clearcoatRoughness:.2,envMapIntensity:.32});
-  // Qiu's own photo darkens the lacquer towards purple. Grade only the red finish
-  // (not the bare-wood wear) towards the official Rāna photograph's warm cherry.
+  const side=new THREE.MeshPhysicalMaterial({color:'#4a1012',roughness:.55,clearcoat:.2,clearcoatRoughness:.4});
+
+  // ESP finishes the Rāna in "Distressed See Thru Wine Red (Lacquer)", aged by hand: a thin nitro
+  // satin over a flamed maple top and a mahogany back, worn through to bare wood where a player
+  // would wear it. Lacquer and bare wood are told apart by colour alone: wine red is almost pure red.
+  const finishGLSL=`
+    float lacquerOf(vec3 c,float a,float b){return smoothstep(a,b,(c.r-max(c.g,c.b))/max(c.r,.001));}
+    float hash3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+    float noise3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+      return mix(mix(mix(hash3(i),hash3(i+vec3(1,0,0)),f.x),mix(hash3(i+vec3(0,1,0)),hash3(i+vec3(1,1,0)),f.x),f.y),
+                 mix(mix(hash3(i+vec3(0,0,1)),hash3(i+vec3(1,0,1)),f.x),mix(hash3(i+vec3(0,1,1)),hash3(i+vec3(1,1,1)),f.x),f.y),f.z);}
+    // Nitro checks: a fine crazing of cracks, only in a few patches, as on ESP's upper horn.
+    float checking(vec2 p){
+      vec2 i=floor(p),f=fract(p);float d1=8.,d2=8.;
+      for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 g=vec2(x,y),o=vec2(hash3(vec3(i+g,1.)),hash3(vec3(i+g,7.)));float d=length(g+o-f);if(d<d1){d2=d1;d1=d;}else if(d<d2)d2=d;}
+      float e=d2-d1,w=fwidth(e)*1.2+.015;
+      return (1.-smoothstep(0.,w,e))*smoothstep(.06,.25,1./max(fwidth(p.x)*40.,.001));
+    }`;
+  const figure={value:0};
+  const varnish=new THREE.MeshPhysicalMaterial({map:bareBody,roughness:.5,clearcoat:.32,clearcoatRoughness:.38,envMapIntensity:.32});
   varnish.onBeforeCompile=shader=>{
+    shader.uniforms.figure=figure;
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform float figure;\n'+finishGLSL);
     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
-      float lacquer=smoothstep(.55,.85,(diffuseColor.r-max(diffuseColor.g,diffuseColor.b))/max(diffuseColor.r,.001));
-      diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.6,1.,1.35)+vec3(0.,.0075,.0016),lacquer);
+      float lacquer=lacquerOf(diffuseColor.rgb,.55,.85);
+      // Flamed maple is chatoyant: as the guitar turns, its curls swap light for dark.
+      // The curls run across the body, so their bright bands roll along its length; keep their
+      // contrast, deepen it a little as ESP's top shows, and shift which curls catch the light.
+      vec3 broad=texture2D(map,vMapUv,3.5).rgb;
+      vec3 rolled=texture2D(map,vMapUv+vec2(0.,figure*.0032)).rgb;
+      float broadLuma=dot(broad,vec3(.7,.25,.05))+.0005;
+      float curl=dot(diffuseColor.rgb,vec3(.7,.25,.05))/broadLuma,rolledCurl=dot(rolled,vec3(.7,.25,.05))/broadLuma;
+      diffuseColor.rgb*=mix(1.,clamp((1.+(rolledCurl-1.)*1.75)/max(curl,.05),.3,2.8),lacquer*smoothstep(.3,.6,lacquerOf(rolled,.55,.85)));
+      // Qiu's photo carries a little blue; ESP's lacquer is a pure, deep wine red (sRGB ≈ 75,0,0).
+      diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.08,.6,.22),lacquer);
+      // Bare maple that has 'aged' is a dirtier amber than fresh wood.
+      diffuseColor.rgb*=mix(vec3(.84,.76,.6),vec3(1.),lacquer);
+      vec2 photoPixel=vMapUv*vec2(1080.,1501.);
+      float checks=checking(photoPixel/11.)*smoothstep(.66,.82,noise3(vec3(photoPixel/150.,3.)))*lacquer;
+      diffuseColor.rgb*=1.-.25*checks;
+    `).replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+      roughnessFactor=mix(.86,roughnessFactor,lacquer);
+    `).replace('#include <lights_physical_fragment>',`#include <lights_physical_fragment>
+      material.clearcoat*=lacquer*(1.-checks);
+    `);
+  };
+  // ESP's back photograph covers the mahogany back, the scraped neck and the headstock's back.
+  const backFinish=new THREE.MeshPhysicalMaterial({map:backPhoto,roughness:.5,clearcoat:.3,clearcoatRoughness:.4,envMapIntensity:.3});
+  backFinish.onBeforeCompile=shader=>{
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\n'+finishGLSL);
+    shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+      float lacquer=lacquerOf(diffuseColor.rgb,.8,.95);
+    `).replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+      roughnessFactor=mix(.84,roughnessFactor,lacquer);
+    `).replace('#include <lights_physical_fragment>',`#include <lights_physical_fragment>
+      material.clearcoat*=lacquer;
+    `);
+  };
+  const backFinishInside=backFinish.clone();backFinishInside.side=THREE.BackSide;backFinishInside.onBeforeCompile=backFinish.onBeforeCompile;
+  // The sides: a natural maple binding along the top, then wine red over mahogany. Wear continues
+  // from whatever the front and back photographs show at that point of the edge, and edges rub through.
+  const sideFinish=new THREE.MeshPhysicalMaterial({map:bareBody,roughness:.5,clearcoat:.3,clearcoatRoughness:.4,envMapIntensity:.3});
+  sideFinish.onBeforeCompile=shader=>{
+    shader.uniforms.backMap={value:backPhoto};
+    shader.vertexShader='varying vec3 vSidePos;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvSidePos=position;');
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D backMap;\nvarying vec3 vSidePos;\n'+finishGLSL);
+    shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+      vec3 P=vSidePos;float height=clamp((P.z+.029)/.043,0.,1.);
+      vec2 photoPixel=vec2(vMapUv.x*1080.,(1.-vMapUv.y)*1501.);
+      vec2 backUv=vec2((8.+(photoPixel.x-6.6)*.8113)/870.,1.-(1262.+(photoPixel.y-77.6)*.7885)/2400.);
+      vec3 front=diffuseColor.rgb,back=texture2D(backMap,backUv).rgb;
+      float frontBare=1.-lacquerOf(front,.55,.85),backBare=1.-lacquerOf(back,.8,.95);
+      float chips=noise3(P*vec3(380.,380.,600.))*.65+noise3(P*vec3(1100.,1100.,1700.))*.35,patches=noise3(P*vec3(110.,110.,160.)+7.)*.7+noise3(P*vec3(330.,330.,480.)+3.)*.3;
+      float wear=max(frontBare*smoothstep(.3,.95,height),backBare*smoothstep(.7,.05,height));
+      wear=max(wear,smoothstep(.66,.8,patches))+(chips-.5)*.22+.4*(pow(height,12.)+pow(1.-height,12.));
+      float bare=smoothstep(.47,.53,wear);
+      float grain=noise3(vec3(P.xy*90.,P.z*2600.))*.6+noise3(vec3(P.xy*30.,P.z*700.))*.4;
+      float curl=noise3(vec3(P.xy*520.,P.z*25.));
+      float binding=smoothstep(.0055,.0065,P.z);
+      vec3 mahogany=mix(vec3(.105,.003,.003)*(.75+.5*grain),vec3(.17,.05,.012)*(.7+.6*grain),bare);
+      mahogany=mix(mahogany,back,smoothstep(.12,0.,height)*(1.-bare));
+      vec3 maple=mix(vec3(.6,.36,.11)*(.7+.5*curl),vec3(.5,.38,.22)*(.8+.3*curl),bare);
+      diffuseColor.rgb=mix(mahogany,maple,binding);
+      float lacquer=1.-bare;
+    `).replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+      roughnessFactor=mix(.84,roughnessFactor,lacquer);
+    `).replace('#include <lights_physical_fragment>',`#include <lights_physical_fragment>
+      material.clearcoat*=lacquer;
     `);
   };
   const photographedMetal=new THREE.MeshStandardMaterial({map:photo,metalness:.35,roughness:.38,envMapIntensity:.5});
@@ -158,9 +241,13 @@ async function init() {
     wallIndices.push(a,c,b,b,c,d);
   }
   const wallGeometry=new THREE.BufferGeometry();wallGeometry.setAttribute('position',new THREE.Float32BufferAttribute(wallPositions,3));wallGeometry.setAttribute('normal',new THREE.Float32BufferAttribute(wallNormals,3));wallGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(wallUV,2));wallGeometry.setIndex(wallIndices);
-  wallGeometry.addGroup(0,count*6*3,0);wallGeometry.addGroup(count*6*3,wallIndices.length-count*6*3,1);
-  const body=mesh(wallGeometry,[varnish,side]);body.name='Continuous rounded 55 mm body';
-  const backMaterial=side.clone();backMaterial.side=THREE.BackSide;mesh(new THREE.ShapeGeometry(faceOutline),backMaterial,0,0,-.029);
+  wallGeometry.addGroup(0,count*6,0);wallGeometry.addGroup(count*6,wallIndices.length-count*6,1);
+  const body=mesh(wallGeometry,[varnish,sideFinish]);body.name='Continuous rounded 55 mm body';
+  // The back is registered to the outline: the photograph's body spans x 768–1615, y 1262–2377.
+  const backUV=(x,y)=>[(8+(x/S+540-6.6)*.8113)/870,1-(1262+(1000-y/S-77.6)*.7885)/2400];
+  const backFace=new THREE.ShapeGeometry(faceOutline,12);
+  {const p=backFace.attributes.position,uv=backFace.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,...backUV(p.getX(i),p.getY(i)));}
+  mesh(backFace,backFinishInside,0,0,-.029);
 
   // Build the unchanged carved top away from the input/rendering thread.
   const flat=new THREE.ShapeGeometry(faceOutline).toNonIndexed();
@@ -205,7 +292,21 @@ async function init() {
     const strip=new THREE.Shape();strip.moveTo(neckX-wa,a);strip.lineTo(neckX-wb,b);strip.lineTo(neckX+wb,b);strip.lineTo(neckX+wa,a);strip.closePath();
     photoFace(strip,official,boardUV,.022);
   }
-  const neckBack=mesh(new THREE.CylinderGeometry(.021,.029,.477,24),side,neckX,.374,-.010);neckBack.scale.z=.7;
+  // The back of the neck is scraped to bare mahogany; project ESP's photograph onto it with the
+  // fingerboard's own fret registration, extrapolated past the last fret into the heel.
+  const pixelAt=y=>{
+    if(y<.153)return 1523+(.153-y)*(1523-1498)/(boardRows[22].y-.153);
+    let i=0;while(i<boardRows.length-2&&y<boardRows[i+1].y)i++;
+    const a=boardRows[i],b=boardRows[i+1];return a.pixel+(b.pixel-a.pixel)*limit((a.y-y)/(a.y-b.y),0,1);
+  };
+  const neckGeometry=new THREE.CylinderGeometry(.021,.029,.477,32,24);
+  {const p=neckGeometry.attributes.position,uv=neckGeometry.attributes.uv;
+    for(let i=0;i<p.count;i++){
+      const y=.374+p.getY(i),py=pixelAt(y),halfWidth=(.021+(.6125-y)/.477*.008),photoHalf=(108+(py-365)/(1523-365)*36)/2;
+      const px=1198+limit(p.getX(i)/halfWidth,-.96,.96)*photoHalf;
+      uv.setXY(i,(px-760)/870,1-py/2400);
+    }}
+  const neckBack=mesh(neckGeometry,backFinish,neckX,.374,-.010);neckBack.scale.z=.7;
   for(let fret=1;fret<=22;fret++) {
     const y=fretY(fret),w=.043+(nut-y)/(nut-.153)*.016;
     const crown=rod([neckX-w/2+.0008,y,.0226],[neckX+w/2-.0008,y,.0226],.00105);
@@ -236,12 +337,15 @@ async function init() {
   hc(1290,257,1303,282,1296,291);hc(1278,309,1255,321,1251,360);
   hp(1144,360);head.closePath();
   mesh(new THREE.ExtrudeGeometry(head,{depth:.014,curveSegments:18,bevelEnabled:true,bevelSize:.00045,bevelThickness:.0005,bevelSegments:3}),side,0,0,-.008,headGroup);
+  const headBack=new THREE.ShapeGeometry(head,18);
+  {const p=headBack.attributes.position,uv=headBack.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,(1198+(p.getX(i)-neckX)/headScale-760)/870,1-(365-p.getY(i)/headScale)/2400);}
+  mesh(headBack,backFinishInside,0,0,-.0088,headGroup);
   const posts=[{px:1154,py:100,bx:1093,by:104},{px:1146,py:178,bx:1082,by:183},{px:1135,py:254,bx:1073,by:257},{px:1237,py:100,bx:1298,by:106},{px:1246,py:179,bx:1309,by:186},{px:1258,py:257,bx:1320,by:263}];
   // Cut the original washers out of the flat face. Their pixels belong only to the relief.
   for(const post of posts){const hole=new THREE.Path();hole.absarc(HX(post.px),HY(post.py),18*headScale,0,Math.PI*2,true);head.holes.push(hole);}
   const headFace=photoFace(head,headOriginal,headUV,.007,headGroup);
   // The headstock is gloss black: a sharp window reflection, not a grey satin film.
-  headFace.material.roughness=.12;headFace.material.envMapIntensity=.55;
+  headFace.material.roughness=.2;headFace.material.envMapIntensity=.22;
   // Keep the original high-resolution lettering and wear. Use the cleaned texture
   // only inside the six narrow string corridors, where the source has baked strings.
   const stringCorridors=Array.from({length:6},(_,i)=>{
@@ -261,6 +365,9 @@ async function init() {
         cleanMask=max(cleanMask,1.0-smoothstep(3.0,5.0,length(headPixel-mix(a,b,t))));
       }
       diffuseColor.rgb=diffuse*mix(texture2D(map,vMapUv).rgb,texture2D(cleanHead,vMapUv).rgb,cleanMask);
+    `).replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
+      // A flat face catches the sun all at once; let it glint, not turn white.
+      reflectedLight.directSpecular*=.28;
     `);
   };
   const headChrome=new THREE.MeshStandardMaterial({map:headOriginal,metalness:.5,roughness:.3,envMapIntensity:.6});
@@ -338,7 +445,7 @@ async function init() {
   }
   // Prepare GPU programs while the worker is still calculating the carved top.
   // The wall already uses the top's material, so every shader variant is present.
-  for(const texture of [photo,bareBody,official,headOriginal]){await yieldTask();renderer.initTexture(texture);}
+  for(const texture of [photo,bareBody,official,backPhoto,headOriginal]){await yieldTask();renderer.initTexture(texture);}
   await yieldTask();
   const shadersReady=renderer.compileAsync(scene,camera);
   const surfaceData=await surfacePromise;
@@ -375,7 +482,7 @@ async function init() {
     size(w,h);
     const [focus,extent]=views[view];
     const fit=Math.max(extent,(view==='body'?.39:view==='whole'?.4:.10)/(w/h));
-    compose(focus,fit/zoom,w/h,pitch,yaw);lighting.studio();renderer.render(scene,camera);
+    compose(focus,fit/zoom,w/h,pitch,yaw);lighting.studio();figure.value=Math.sin(yaw*2.6+pitch*2.2);renderer.render(scene,camera);
     canvas.dataset.yaw=yaw.toFixed(3);canvas.dataset.pitch=pitch.toFixed(3);canvas.dataset.zoom=zoom.toFixed(2);canvas.dataset.view=view;
     lastHome='';
   }
@@ -384,7 +491,7 @@ async function init() {
     canvas,
     drawHome(x,y){
       const signature=`${x.toFixed(3)},${y.toFixed(3)}`;if(signature===lastHome)return;
-      size(850,850);compose(.300,1.02,1,y*.10,-.08+x*.44);lighting.room();renderer.render(scene,camera);lastHome=signature;
+      size(850,850);compose(.300,1.02,1,y*.10,-.08+x*.44);lighting.room();figure.value=Math.sin((x*.44)*2.6+y*.22);renderer.render(scene,camera);lastHome=signature;
     },
     setDetail(name){view=name;zoom=1;requestRender();}
   };
@@ -394,7 +501,7 @@ async function init() {
   canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,pitch};canvas.setPointerCapture(e.pointerId);canvas.classList.add('turning');canvas.focus({preventScroll:true});});
   canvas.addEventListener('pointermove',e=>{
     if(drag&&e.pointerType==='mouse'&&e.buttons===0)release(e);
-    if(drag&&drag.id===e.pointerId){yaw=limit(drag.yaw+(e.clientX-drag.x)*.007,-1.12,1.12);pitch=limit(drag.pitch+(e.clientY-drag.y)*.005,-.38,.38);requestRender();}
+    if(drag&&drag.id===e.pointerId){yaw=drag.yaw+(e.clientX-drag.x)*.007;pitch=limit(drag.pitch+(e.clientY-drag.y)*.005,-.38,.38);requestRender();}
     else if(e.pointerType==='mouse'){const rect=canvas.getBoundingClientRect();studioKeyX=-2+(e.clientX-rect.left)/rect.width*1.3;requestRender();}
   });
   function release(e){if(!drag||drag.id!==e.pointerId)return;drag=null;canvas.classList.remove('turning');if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);}
@@ -408,7 +515,7 @@ async function init() {
     if(e.key===' ')reset();
     else if(e.key==='+')zoom=limit(zoom*1.15,.7,2.3);
     else if(e.key==='-')zoom=limit(zoom/1.15,.7,2.3);
-    else {yaw=limit(yaw+(e.key==='ArrowRight'?.12:e.key==='ArrowLeft'?-.12:0),-1.12,1.12);pitch=limit(pitch+(e.key==='ArrowDown'?.08:e.key==='ArrowUp'?-.08:0),-.38,.38);}
+    else {yaw+=e.key==='ArrowRight'?.12:e.key==='ArrowLeft'?-.12:0;pitch=limit(pitch+(e.key==='ArrowDown'?.08:e.key==='ArrowUp'?-.08:0),-.38,.38);}
     requestRender();
   });
   dialog.addEventListener('close',()=>{lastHome='';window.dispatchEvent(new Event('guitar-model-ready'));});
