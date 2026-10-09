@@ -120,6 +120,6 @@ const mapPlaces = [
       </div>
       <div class="guitar-stage" data-view="body"><img id="guitar-photo" src={guitarPhoto.src} width="2400" height="2400" decoding="async" fetchpriority="low" alt={t("模型载入前的 BanG Dream! POTBELLY FM Rāna 官方外形参考", "Official BanG Dream! POTBELLY FM Rāna reference photograph, shown while the model loads")} draggable="false"></div>
     </div>
-    <div class="guitar-handling"><span>{t("拖动转动 · 滚轮靠近", "Drag to turn · Scroll to get closer")}</span><button id="guitar-reset" type="button">{t("正过来", "Face the front")} <Icon name="southwest" /></button></div>
+    <div class="guitar-handling"><span class="guitar-drag" role="group" aria-label={t("拖动方式", "What dragging does")}><button type="button" data-drag-mode="turn" aria-pressed="true">{t("拖动转动", "Drag to turn")}</button><button type="button" data-drag-mode="move" aria-pressed="false">{t("拖动移动", "Drag to move")}</button></span><span>{t("滚轮靠近", "Scroll to get closer")}</span><button id="guitar-reset" type="button">{t("正过来", "Face the front")} <Icon name="southwest" /></button></div>
     <span class="guitar-credit">{t("琴身纹理来自我的实拍", "Body texture from my own photograph")}</span>
   </dialog>

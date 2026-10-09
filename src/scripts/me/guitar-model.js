@@ -11,7 +11,7 @@ const stage=document.querySelector('.guitar-stage');
 const dialog=document.querySelector('#guitar-closeup');
 const canvas=document.createElement('canvas');
 canvas.id='guitar-model';canvas.tabIndex=0;
-canvas.setAttribute('aria-label',t("三维吉他。拖动转动，滚轮缩放，方向键转动，空格复位。","3D guitar. Drag or use arrow keys to turn, scroll to zoom, and press Space to reset."));
+canvas.setAttribute('aria-label',t("三维吉他。拖动转动，右键或 Shift 拖动移动，滚轮靠近；方向键转动，Shift 加方向键移动，空格复位。","3D guitar. Drag to turn, right-drag or Shift-drag to move along it, scroll to get closer. Arrow keys turn, Shift with arrow keys moves, Space resets."));
 stage.append(canvas);
 
 const yieldTask=()=>window.scheduler?.yield?window.scheduler.yield():new Promise(resolve=>setTimeout(resolve,0));
@@ -86,29 +86,74 @@ async function init() {
   const darkMetal=new THREE.MeshStandardMaterial({color:'#424341',metalness:.8,roughness:.32});
   const cream=new THREE.MeshStandardMaterial({color:'#d9ca91',roughness:.38});
   const black=new THREE.MeshStandardMaterial({color:'#121513',roughness:.36});
-  const side=new THREE.MeshPhysicalMaterial({color:'#4a1012',roughness:.55,clearcoat:.2,clearcoatRoughness:.4});
-
-  // ESP finishes the Rāna in "Distressed See Thru Wine Red (Lacquer)", aged by hand: a thin nitro
-  // satin over a flamed maple top and a mahogany back, worn through to bare wood where a player
-  // would wear it. Lacquer and bare wood are told apart by colour alone: wine red is almost pure red.
+  // ESP finishes the Rāna in "Distressed See Thru Wine Red (Lacquer)", aged by hand: nitro over a
+  // flamed maple top and a mahogany back, worn through to bare wood where a player would wear it.
+  // Lacquer and bare wood are told apart by colour alone: wine red is almost pure red.
   const finishGLSL=`
+    varying vec3 vCrackPos,vObjX,vObjY,vObjZ;
     float lacquerOf(vec3 c,float a,float b){return smoothstep(a,b,(c.r-max(c.g,c.b))/max(c.r,.001));}
     float hash3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+    vec3 hash33(vec3 p){p=fract(p*vec3(.1031,.103,.0973));p+=dot(p,p.yxz+33.33);return fract((p.xxy+p.yxx)*p.zyx);}
     float noise3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
       return mix(mix(mix(hash3(i),hash3(i+vec3(1,0,0)),f.x),mix(hash3(i+vec3(0,1,0)),hash3(i+vec3(1,1,0)),f.x),f.y),
                  mix(mix(hash3(i+vec3(0,0,1)),hash3(i+vec3(1,0,1)),f.x),mix(hash3(i+vec3(0,1,1)),hash3(i+vec3(1,1,1)),f.x),f.y),f.z);}
-    // Nitro checks: a fine crazing of cracks, only in a few patches, as on ESP's upper horn.
-    float checking(vec2 p){
-      vec2 i=floor(p),f=fract(p);float d1=8.,d2=8.;
-      for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 g=vec2(x,y),o=vec2(hash3(vec3(i+g,1.)),hash3(vec3(i+g,7.)));float d=length(g+o-f);if(d<d1){d2=d1;d1=d;}else if(d<d2)d2=d;}
-      float e=d2-d1,w=fwidth(e)*1.2+.015;
-      return (1.-smoothstep(0.,w,e))*smoothstep(.06,.25,1./max(fwidth(p.x)*40.,.001));
+    // Nitro checking: hairline cracks split the lacquer into small plates. A solid pattern in the
+    // guitar's own coordinates, so it runs unbroken over every edge. Fades once a plate is a few pixels.
+    float crackle(vec3 P,float size,out vec3 cell,out float seen){
+      vec3 p=P/size,i=floor(p),f=fract(p);float d1=8.,d2=8.;cell=i;
+      seen=smoothstep(.5,.14,length(fwidth(p)));
+      if(seen<=0.)return 0.;  // too small to see (the home view): skip the search
+      for(int z=-1;z<=1;z++)for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){
+        vec3 g=vec3(x,y,z),r=g+hash33(i+g)-f;float d=dot(r,r);
+        if(d<d1){d2=d1;d1=d;cell=i+g;}else if(d<d2)d2=d;
+      }
+      float e=sqrt(d2)-sqrt(d1),w=fwidth(e)*1.2+.015;
+      return 1.-smoothstep(0.,w,e);
     }`;
+  // Checks cover the whole instrument: every plate sits at its own slight angle, so a reflection
+  // breaks into a mosaic while the lacquer still shines. Needs a float named lacquer (0 on bare wood).
+  const checkingGLSL=`
+      vec3 plate,finePlate;float plateSeen,fineSeen;
+      // Plates run a little longer across the grain, and some of their edges never opened, so the
+      // network reads as cracks rather than tiles.
+      vec3 crackPos=vCrackPos*vec3(.7,1.,1.);
+      float crack=crackle(crackPos,.0029,plate,plateSeen),fineCrack=crackle(crackPos+.37,.0013,finePlate,fineSeen);
+      crack*=.35+.65*smoothstep(.3,.55,noise3(vCrackPos*420.));fineCrack*=smoothstep(.45,.65,noise3(vCrackPos*260.+5.));
+      float checks=max(crack*plateSeen,fineCrack*fineSeen*.55)*lacquer;
+      diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.74+vec3(.012,.008,.006),checks);
+      vec3 plateTilt=mat3(vObjX,vObjY,vObjZ)*((hash33(plate*1.7+4.)-.5)*.018*plateSeen+(hash33(finePlate*2.3+9.)-.5)*.008*fineSeen)*lacquer;
+  `;
+  const tiltCoat=`
+      clearcoatNormal=normalize(clearcoatNormal+plateTilt-dot(plateTilt,clearcoatNormal)*clearcoatNormal);`;
+  // Gloss lacquer that still reads as old: a slightly soft coat, killed in the cracks, and a little
+  // duller where plates are too small to resolve (their scattered angles blur the reflection).
+  const coat=`
+      material.clearcoat*=lacquer*(1.-.85*checks);
+      material.clearcoatRoughness=min(1.,material.clearcoatRoughness+.06*(1.-plateSeen)+.05*hash3(plate+2.));`;
+  function crackedLacquer(shader,clearcoat=true) {
+    shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vCrackPos,vObjX,vObjY,vObjZ;')
+      .replace('#include <begin_vertex>','#include <begin_vertex>\nvCrackPos=position;vObjX=normalMatrix[0];vObjY=normalMatrix[1];vObjZ=normalMatrix[2];');
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\n'+finishGLSL);
+    // Without a clear coat the plates tilt the surface itself.
+    if(!clearcoat){shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nnormal=normalize(normal+plateTilt-dot(plateTilt,normal)*normal);');return;}
+    shader.fragmentShader=shader.fragmentShader
+      .replace('#include <clearcoat_normal_fragment_maps>','#include <clearcoat_normal_fragment_maps>'+tiltCoat)
+      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>'+coat);
+  }
+  // The wood under the coat is matte; the shine is the coat's alone.
+  const lacquerCoat={roughness:.6,specularIntensity:.35,clearcoat:.9,clearcoatRoughness:.2,envMapIntensity:.5};
+  // The headstock's edges: wine red over mahogany, checked like everything else.
+  const side=new THREE.MeshPhysicalMaterial({color:'#3c0507',...lacquerCoat});
+  side.onBeforeCompile=shader=>{
+    crackedLacquer(shader);
+    shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nfloat lacquer=1.;'+checkingGLSL);
+  };
   const figure={value:0};
-  const varnish=new THREE.MeshPhysicalMaterial({map:bareBody,roughness:.5,clearcoat:.32,clearcoatRoughness:.38,envMapIntensity:.32});
+  const varnish=new THREE.MeshPhysicalMaterial({map:bareBody,...lacquerCoat});
   varnish.onBeforeCompile=shader=>{
     shader.uniforms.figure=figure;
-    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform float figure;\n'+finishGLSL);
+    crackedLacquer(shader);
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform float figure;');
     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
       float lacquer=lacquerOf(diffuseColor.rgb,.55,.85);
       // Flamed maple is chatoyant: as the guitar turns, its curls swap light for dark.
@@ -123,37 +168,32 @@ async function init() {
       diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.08,.6,.22),lacquer);
       // Bare maple that has 'aged' is a dirtier amber than fresh wood.
       diffuseColor.rgb*=mix(vec3(.84,.76,.6),vec3(1.),lacquer);
-      vec2 photoPixel=vMapUv*vec2(1080.,1501.);
-      float checks=checking(photoPixel/11.)*smoothstep(.66,.82,noise3(vec3(photoPixel/150.,3.)))*lacquer;
-      diffuseColor.rgb*=1.-.25*checks;
+      ${checkingGLSL}
     `).replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
       roughnessFactor=mix(.86,roughnessFactor,lacquer);
-    `).replace('#include <lights_physical_fragment>',`#include <lights_physical_fragment>
-      material.clearcoat*=lacquer*(1.-checks);
     `);
   };
   // ESP's back photograph covers the mahogany back, the scraped neck and the headstock's back.
-  const backFinish=new THREE.MeshPhysicalMaterial({map:backPhoto,roughness:.5,clearcoat:.3,clearcoatRoughness:.4,envMapIntensity:.3});
+  const backFinish=new THREE.MeshPhysicalMaterial({map:backPhoto,...lacquerCoat});
   backFinish.onBeforeCompile=shader=>{
-    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\n'+finishGLSL);
+    crackedLacquer(shader);
     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
-      float lacquer=lacquerOf(diffuseColor.rgb,.8,.95);
+      float lacquer=lacquerOf(diffuseColor.rgb,.55,.8);
+      ${checkingGLSL}
     `).replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
       roughnessFactor=mix(.84,roughnessFactor,lacquer);
-    `).replace('#include <lights_physical_fragment>',`#include <lights_physical_fragment>
-      material.clearcoat*=lacquer;
     `);
   };
   const backFinishInside=backFinish.clone();backFinishInside.side=THREE.BackSide;backFinishInside.onBeforeCompile=backFinish.onBeforeCompile;
   // The sides: a natural maple binding along the top, then wine red over mahogany. Wear continues
   // from whatever the front and back photographs show at that point of the edge, and edges rub through.
-  const sideFinish=new THREE.MeshPhysicalMaterial({map:bareBody,roughness:.5,clearcoat:.3,clearcoatRoughness:.4,envMapIntensity:.3});
+  const sideFinish=new THREE.MeshPhysicalMaterial({map:bareBody,...lacquerCoat});
   sideFinish.onBeforeCompile=shader=>{
     shader.uniforms.backMap={value:backPhoto};
-    shader.vertexShader='varying vec3 vSidePos;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvSidePos=position;');
-    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D backMap;\nvarying vec3 vSidePos;\n'+finishGLSL);
+    crackedLacquer(shader);
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D backMap;');
     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
-      vec3 P=vSidePos;float height=clamp((P.z+.029)/.043,0.,1.);
+      vec3 P=vCrackPos;float height=clamp((P.z+.029)/.043,0.,1.);
       vec2 photoPixel=vec2(vMapUv.x*1080.,(1.-vMapUv.y)*1501.);
       vec2 backUv=vec2((8.+(photoPixel.x-6.6)*.8113)/870.,1.-(1262.+(photoPixel.y-77.6)*.7885)/2400.);
       vec3 front=diffuseColor.rgb,back=texture2D(backMap,backUv).rgb;
@@ -170,10 +210,9 @@ async function init() {
       vec3 maple=mix(vec3(.6,.36,.11)*(.7+.5*curl),vec3(.5,.38,.22)*(.8+.3*curl),bare);
       diffuseColor.rgb=mix(mahogany,maple,binding);
       float lacquer=1.-bare;
+      ${checkingGLSL}
     `).replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
       roughnessFactor=mix(.84,roughnessFactor,lacquer);
-    `).replace('#include <lights_physical_fragment>',`#include <lights_physical_fragment>
-      material.clearcoat*=lacquer;
     `);
   };
   const photographedMetal=new THREE.MeshStandardMaterial({map:photo,metalness:.35,roughness:.38,envMapIntensity:.5});
@@ -272,7 +311,8 @@ async function init() {
   const nut=.608,bridgeY=Y(1065),neckX=.007;
   const neckStart=guitar.children.length;
   const board=new THREE.Shape();board.moveTo(neckX-.0295,.153);board.lineTo(neckX+.0295,.153);board.lineTo(neckX+.0215,nut);board.lineTo(neckX-.0215,nut);board.closePath();
-  mesh(new THREE.ExtrudeGeometry(board,{depth:.012,bevelEnabled:true,bevelSize:.0015,bevelThickness:.0015,bevelSegments:3}),maple,0,0,.008);
+  // A 6 mm hard maple board, glued onto the mahogany neck below.
+  mesh(new THREE.ExtrudeGeometry(board,{depth:.003,bevelEnabled:true,bevelSize:.0015,bevelThickness:.0015,bevelSegments:3}),maple,0,0,.017);
   // Register every photographed fret to its physical position, not a stretched crop.
   const fretPixels=[365,455,536,613,688,757,823,882,943,999,1049,1099,1148,1193,1235,1275,1313,1348,1380,1413,1442,1471,1498,1523];
   const fretY=fret=>nut-.628*(1-2**(-fret/12));
@@ -292,21 +332,6 @@ async function init() {
     const strip=new THREE.Shape();strip.moveTo(neckX-wa,a);strip.lineTo(neckX-wb,b);strip.lineTo(neckX+wb,b);strip.lineTo(neckX+wa,a);strip.closePath();
     photoFace(strip,official,boardUV,.022);
   }
-  // The back of the neck is scraped to bare mahogany; project ESP's photograph onto it with the
-  // fingerboard's own fret registration, extrapolated past the last fret into the heel.
-  const pixelAt=y=>{
-    if(y<.153)return 1523+(.153-y)*(1523-1498)/(boardRows[22].y-.153);
-    let i=0;while(i<boardRows.length-2&&y<boardRows[i+1].y)i++;
-    const a=boardRows[i],b=boardRows[i+1];return a.pixel+(b.pixel-a.pixel)*limit((a.y-y)/(a.y-b.y),0,1);
-  };
-  const neckGeometry=new THREE.CylinderGeometry(.021,.029,.477,32,24);
-  {const p=neckGeometry.attributes.position,uv=neckGeometry.attributes.uv;
-    for(let i=0;i<p.count;i++){
-      const y=.374+p.getY(i),py=pixelAt(y),halfWidth=(.021+(.6125-y)/.477*.008),photoHalf=(108+(py-365)/(1523-365)*36)/2;
-      const px=1198+limit(p.getX(i)/halfWidth,-.96,.96)*photoHalf;
-      uv.setXY(i,(px-760)/870,1-py/2400);
-    }}
-  const neckBack=mesh(neckGeometry,backFinish,neckX,.374,-.010);neckBack.scale.z=.7;
   for(let fret=1;fret<=22;fret++) {
     const y=fretY(fret),w=.043+(nut-y)/(nut-.153)*.016;
     const crown=rod([neckX-w/2+.0008,y,.0226],[neckX+w/2-.0008,y,.0226],.00105);
@@ -337,10 +362,53 @@ async function init() {
   hc(1290,257,1303,282,1296,291);hc(1278,309,1255,321,1251,360);
   hp(1144,360);head.closePath();
   mesh(new THREE.ExtrudeGeometry(head,{depth:.014,curveSegments:18,bevelEnabled:true,bevelSize:.00045,bevelThickness:.0005,bevelSegments:3}),side,0,0,-.008,headGroup);
+  // ESP's back photograph sees the headstock less foreshortened than the front one: its rows run
+  // 1.161 times as far, from 12 px higher (fitted to the six tuner buttons). Below the nut the
+  // neck runs 2611 px per metre, which lands the bass horn where the body's registration puts it.
+  const backRow=py=>-11.9+1.161*py;
+  const headBackUV=(x,y)=>[(1198+(x-neckX)/headScale-760)/870,1-backRow(365-y/headScale)/2400];
   const headBack=new THREE.ShapeGeometry(head,18);
-  {const p=headBack.attributes.position,uv=headBack.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,(1198+(p.getX(i)-neckX)/headScale-760)/870,1-(365-p.getY(i)/headScale)/2400);}
+  {const p=headBack.attributes.position,uv=headBack.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,...headBackUV(p.getX(i),p.getY(i)));}
   mesh(headBack,backFinishInside,0,0,-.0088,headGroup);
-  const posts=[{px:1154,py:100,bx:1093,by:104},{px:1146,py:178,bx:1082,by:183},{px:1135,py:254,bx:1073,by:257},{px:1237,py:100,bx:1298,by:106},{px:1246,py:179,bx:1309,by:186},{px:1258,py:257,bx:1320,by:263}];
+
+  // One neck, not a tube under a plank: a C-shaped mahogany shaft under the board swells into a
+  // volute behind the nut and flows into the headstock. As on ESP's photograph, the shaft ends in
+  // a short step onto a heel block that fills the neck pocket flush with the back, as far up as
+  // the bass horn hugs the neck.
+  const tilt=THREE.MathUtils.degToRad(10),tiltSin=Math.sin(tilt),tiltCos=Math.cos(tilt);
+  const headPlane=(z,y)=>.016+z*tiltCos-tiltSin*(y-nut-z*tiltSin)/tiltCos;
+  const lift=y=>limit((nut-y)/(nut-.153),0,1)*.012;
+  const smin=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k/4;};
+  const signedPow=(v,e)=>Math.sign(v)*Math.abs(v)**e;
+  const neckPositions=[],neckUV=[],neckIndex=[],rows=140,arc=44,ring=arc+3;
+  for(let j=0;j<=rows;j++) {
+    const y=.1575+(nut+.055-.1575)*j/rows,along=limit((nut-y)/(nut-.153),0,1.02);
+    const heel=1-THREE.MathUtils.smoothstep(y,.226,.256);
+    const boardHalf=THREE.MathUtils.lerp((.043+along*.016)/2+.0011,.0308,heel);
+    const half=THREE.MathUtils.lerp(boardHalf,.0207-Math.max(0,y-nut-.008)*.05,THREE.MathUtils.smoothstep(y,nut-.006,nut+.008));
+    const top=y<=nut?.0158+lift(y):Math.min(.0158,headPlane(.004,y));
+    const neckBack=y<=nut?.0215+lift(y)-(.0205+limit((nut-y)/(nut-.153),0,1)*.0045):.001;
+    const back=THREE.MathUtils.lerp(smin(neckBack,headPlane(-.0088,y)+.0006,.007),-.0288,heel);
+    // Square against the bass horn, and wide enough at the back to meet the body's rounded-over
+    // edge; on the treble side, where the cutaway leaves the neck early, it rounds off like the carve.
+    const shoulder=top-.0035,depth=Math.max(shoulder-back,.002),bass=2.3+heel*6,treble=2.3+heel*(1-THREE.MathUtils.smoothstep(y,.168,.2))*6;
+    const section=[[-half,top]];
+    for(let k=0;k<=arc;k++){const a=Math.PI*(1+k/arc),n=THREE.MathUtils.lerp(bass,treble,THREE.MathUtils.smoothstep(k/arc,.5,1));const low=Math.abs(Math.sin(a))**(2/n);section.push([signedPow(Math.cos(a),2/n)*half+Math.sign(Math.cos(a))*.0016*heel*low,shoulder-depth*low]);}
+    section.push([half,top]);
+    // Unroll the photograph around the profile, so the sides keep its grain instead of streaks.
+    const lengths=[0];for(let k=1;k<section.length;k++)lengths.push(lengths[k-1]+Math.hypot(section[k][0]-section[k-1][0],section[k][1]-section[k-1][1]));
+    const row=y<=nut?412+(nut-y)*2611:backRow(365-(y-nut)/tiltCos/headScale);
+    section.forEach(([x,z],k)=>{
+      neckPositions.push(neckX+x,y,z);
+      neckUV.push((1198+(2*lengths[k]/lengths.at(-1)-1)*half*.97/headScale-760)/870,1-row/2400);
+    });
+  }
+  for(let j=0;j<rows;j++)for(let k=0;k<ring-1;k++){const a=j*ring+k,b=a+1,c=a+ring,d=c+1;neckIndex.push(a,c,b,b,c,d);}
+  const neckGeometry=new THREE.BufferGeometry();
+  neckGeometry.setAttribute('position',new THREE.Float32BufferAttribute(neckPositions,3));neckGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(neckUV,2));
+  neckGeometry.setIndex(neckIndex);neckGeometry.computeVertexNormals();
+  mesh(neckGeometry,backFinish).name='Neck, volute and heel';
+  const posts=[{px:1154,py:100},{px:1146,py:178},{px:1135,py:254},{px:1237,py:100},{px:1246,py:179},{px:1258,py:257}];
   // Cut the original washers out of the flat face. Their pixels belong only to the relief.
   for(const post of posts){const hole=new THREE.Path();hole.absarc(HX(post.px),HY(post.py),18*headScale,0,Math.PI*2,true);head.holes.push(hole);}
   const headFace=photoFace(head,headOriginal,headUV,.007,headGroup);
@@ -356,6 +424,7 @@ async function init() {
   headFace.material.onBeforeCompile=shader=>{
     shader.uniforms.cleanHead={value:official};shader.uniforms.stringCorridors={value:stringCorridors};
     shader.fragmentShader='uniform sampler2D cleanHead;\nuniform vec4 stringCorridors[6];\n'+shader.fragmentShader;
+    crackedLacquer(shader,false);
     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
       vec2 headPixel=vec2(vMapUv.x,1.0-vMapUv.y)*2400.0;
       float cleanMask=0.0;
@@ -365,6 +434,9 @@ async function init() {
         cleanMask=max(cleanMask,1.0-smoothstep(3.0,5.0,length(headPixel-mix(a,b,t))));
       }
       diffuseColor.rgb=diffuse*mix(texture2D(map,vMapUv).rgb,texture2D(cleanHead,vMapUv).rgb,cleanMask);
+      // The black face is nitro too, and checked like the rest.
+      float lacquer=1.;
+      ${checkingGLSL}
     `).replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
       // A flat face catches the sun all at once; let it glint, not turn white.
       reflectedLight.directSpecular*=.28;
@@ -372,7 +444,7 @@ async function init() {
   };
   const headChrome=new THREE.MeshStandardMaterial({map:headOriginal,metalness:.5,roughness:.3,envMapIntensity:.6});
   for(const [index,post] of posts.entries()) {
-    const x=HX(post.px),y=HY(post.py),bx=HX(post.bx),by=HY(post.by);
+    const x=HX(post.px),y=HY(post.py);
     // Concentric, photo-registered mesh rings give each washer and post real height.
     const rings=[[18,.007],[15,.008],[13,.009],[8,.009],[6,.013],[5,.017],[0,.017]],pos=[],uv=[],idx=[];
     for(const [radius,z] of rings)for(let k=0;k<=48;k++){
@@ -382,10 +454,36 @@ async function init() {
     for(let j=0;j<rings.length-1;j++)for(let k=0;k<48;k++){const a=j*49+k,b=a+49;idx.push(a,a+1,b,b,a+1,b+1);}
     const relief=new THREE.BufferGeometry();relief.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));relief.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));relief.setIndex(idx);relief.computeVertexNormals();
     mesh(relief,headChrome,0,0,0,headGroup).name=`Tuner post ${index+1}`;
-    roundBox(.010,.016,.005,.003,metal,x,y,-.014,headGroup);
-    rod([x,by,-.007],[bx,by,-.007],.0019,metal,headGroup);
-    const button=mesh(new THREE.SphereGeometry(1,32,20),metal,bx,by,-.007,headGroup);
-    button.scale.set(.0052,.007,.0035);button.rotation.z=(bx<x?1:-1)*.10;
+  }
+  // GOTOH tuners, laid out from ESP's back photograph (front-frame x, back-photo rows): a worm
+  // barrel, a round gear case under a stamped cover, a flange screwed to the wood, and a small,
+  // rounded oval button on a short shaft.
+  const coverMetal=new THREE.MeshStandardMaterial({map:backPhoto,metalness:.55,roughness:.34,envMapIntensity:.8});
+  const caseProfile=[[0,0],[.0079,0],[.0079,.0083],[.0076,.0091],[.0069,.0095],[0,.0095]].map(([r,h])=>new THREE.Vector2(r,h));
+  const headBackZ=-.0088;
+  for(const [index,[px,row,side]] of [[1155,122,-1],[1145,210,-1],[1133,298,-1],[1238,123,1],[1248,212,1],[1258,298,1]].entries()) {
+    const x=HX(px),y=HY((row+11.9)/1.161),barrelY=y+13*headScale,axisZ=headBackZ-.0045;
+    const tuner=new THREE.Group();tuner.name=`GOTOH tuner ${index+1}`;headGroup.add(tuner);
+    const gearCase=mesh(new THREE.LatheGeometry(caseProfile,48),metal,x,y,headBackZ,tuner);gearCase.rotation.x=-Math.PI/2;
+    const inner=x-side*20*headScale,outer=x+side*47*headScale;
+    // A pillow-edged barrel: every edge rounds over, as on the cast housing.
+    mesh(new THREE.ExtrudeGeometry(roundedShape(Math.abs(outer-inner)-.004,.0043,.0016),{depth:.0044,bevelEnabled:true,bevelSize:.002,bevelThickness:.002,bevelSegments:6,curveSegments:10}),metal,(inner+outer)/2,barrelY,headBackZ-.0066,tuner);
+    // The stamped cover keeps the photograph's lettering.
+    const cover=new THREE.CircleGeometry(.0066,48).rotateY(Math.PI).translate(x,y,headBackZ-.00955);
+    {const p=cover.attributes.position,uv=cover.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,...headBackUV(p.getX(i),p.getY(i)));}
+    mesh(cover,coverMetal,0,0,0,tuner);
+    const tipY=y-26*headScale,flange=new THREE.Shape();
+    flange.moveTo(x-.0045,y);flange.lineTo(x-.0021,tipY);flange.absarc(x,tipY,.0021,Math.PI,Math.PI*2,false);flange.lineTo(x+.0045,y);flange.closePath();
+    mesh(new THREE.ExtrudeGeometry(flange,{depth:.0009,bevelEnabled:true,bevelSize:.0003,bevelThickness:.0003,bevelSegments:2,curveSegments:16}),metal,0,0,headBackZ-.0012,tuner);
+    const screwHead=mesh(new THREE.SphereGeometry(.0014,20,10,0,Math.PI*2,0,Math.PI/2),metal,x,tipY,headBackZ-.0015,tuner);screwHead.rotation.x=-Math.PI/2;screwHead.scale.y=.45;
+    for(const turn of [.4,.4+Math.PI/2]){const slot=mesh(new THREE.BoxGeometry(.0021,.00035,.0004),darkMetal,x,tipY,headBackZ-.0021,tuner);slot.rotation.z=turn;}
+    // Collar, shaft and button.
+    rod([outer-side*.0006,barrelY,axisZ],[outer+side*.0018,barrelY,axisZ],.0031,metal,tuner);
+    const buttonX=x+side*63*headScale;
+    rod([outer,barrelY,axisZ],[buttonX,barrelY,axisZ],.0015,metal,tuner);
+    const button=mesh(new THREE.SphereGeometry(1,40,24),metal,buttonX+side*.0006,barrelY,axisZ,tuner);
+    {const p=button.geometry.attributes.position;for(let i=0;i<p.count;i++)p.setZ(i,signedPow(p.getZ(i),.62));button.geometry.computeVertexNormals();}
+    button.scale.set(.0045,.0051,.0025);
   }
 
   const neckPickup=new THREE.Group();neckPickup.position.set(X(558),Y(574),.0265);neckPickup.name='Seymour Duncan SH-1n';guitar.add(neckPickup);
@@ -466,56 +564,112 @@ async function init() {
   batchGuitar(THREE,guitar);
   await shadersReady;
 
-  let yaw=-.10,pitch=0,zoom=1,view='body',queued=0,drag=null,lastHome='';
+  let yaw=-.10,pitch=0,zoom=1,view='body',queued=0,lastHome='',dragMode='turn',glide=0;
   const views={whole:[.300,1.00],body:[.071,.51],neck:[.383,.50],head:[.680,.185]};
-  const renderSize=new THREE.Vector2();
+  // The close-up looks at a point that can travel anywhere along the guitar; the views only start there.
+  const target=new THREE.Vector3(0,views.body[0],0),homePoint=new THREE.Vector3(0,.300,0);
+  const renderSize=new THREE.Vector2(),unturn=new THREE.Quaternion(),shift=new THREE.Vector3();
+  const still=matchMedia('(prefers-reduced-motion: reduce)');
   function size(w,h){renderer.getSize(renderSize);if(renderSize.x!==w||renderSize.y!==h)renderer.setSize(w,h,false);}
-  function compose(focus,extent,aspect,rx,ry) {
-    camera.aspect=aspect;camera.position.set(0,focus,extent/(2*Math.tan(THREE.MathUtils.degToRad(16))));camera.lookAt(0,focus,0);camera.updateProjectionMatrix();
-    guitar.position.set(0,focus,0);guitar.rotation.set(rx,ry,0);
-    // Rotate about the chosen part, so its center stays in the frame.
-    const offset=new THREE.Vector3(0,-focus,0).applyEuler(guitar.rotation);guitar.position.add(offset);
+  function compose(point,extent,aspect,rx,ry) {
+    camera.aspect=aspect;camera.position.set(0,0,extent/(2*Math.tan(THREE.MathUtils.degToRad(16))));camera.lookAt(0,0,0);camera.updateProjectionMatrix();
+    // Turn about the point being looked at, so it stays in the middle of the frame.
+    guitar.rotation.set(rx,ry,0);guitar.position.copy(point).applyEuler(guitar.rotation).negate();
+  }
+  // Height of the visible frame at the looked-at point, in metres.
+  function frameHeight(){const w=stage.clientWidth,h=stage.clientHeight,extent=views[view][1];return Math.max(extent,(view==='body'?.39:view==='whole'?.4:.10)/(w/h))/zoom;}
+  // Move the looked-at point by a distance on screen, whichever way the guitar is turned.
+  function slide(dx,dy){
+    unturn.setFromEuler(new THREE.Euler(pitch,yaw,0)).invert();
+    target.add(shift.set(dx,dy,0).applyQuaternion(unturn));
+    target.set(limit(target.x,-.22,.22),limit(target.y,-.17,.78),limit(target.z,-.05,.05));
+  }
+  // Zoom toward the pointer: the spot under it stays under it.
+  function zoomAt(factor,clientX,clientY) {
+    const rect=canvas.getBoundingClientRect(),before=frameHeight();
+    zoom=limit(zoom*factor,.7,6);
+    const gain=before-frameHeight();
+    slide((clientX-rect.left-rect.width/2)/rect.height*gain,-(clientY-rect.top-rect.height/2)/rect.height*gain);
   }
   function renderDetail() {
     if(!dialog.open||document.hidden)return;
     const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
     size(w,h);
-    const [focus,extent]=views[view];
-    const fit=Math.max(extent,(view==='body'?.39:view==='whole'?.4:.10)/(w/h));
-    compose(focus,fit/zoom,w/h,pitch,yaw);lighting.studio();figure.value=Math.sin(yaw*2.6+pitch*2.2);renderer.render(scene,camera);
+    compose(target,frameHeight(),w/h,pitch,yaw);lighting.studio();figure.value=Math.sin(yaw*2.6+pitch*2.2);renderer.render(scene,camera);
     canvas.dataset.yaw=yaw.toFixed(3);canvas.dataset.pitch=pitch.toFixed(3);canvas.dataset.zoom=zoom.toFixed(2);canvas.dataset.view=view;
+    canvas.dataset.target=target.toArray().map(n=>n.toFixed(3)).join(',');
     lastHome='';
   }
   function requestRender(){if(!queued)queued=requestAnimationFrame(()=>{queued=0;renderDetail();});}
+  function glideTo(name) {
+    // Keep the current framing for the first frame, then ease into the chosen part.
+    const height=frameHeight();view=name;zoom=1;zoom=frameHeight()/height;
+    const from=target.clone(),to=new THREE.Vector3(0,views[name][0],0),fromZoom=zoom,start=performance.now();
+    cancelAnimationFrame(glide);
+    const step=now=>{
+      const t=still.matches?1:Math.min(1,(now-start)/520),ease=1-(1-t)**3;
+      target.lerpVectors(from,to,ease);zoom=fromZoom*(1/fromZoom)**ease;renderDetail();
+      glide=t<1?requestAnimationFrame(step):0;
+    };
+    glide=requestAnimationFrame(step);
+  }
   window.qiuGuitar={
     canvas,
     drawHome(x,y){
       const signature=`${x.toFixed(3)},${y.toFixed(3)}`;if(signature===lastHome)return;
-      size(850,850);compose(.300,1.02,1,y*.10,-.08+x*.44);lighting.room();figure.value=Math.sin((x*.44)*2.6+y*.22);renderer.render(scene,camera);lastHome=signature;
+      size(850,850);compose(homePoint,1.02,1,y*.10,-.08+x*.44);lighting.room();figure.value=Math.sin((x*.44)*2.6+y*.22);renderer.render(scene,camera);lastHome=signature;
     },
-    setDetail(name){view=name;zoom=1;requestRender();}
+    setDetail:glideTo
   };
   document.body.classList.add('guitar-model-ready');
   window.dispatchEvent(new Event('guitar-model-ready'));
   new ResizeObserver(requestRender).observe(stage);
-  canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,pitch};canvas.setPointerCapture(e.pointerId);canvas.classList.add('turning');canvas.focus({preventScroll:true});});
-  canvas.addEventListener('pointermove',e=>{
-    if(drag&&e.pointerType==='mouse'&&e.buttons===0)release(e);
-    if(drag&&drag.id===e.pointerId){yaw=drag.yaw+(e.clientX-drag.x)*.007;pitch=limit(drag.pitch+(e.clientY-drag.y)*.005,-.38,.38);requestRender();}
-    else if(e.pointerType==='mouse'){const rect=canvas.getBoundingClientRect();studioKeyX=-2+(e.clientX-rect.left)/rect.width*1.3;requestRender();}
+  // One finger or the left button turns, or moves in "move" mode; the right or middle button, or Shift,
+  // does the other. Two fingers always move and pinch.
+  const pointers=new Map();let gesture=null;
+  const centre=()=>{const list=[...pointers.values()];return [list.reduce((s,p)=>s+p.x,0)/list.length,list.reduce((s,p)=>s+p.y,0)/list.length,list.length>1?Math.hypot(list[0].x-list[1].x,list[0].y-list[1].y):0];};
+  function regrip() {
+    canvas.classList.remove('turning','moving');
+    if(!pointers.size){gesture=null;return;}
+    const [x,y,spread]=centre(),mode=pointers.size>1?'move':pointers.values().next().value.mode;
+    gesture={mode,x,y,spread,yaw,pitch};canvas.classList.add(mode==='turn'?'turning':'moving');
+  }
+  canvas.addEventListener('pointerdown',e=>{
+    if(e.button>2)return;
+    const other=e.button!==0||e.shiftKey,mode=other?(dragMode==='turn'?'move':'turn'):dragMode;
+    cancelAnimationFrame(glide);glide=0;
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,mode});regrip();canvas.focus({preventScroll:true});canvas.setPointerCapture(e.pointerId);
   });
-  function release(e){if(!drag||drag.id!==e.pointerId)return;drag=null;canvas.classList.remove('turning');if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);}
+  canvas.addEventListener('contextmenu',e=>e.preventDefault());
+  canvas.addEventListener('pointermove',e=>{
+    const pointer=pointers.get(e.pointerId);
+    if(pointer&&e.pointerType==='mouse'&&e.buttons===0){release(e);return;}
+    if(!pointer){if(e.pointerType==='mouse'){const rect=canvas.getBoundingClientRect();studioKeyX=-2+(e.clientX-rect.left)/rect.width*1.3;requestRender();}return;}
+    pointer.x=e.clientX;pointer.y=e.clientY;
+    const [x,y,spread]=centre();
+    if(gesture.mode==='turn'){yaw=gesture.yaw+(x-gesture.x)*.007;pitch=limit(gesture.pitch+(y-gesture.y)*.005,-.38,.38);}
+    else {
+      const scale=frameHeight()/stage.clientHeight;slide(-(x-gesture.x)*scale,(y-gesture.y)*scale);
+      if(spread&&gesture.spread)zoomAt(spread/gesture.spread,x,y);
+      Object.assign(gesture,{x,y,spread});
+    }
+    requestRender();
+  });
+  function release(e){if(!pointers.delete(e.pointerId))return;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);regrip();}
   canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
-  canvas.addEventListener('lostpointercapture',()=>{drag=null;canvas.classList.remove('turning');});
-  canvas.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey)return;e.preventDefault();zoom=limit(zoom*Math.exp(-e.deltaY*.001),.7,2.3);requestRender();},{passive:false});
-  function reset(){yaw=0;pitch=0;zoom=1;requestRender();}
+  canvas.addEventListener('lostpointercapture',e=>{if(pointers.delete(e.pointerId))regrip();});
+  canvas.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey)return;e.preventDefault();cancelAnimationFrame(glide);glide=0;zoomAt(Math.exp(-e.deltaY*.0012),e.clientX,e.clientY);requestRender();},{passive:false});
+  function setDragMode(mode){dragMode=mode;canvas.classList.toggle('move-mode',mode==='move');document.querySelectorAll('[data-drag-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.dragMode===mode)));}
+  document.querySelectorAll('[data-drag-mode]').forEach(button=>button.addEventListener('click',()=>setDragMode(button.dataset.dragMode)));
+  function reset(){yaw=0;pitch=0;glideTo(view);}
   canvas.addEventListener('dblclick',reset);document.querySelector('#guitar-reset').addEventListener('click',reset);
   canvas.addEventListener('keydown',e=>{
     if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-',' '].includes(e.key))return;e.preventDefault();
+    const across=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0,up=e.key==='ArrowUp'?1:e.key==='ArrowDown'?-1:0;
     if(e.key===' ')reset();
-    else if(e.key==='+')zoom=limit(zoom*1.15,.7,2.3);
-    else if(e.key==='-')zoom=limit(zoom/1.15,.7,2.3);
-    else {yaw+=e.key==='ArrowRight'?.12:e.key==='ArrowLeft'?-.12:0;pitch=limit(pitch+(e.key==='ArrowDown'?.08:e.key==='ArrowUp'?-.08:0),-.38,.38);}
+    else if(e.key==='+'||e.key==='-'){const rect=canvas.getBoundingClientRect();zoomAt(e.key==='+'?1.15:1/1.15,rect.left+rect.width/2,rect.top+rect.height/2);}
+    else if(e.shiftKey)slide(across*frameHeight()*.08,up*frameHeight()*.08);
+    else {yaw+=across*.12;pitch=limit(pitch-up*.08,-.38,.38);}
     requestRender();
   });
   dialog.addEventListener('close',()=>{lastHome='';window.dispatchEvent(new Event('guitar-model-ready'));});
