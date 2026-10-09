@@ -49,8 +49,8 @@
 | `qiu-potbelly-bare-body.png` → `.webp` | 同一实拍移除弦和五金的派生图，1064 × 1478，运行时用作琴身底材 |
 | `bangdream-potbelly-stringless.png` → `.webp` | 官方正面参考的去弦派生图，1254 × 1254，运行时用于指板及琴头弦路径 |
 | `bangdream-potbelly-fm-rana.png` → `.webp` | ESP 官方正面参考，2400 × 2400，运行时用于琴头标记、加载回退和 WebGL 回退 |
-| `rana-home.webp` | Rāna 官方实拍缩至 1600 × 1600 的透明 WebP；首页吉他本体（2026-10-08 起取代三维中性帧 `guitar-home.webp`） |
-| `jam-strings.webp` | 同一张实拍的琴身特写（拾音器、琴桥、六根弦），旋转为横向，860 × 620；琴弦之间的可弹奏琴弦 |
+| `guitar-home.webp` | 同一三维模型的中性帧，1275 × 1275，无损透明 WebP；首屏提前显示，模型首帧完成后隐藏 |
+| `jam-strings.webp` | Body close-up cut from the same official photograph (pickups, bridge, six strings), rotated landscape, 860 × 620; the playable strings in the strings room |
 | `work-home.webp` | 已确认的 VeriSilo 雕塑中性帧，1191 × 636，无损透明 WebP；展区载入时显示 |
 
 PNG 保留为贴图源文件；首页和 Three.js 运行时加载同尺寸的高质量 WebP（quality 95）。四张贴图总量从 4.95 MB 降至 1.05 MB，约减少 79%。

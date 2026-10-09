@@ -32,15 +32,6 @@ body[data-motion=off] .day-blinds,body[data-motion=off] .day-leaves g{animation:
 .paper-face{background-image:var(--grain),linear-gradient(118deg,rgba(255,255,255,.4),rgba(255,255,255,0) 42%,rgba(0,0,0,.035));background-size:180px,auto;background-blend-mode:multiply}
 .obligation{filter:drop-shadow(-10px 16px 14px rgba(58,40,20,.2))}
 
-/* Home: the real guitar, large and leaning, is the first thing you meet. */
-.home-guitar-preview{left:50%;top:47.5%;width:100%;height:107%;filter:drop-shadow(-26px 34px 26px var(--cast)) drop-shadow(-5px 8px 5px var(--cast-near));transform:translate(-50%,-50%) rotate(.33rad)}
-.home-guitar-preview.ringing{animation:guitar-ring 1.5s cubic-bezier(.2,.7,.3,1)}
-@keyframes guitar-ring{0%{transform:translate(-50%,-50%) rotate(.33rad)}7%{transform:translate(-50%,-50.4%) rotate(.342rad) scale(1.008)}20%{transform:translate(-50%,-50%) rotate(.321rad)}36%{transform:translate(-50%,-50%) rotate(.337rad)}55%{transform:translate(-50%,-50%) rotate(.326rad)}76%{transform:translate(-50%,-50%) rotate(.332rad)}100%{transform:translate(-50%,-50%) rotate(.33rad)}}
-.guitar-touch{left:41.5%;top:-3%;width:17%;height:104%;transform:rotate(19deg);cursor:pointer}
-.guitar-touch:focus-visible{outline-offset:-4px}
-@media(max-width:679px){.home-guitar-preview{width:140%;height:104%}}
-@media(max-width:600px){.guitar-touch{left:33%;width:33%;top:2%;height:84%}}
-
 /* A little jam: a dark corner under one lamp ------------------------------ */
 .music{--ink:#f2ebdc;--muted:#a69e8d;--line:#f2ebdc24;--paper:#1b1815;color:var(--ink);overflow:hidden;border-radius:3px}
 .music:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(58% 70% at 64% 30%,#4a3a2c 0,#2a231d 46%,#161310 100%);box-shadow:inset 0 0 0 1px #0000004d}

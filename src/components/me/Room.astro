@@ -8,7 +8,7 @@ import { localizedPath } from '../../i18n';
 import Pedalboard from './Pedalboard.astro';
 import MoreRooms from './MoreRooms.astro';
 import guitarPhoto from '../../assets/me/bangdream-potbelly-fm-rana.webp';
-import guitarPreview from '../../assets/me/rana-home.webp';
+import guitarPreview from '../../assets/me/guitar-home.webp';
 import jamStrings from '../../assets/me/jam-strings.webp';
 const mapPlaces = [
   ['home', '中央', 'Home', '回到中央', 'Back home'],
@@ -34,8 +34,8 @@ const mapPlaces = [
         <div class="home-meta"><span>{t("我是千秋。欢迎来坐坐。", "I’m Qiu. Make yourself at home.")}</span><span>{t("六根弦，以及它们以外的事。", "Six strings, and whatever comes to mind.")}</span></div>
         <h1 class="name" lang="zh-Hans" aria-label="千秋"><span>千</span><span>秋</span></h1>
         <img class="home-guitar-preview" src={guitarPreview.src} width={guitarPreview.width} height={guitarPreview.height} alt="" aria-hidden="true" fetchpriority="high" decoding="async" draggable="false">
-        <button class="guitar-touch" id="guitar-strum" type="button" aria-label={t("拨响我的 BanG Dream! POTBELLY FM Rāna 吉他", "Strum my BanG Dream! POTBELLY FM Rāna guitar")}></button>
-        <button class="art-caption" data-open-guitar><span><Icon name="plus" /></span><p><span class="guitar-caption-default">POTBELLY FM RĀNA<br><Fragment set:html={t("点一下琴身，听它响。<br>在这里，拿起来看看", "Tap the body to hear it ring.<br>Or pick it up here")} /> <Icon name="northeast" /></span><span class="guitar-caption-portrait">{t("拿起来看看", "Pick it up")} <Icon name="northeast" /></span></p></button>
+        <button class="guitar-touch" data-open-guitar aria-label={t("拿起我的 BanG Dream! POTBELLY FM Rāna 吉他转动查看", "Pick up my BanG Dream! POTBELLY FM Rāna guitar and turn it around")}></button>
+        <button class="art-caption" data-open-guitar><span><Icon name="plus" /></span><p><span class="guitar-caption-default">POTBELLY FM RĀNA<br><Fragment set:html={t("靠近一点，它会跟着你。<br>点一下，拿起来", "<span class=\"guitar-follow\">Move closer. It follows you.<br></span>Click to pick it up")} /> <Icon name="northeast" /></span><span class="guitar-caption-portrait">{t("点开吉他", "Open the guitar")} <Icon name="northeast" /></span></p></button>
         <button class="enter" data-place="overview"><span class="round-arrow"><Icon name="horizontal" /></span><span><Fragment set:html={t("进来坐坐<small>把小屋拨开</small>", "Come on in<small>Take a look around</small>")} /></span></button>
         <button class="door door-left" data-place="papers"><span><Icon name="left" /></span><span>{t("几张散页", "Loose pages")}</span></button>
         <button class="door door-right" data-place="music"><span>{t("琴弦之间", "A little jam")}</span><span><Icon name="right" /></span></button>

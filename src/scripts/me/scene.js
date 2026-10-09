@@ -8,7 +8,7 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
   const underlay=document.createElement('div');underlay.className='world underlay';underlay.append(document.querySelector('.name'));room.prepend(underlay);
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let motion=!reduced.matches,width=1,height=1,dpr=1,lastFrame=0,frameId=0;
-  let tilt={x:0,y:0},pointer={x:0,y:0},guitarInteraction=false;
+  let tilt={x:0,y:0},pointer={x:0,y:0},guitarInteraction=true;
   const pulses=Array(6).fill(0),frequencies=[329.63,246.94,196,146.83,110,82.41];
   const places={home:{x:0,y:0,z:1,name:t("小屋中央","At home")},papers:{x:-1.12,y:.01,z:1,name:t("几张散页","Loose pages")},music:{x:1.13,y:0,z:1,name:t("琴弦之间","A little jam")},trace:{x:.06,y:-1.11,z:1,name:t("留一笔","Leave a line")},rethink:{x:-1.12,y:1.12,z:1,name:t("另一面", "The other side")},work:{x:1.13,y:1.12,z:1,name:t("拆开看看", "Beneath the surface")},idle:{x:0,y:1.12,z:1,name:t("不赶时间", "No hurry")},paths:{x:-1.12,y:-1.11,z:1,name:t("未走之路", "Paths untaken")},blindspot:{x:1.13,y:-1.11,z:1,name:t("盲点", "Blind spots")},overview:{x:.01,y:.035,z:.24,name:t("整间小屋","The whole room")}};
   let camera={x:0,y:0,z:1},target={...camera},active='home',paperTop=4;
@@ -28,6 +28,18 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
     for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
     ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.stroke();
+  }
+  function drawGuitar() {
+    if(document.querySelector('#guitar-closeup').open&&window.qiuGuitar)return;
+    if(!window.qiuGuitar)return;
+    const size=Math.min(height*.91,width*(width<680?1.3:.83));
+    const follow=motion?1:.3;
+    ctx.save();ctx.translate(width*.505+tilt.x*7*follow,height*.475+tilt.y*4*follow);
+    ctx.rotate(.32+tilt.x*.025*follow);
+    ctx.shadowColor='#2b241936';ctx.shadowBlur=18;ctx.shadowOffsetX=9;ctx.shadowOffsetY=16;
+    window.qiuGuitar.drawHome(tilt.x*follow,tilt.y*follow);ctx.drawImage(window.qiuGuitar.canvas,-size/2,-size/2,size,size);
+    document.body.classList.add('guitar-home-ready');
+    ctx.restore();
   }
   function inView(place) {
     const half=.5/camera.z;
@@ -84,6 +96,7 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     thread([-.54,.84],[-.62,1.46]);thread([1.67,.85],[1.65,1.48]);thread([.48,.92],[.51,1.55]);
     thread([-.62,-.16],[-.62,.3]);thread([1.67,-.16],[1.65,.3]);
     thread([-.3,-.56],[.33,-.5]);thread([.91,-.51],[1.38,-.54]);
+    if(inView(places.home))drawGuitar();
     if(inView(places.music))drawJam(now);
     if(inView(places.trace))drawTrace(now);
     if(camera.z<.65){
@@ -181,7 +194,7 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
   });
   const motionButton=document.querySelector('#motion');
   function setMotion(value){motion=value;document.body.dataset.motion=value?'on':'off';motionButton.setAttribute('aria-pressed',String(!value));motionButton.textContent=value?t("动态开","Motion on"):t("动态关","Motion off");if(!value)pointer={x:0,y:0};schedule();}
-  motionButton.addEventListener('click',()=>setMotion(!motion));reduced.addEventListener('change',e=>setMotion(!e.matches));
+  motionButton.addEventListener('click',()=>{guitarInteraction=!motion;setMotion(!motion);});reduced.addEventListener('change',e=>setMotion(!e.matches));
 
   function flipPaper(paper) {
     const flipped=!paper.classList.contains('flipped');paper.classList.toggle('flipped',flipped);paper.setAttribute('aria-pressed',String(flipped));
@@ -256,7 +269,7 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     finally{soundButton.disabled=localSound.disabled=false;}
   }
   soundButton.addEventListener('click',()=>setSound(!enabled));localSound.addEventListener('click',()=>setSound(!enabled));
-  function frequencyFor(index){const fret=active==='music'?chords[chord][index]:active==='home'?homeVoicing[index]:0;return fret<0?null:frequencies[index]*2**(fret/12);}
+  function frequencyFor(index){const fret=active==='music'?chords[chord][index]:0;return fret<0?null:frequencies[index]*2**(fret/12);}
   function pluck(index,strength=1,fromLoop=false){
     const frequency=frequencyFor(index);if(!frequency)return;
     pulses[index]=Math.max(pulses[index],strength);schedule();
@@ -280,13 +293,6 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     for(let n=5;n>=0;n--)setTimeout(()=>{if(!document.hidden)pluck(n,.76+(5-n)*.025);},(5-n)*31);
   }
   document.querySelector('#strum').addEventListener('click',strum);
-  // At home the guitar is simply there to be touched: one slow, open Gmaj7.
-  const homeVoicing=[2,0,0,0,2,3],homeGuitar=document.querySelector('.home-guitar-preview');
-  document.querySelector('#guitar-strum').addEventListener('click',async()=>{
-    if(!audio&&!await setSound(true))return;
-    homeGuitar.classList.remove('ringing');void homeGuitar.offsetWidth;homeGuitar.classList.add('ringing');
-    for(let n=5;n>=0;n--)setTimeout(()=>{if(!document.hidden)pluck(n,.6+(5-n)*.035);},(5-n)*58);
-  });
   document.querySelectorAll('[data-chord]').forEach(button=>button.addEventListener('click',()=>{
     chord=button.dataset.chord;
     document.querySelectorAll('[data-chord]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
