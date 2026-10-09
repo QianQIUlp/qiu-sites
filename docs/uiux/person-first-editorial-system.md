@@ -1,49 +1,49 @@
-# 人本房间与编辑工作台设计契约
+# Person-First Room and Editorial Workbench Design Contract
 
-> **历史归档**：首页创作原点见 [`homepage-art-direction.md`](./homepage-art-direction.md)，
-> 长期人本意图见 [`person-first-intent.md`](./person-first-intent.md)，现行视觉实现见
-> [`ink-and-light-study.md`](./ink-and-light-study.md)。本文件只记录早期房间方案如何形成，
-> 不再承担现行规则。
+> **Historical archive**: for the homepage creative origin see [`homepage-art-direction.md`](./homepage-art-direction.md),
+> for the long-term person-first intent see [`person-first-intent.md`](./person-first-intent.md), and for the current visual implementation see
+> [`ink-and-light-study.md`](./ink-and-light-study.md). This file only records how the early room concept took shape
+> and no longer carries active rules.
 
-## 上位定位
+## Overarching positioning
 
-这是千秋的个人空间，不是附带个人简介的工程师作品集。工程、写作、学习、游戏、生活和仍未形成结论的想法，都是同一个人的不同侧面；任何单一项目或方法论都不能充当解释整个人的总公式。
+This is Qianqiu's personal space, not an engineer's portfolio with a bio attached. Engineering, writing, learning, games, life and ideas that have not yet reached a conclusion are all different sides of the same person; no single project or methodology may serve as the master formula that explains the whole person.
 
-## 页面职责
+## Page roles
 
-- 首页是一间可探索的个人排练室：先让访客看见千秋，再从书桌、工作台和吉他选择一个方向。
-- 文章索引负责发现与归档，文章页负责安静、连续的长文阅读。
-- 作品页是工程工作台，可以提高信息密度，但仍属于个人空间中的一个房间。
-- “小书房”保留温度与慢读气质，不再垄断全站表达。
+- The homepage is an explorable personal rehearsal room: first let visitors see Qianqiu, then let them choose a direction from the desk, the workbench or the guitar.
+- The article index handles discovery and archiving; article pages handle quiet, continuous long-form reading.
+- The projects page is the engineering workbench; it may raise information density but is still one room in the personal space.
+- The "小书房" ("little study") keeps its warmth and slow-reading feel but no longer monopolizes the whole site's voice.
 
-## 视觉语法
+## Visual grammar
 
-- 基调是暖纸、深绿、暖橙和中文编辑排版。
-- 全站共享一个来自左上方的桌边光源；纸页、封面和便笺使用同一阴影方向。
-- 首页是这套语言的空间化例外：使用暗红帷幕、暖钨丝灯、书桌与工作台组成一个持续存在的 2.5D 房间，不把内容切成卡片瀑布。
-- 房间全景、书桌近景和工作台近景使用 4K 母版，并交给 Astro 按视口输出响应式版本；帷幕、吉他和空间底图保持独立景深层，不能重新烘焙成一张只会整体缩放的背景图。
-- 首页的酒红色旧化吉他以用户提供的实物参考为准；琴头、混合桥位拾音器、旧化位置，以及 3/5/7/9/15/17/19/21 圆点和跨 11–13 品的 12 品 `m` 记号都属于身份细节，不得随意替换。
-- 中文衬线体用于标题，无衬线体用于正文，等宽体只用于仓库名和技术元信息。
-- 使用开放的索引、轨道、纸页和 dossier，不堆叠通用卡片或玻璃面板。
-- 首页的三个物件入口只改变同一页面里的房间状态：书桌最终把真实文章索引落入显示器，工作台最终把真实工程档案落入桌垫，吉他在原地展开生活侧记；入口本身不得用延迟跳转伪装镜头移动。
-- 镜头由全景缩放、近景对位、帷幕位移、吉他前景位移、轻微步态起伏和后段内容显影共同组成，单程约 2.4 秒；抵达后 URL 只记录 `#writing-desk`、`#project-workbench` 或 `#life-corner`，站点原有路由继续由场景内的真实链接承接。
-- 不使用 WebGL、Canvas、滚动劫持、持续鼠标追踪或新增运行时依赖。首页不能在首次载入时播放缩放动画，避免物件比例由大变小。
-- 文章正文保持静止；所有镜头和入场动效完整尊重 `prefers-reduced-motion`。JavaScript 关闭时三个 hash 落点和返回链接仍然可用，内容默认可见且可访问。
+- The base tone is warm paper, deep green, warm orange and Chinese editorial typography.
+- The whole site shares one desk-side light source from the upper left; paper pages, covers and sticky notes use the same shadow direction.
+- The homepage is the spatial exception to this language: dark red curtains, a warm tungsten lamp, the desk and the workbench form one persistent 2.5D room, and content is not chopped into a card waterfall.
+- The room overview, desk close-up and workbench close-up use 4K masters and let Astro output responsive versions per viewport; curtains, guitar and the spatial base image remain separate depth layers and must not be re-baked into one background that can only scale as a whole.
+- The homepage's aged wine-red guitar follows the real-instrument reference supplied by the user; the headstock, mixed bridge-position pickups, wear positions, the 3/5/7/9/15/17/19/21 dot inlays and the 12th-fret `m` mark spanning frets 11–13 are identity details and must not be swapped casually.
+- A Chinese serif is used for headings, a sans-serif for body text, and monospace only for repository names and technical metadata.
+- Use open indexes, tracks, paper pages and dossiers instead of stacking generic cards or glass panels.
+- The homepage's three object entries only change the room state within the same page: the desk eventually drops the real article index into the monitor, the workbench drops the real engineering archive onto the desk mat, and the guitar unfolds life side notes in place; the entries themselves must not fake camera movement with a delayed navigation.
+- The camera combines overview zoom, close-up alignment, curtain shift, guitar foreground shift, slight walking bob and late-stage content reveal, about 2.4 seconds one way; on arrival the URL only records `#writing-desk`, `#project-workbench` or `#life-corner`, and the site's existing routes continue to be reached through real links inside the scene.
+- No WebGL, Canvas, scroll hijacking, continuous mouse tracking or new runtime dependencies. The homepage must not play a zoom animation on first load, so object scale never shrinks from large to small.
+- Article body text stays still; all camera and entrance motion fully respects `prefers-reduced-motion`. With JavaScript off, the three hash landings and back links still work, and content is visible and accessible by default.
 
-## 内容边界
+## Content boundaries
 
-- 只展示仓库可以证明的文章、项目、状态、链接和图片。
-- 没有可靠时效信息时使用“最近留下的痕迹”，不写成“此刻正在做”。
-- 房间背景是气氛化场景，不声称为真实居所；吉他素材只根据用户提供的实物图校准，不借此虚构经历。
-- 不生成或虚构个人照片、项目截图、经历、用户规模、性能指标和维护承诺。
-- 不为了视觉完整度新增空路由、内容分类、运行时依赖或服务端能力。
+- Show only articles, projects, statuses, links and images the repository can prove.
+- Without reliable timeliness information, use "最近留下的痕迹" ("traces left recently") rather than "此刻正在做" ("doing right now").
+- The room background is an atmospheric scene and does not claim to be a real residence; the guitar asset is calibrated only against the real photos the user supplied and is not used to fabricate experience.
+- Do not generate or fabricate personal photos, project screenshots, experience, user counts, performance metrics or maintenance commitments.
+- Do not add empty routes, content categories, runtime dependencies or server capabilities for the sake of visual completeness.
 
-## 长期验收问题
+## Long-term acceptance questions
 
-每次可见改动都应回答：
+Every visible change should answer:
 
-1. 第一屏首先呈现的是千秋这个人，还是某个产品落地页？
-2. 工程、写作与生活是否都能被发现，同时没有一个侧面吞没其他侧面？
-3. 页面是否仍适合长中文内容、键盘操作、移动端和深色模式？
-4. 装饰、动效和界面文案是否来自真实内容关系，而不是模板惯性？
-5. 镜头抵达后是否仍在同一房间，而不是把一次普通路由跳转包装成动画？
+1. Does the first screen present Qianqiu as a person first, or some product landing page?
+2. Are engineering, writing and life all discoverable, with no one side swallowing the others?
+3. Is the page still suitable for long Chinese content, keyboard operation, mobile and dark mode?
+4. Do decoration, motion and interface copy come from real content relationships rather than template inertia?
+5. After the camera arrives, are we still in the same room, rather than an ordinary route navigation dressed up as animation?

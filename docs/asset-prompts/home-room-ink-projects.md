@@ -1,11 +1,11 @@
-# home-room-ink-projects · 工作区近景
+# home-room-ink-projects · Workbench close-up
 
-目标：点击「作品」后的真实右工作台近景 Light/Dark 对。Supro、金色与蓝色单块是全景物件的连续近景。
+Goal: a Light/Dark pair of the real right-hand workbench close-up shown after clicking 「作品」 ("Projects"). The Supro and the gold and blue pedals are a continuous close-up of the overview objects.
 
 ## Canvas
 
-- 1672×941，16:9；稍高机位看向同一工作台。
-- 桌面前部保留自然、无遮挡的木质工作区供代码叠加项目内容。
+- 1672×941, 16:9; slightly higher camera looking at the same workbench.
+- Keep a natural, unobstructed wooden work area at the front of the desk for code-overlaid project content.
 
 ## Prompt
 
@@ -24,7 +24,7 @@
 
 ## Checklist
 
-- [ ] 与 overview 的 Supro、两颗单块、线材和桌体连续
-- [ ] 单块平放且接触、遮挡、投影符合桌面支撑平面
-- [ ] Light/Dark 严格配准，桌面前部可承载代码 UI
-- [ ] 白墙与各材质干净真实，无跨材质噪点
+- [ ] Supro, both pedals, cables and desk body are continuous with overview
+- [ ] Pedals lie flat; contact, occlusion and shadows respect the desk's support plane
+- [ ] Light/Dark strictly registered; the front of the desk can hold code-rendered UI
+- [ ] White wall and all materials are clean and real, with no cross-material noise

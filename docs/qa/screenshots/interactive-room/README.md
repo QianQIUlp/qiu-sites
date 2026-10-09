@@ -1,38 +1,38 @@
-# 持续场景式首页验收证据
+# Continuous-Scene Homepage Acceptance Evidence
 
-本目录记录 2026-07-15 对首页 2.5D 房间的实际浏览器验收。截图来自 `npm run build` 后的 `npm run preview`；当前环境没有 Browser 插件，因此按仓库测试流程使用本地 Playwright Chromium 回退完成截图、交互与控制台检查。
+This directory records the real-browser acceptance of the homepage 2.5D room on 2026-07-15. Screenshots come from `npm run preview` after `npm run build`; the environment had no Browser plugin, so screenshots, interaction and console checks used the local Playwright Chromium fallback per the repository's testing flow.
 
-## 视觉状态
+## Visual states
 
-- [桌面全景](./home-overview-1440.webp)：1440 × 900，首屏静止状态。
-- [书桌移动中段](./home-writing-midpoint-1440.webp)：全景与书桌近景正在对位，不是导航后的新页面。
-- [书桌落点](./home-writing-focus-1440.webp)：真实文章索引落入显示器。
-- [工作台落点](./home-projects-focus-1440.webp)：真实项目数据落入桌面黑色工作垫。
-- [吉他与生活](./home-life-focus-1440.webp)：原场景内聚焦吉他并展开生活侧记。
-- [375px 全景](./home-mobile-375.webp)、[书桌](./home-writing-mobile-375.webp)、[工作台](./home-projects-mobile-375.webp)。
-- [768px 竖屏全景](./home-overview-tablet-768.webp)、[书桌](./home-writing-tablet-768.webp)。
-- [参考构图与实现并排](./reference-vs-home-1440.webp)、[琴头与指板细节](./guitar-headstock-fretboard-detail.webp)。
+- [Desktop overview](./home-overview-1440.webp): 1440 × 900, first-screen resting state.
+- [Desk mid-move](./home-writing-midpoint-1440.webp): overview and desk close-up are aligning; this is not a new page after navigation.
+- [Desk landing](./home-writing-focus-1440.webp): the real article index lands in the monitor.
+- [Workbench landing](./home-projects-focus-1440.webp): real project data lands on the black work mat on the desk.
+- [Guitar and life](./home-life-focus-1440.webp): the guitar is focused within the original scene and the life side notes expand.
+- [375px overview](./home-mobile-375.webp), [desk](./home-writing-mobile-375.webp), [workbench](./home-projects-mobile-375.webp).
+- [768px portrait overview](./home-overview-tablet-768.webp), [desk](./home-writing-tablet-768.webp).
+- [Reference composition vs implementation side by side](./reference-vs-home-1440.webp), [headstock and fretboard detail](./guitar-headstock-fretboard-detail.webp).
 
-## 保真账本
+## Fidelity ledger
 
-| 检查点 | 结果 | 证据与取舍 |
+| Checkpoint | Result | Evidence and trade-offs |
 | --- | --- | --- |
-| 单一房间构图 | 通过 | 书桌留在左后方、工程工作台留在右后方、吉他位于右前景，保持参考图的空间阅读顺序。 |
-| 持续场景而非延迟跳转 | 通过 | 点击文章或作品后路径仍为 `/`，只更新 `#writing-desk` 或 `#project-workbench`；落点内容在原场景中出现。 |
-| 镜头移动 | 通过 | 2.4 秒内分别驱动底图缩放、近景对位、帷幕位移、吉他前景位移、曝光变化和轻微步态起伏；中段截图可见对位过程。 |
-| 吉他身份细节 | 通过 | 使用独立的用户吉他前景，保留旧化酒红琴身、琴头、拾音器与琴架，以及 3/5/7/9/15/17/19/21 圆点和跨 11–13 品的 `m` 记号。 |
-| 内容与物件融合 | 通过 | 最近三篇文章按显示器内框排版，三个真实项目按黑色工作垫透视区排版；没有虚构截图、指标或状态。 |
-| 首屏比例稳定 | 通过 | 页面载入与 600ms 后 `.room-world` 都为单位矩阵；旧的 `room-enter` 首屏缩放已删除。 |
-| 4K 与响应式图片 | 通过 | 三张空间母版均为 3840 × 2160；3840 × 2160 浏览器实际选择 3840 × 2160 资源，小视口由 Astro 输出较小衍生图。 |
-| 竖屏适配 | 通过 | 768px 与 375px 均无页面级横向溢出；竖屏落点使用场景内的可读面板，不强行裁切桌面端透视坐标。 |
-| 渐进增强 | 通过 | `prefers-reduced-motion: reduce` 下移动状态立即完成且 CSS 过渡为 `0s`；关闭 JavaScript 后三个 hash 落点与返回链接可用。 |
+| Single-room composition | Pass | The desk stays rear left, the engineering workbench rear right, and the guitar in the right foreground, keeping the reference image's spatial reading order. |
+| Continuous scene, not delayed jump | Pass | After clicking articles or projects the path stays `/`, only `#writing-desk` or `#project-workbench` updates; landing content appears in the original scene. |
+| Camera movement | Pass | Within 2.4 seconds it drives base-image zoom, close-up alignment, curtain shift, guitar foreground shift, exposure change and slight walking bob; the mid-move screenshot shows the alignment in progress. |
+| Guitar identity details | Pass | Uses a separate foreground of the user's guitar, keeping the aged wine-red body, headstock, pickups and stand, plus the 3/5/7/9/15/17/19/21 dot inlays and the `m` mark spanning frets 11–13. |
+| Content and object integration | Pass | The three latest articles are laid out inside the monitor's inner frame, and three real projects in the black work mat's perspective area; no fabricated screenshots, metrics or status. |
+| Stable first-screen scale | Pass | `.room-world` is the identity matrix both on load and after 600ms; the old `room-enter` first-screen zoom was removed. |
+| 4K and responsive images | Pass | All three spatial masters are 3840 × 2160; a 3840 × 2160 browser actually picks the 3840 × 2160 resource, and small viewports get smaller derivatives output by Astro. |
+| Portrait adaptation | Pass | No page-level horizontal overflow at 768px or 375px; portrait landings use in-scene readable panels instead of forcing desktop perspective coordinates. |
+| Progressive enhancement | Pass | Under `prefers-reduced-motion: reduce` movement completes instantly and CSS transitions are `0s`; with JavaScript off, the three hash landings and back links work. |
 
-与静态概念图相比，生产实现有两个有意差异：不保留概念图中的装饰性地面光圈；吉他改用用户指定的实物身份细节，而不是概念图里的泛化乐器。两项都服务于真实内容与可交互场景，而不是视觉降级。
+Compared with the static concept image, production has two intentional differences: the decorative floor light ring from the concept is not kept, and the guitar uses the user's specified real-instrument identity details instead of the concept's generic instrument. Both serve real content and an interactive scene, not a visual downgrade.
 
-## 浏览器检查结果
+## Browser check results
 
-- 1440 × 900、768 × 1024、375 × 812：页面级横向溢出均为 `0`。
-- 首页载入前后场景矩阵一致，没有由大变小。
-- 文章、作品、生活三个状态均能返回全景，`Escape` 与浏览器历史状态可用。
-- 交互过程中没有控制台错误或未捕获异常。
-- 3840 × 2160 视口的全景图 `naturalWidth × naturalHeight` 为 `3840 × 2160`。
+- 1440 × 900, 768 × 1024, 375 × 812: page-level horizontal overflow is `0` in all cases.
+- The scene matrix is the same before and after homepage load; nothing shrinks from large to small.
+- The articles, projects and life states can all return to the overview; `Escape` and browser history state work.
+- No console errors or uncaught exceptions during interaction.
+- At a 3840 × 2160 viewport the overview image's `naturalWidth × naturalHeight` is `3840 × 2160`.

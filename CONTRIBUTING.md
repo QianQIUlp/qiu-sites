@@ -1,67 +1,67 @@
 # Contributing to qiu-sites
 
-感谢你对本项目的关注！为了能高效地协同开发和审查，请在提交贡献前遵循以下指引。
+Thanks for your interest in this project! To keep collaboration and review efficient, please follow these guidelines before contributing.
 
-## 🛠️ 怎么把开发环境跑起来?
+## 🛠️ How do I get the development environment running?
 
-本项目使用 [Astro](https://astro.build/) 框架构建。要在本地进行开发和预览，请执行以下步骤：
+This project is built with the [Astro](https://astro.build/) framework. To develop and preview locally:
 
-1. **克隆仓库**：
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/qianqiulp/qiu-sites.git
    cd qiu-sites
    ```
-2. **安装依赖**：
-   确保你的本地环境已安装 Node.js (推荐 v22+)。
+2. **Install dependencies**:
+   Make sure Node.js is installed locally (v22+ recommended).
    ```bash
    npm install
    ```
-3. **启动开发服务器**：
+3. **Start the dev server**:
    ```bash
    npm run dev
    ```
-   启动后，可以在浏览器中打开 `http://localhost:4321` 进行本地预览，且支持热更新 (HMR)。
+   Once started, open `http://localhost:4321` in a browser for a local preview with hot module replacement (HMR).
 
-## 🧪 提交代码前要做什么?
+## 🧪 What should I do before submitting code?
 
-在提 PR 或 Commit 前，请确保完成以下自测清单：
-- [ ] **本地验证**：通过 `npm run dev` 本地预览，确认修改的页面样式与功能均符合预期（响应式布局、深浅色模式等）。
-- [ ] **构建测试**：运行打包命令 `npm run build`，确保没有 Astro 或 TS 编译错误。
-- [ ] **清理冗余**：不把临时文件、日志或敏感配置提交上去。
+Before opening a PR or committing, make sure you complete this self-check list:
+- [ ] **Local verification**: preview locally with `npm run dev` and confirm the changed pages' styles and behavior are as expected (responsive layout, light/dark mode, etc.).
+- [ ] **Build test**: run `npm run build` and make sure there are no Astro or TS compile errors.
+- [ ] **Clean up**: do not commit temporary files, logs or sensitive configuration.
 
-## 📝 Commit message 怎么写?
+## 📝 How do I write a commit message?
 
-本项目严格遵循 [Conventional Commits](https://www.conventionalcommits.org/)（约定式提交）规范。每次提交的代码应当有清晰、结构化的提交信息，以确保 Changelog 能够被清晰生成。
+This project strictly follows the [Conventional Commits](https://www.conventionalcommits.org/) specification. Every commit should have a clear, structured message so the changelog can be generated cleanly.
 
-格式如下：
+Format:
 ```text
 <type>(<scope>): <subject>
 ```
 
-常用 `<type>` 类型：
-- `feat`: 新增功能（如新博客文章、新页面组件）
-- `fix`: 修复 Bug（如修复布局错位、链接错误等）
-- `docs`: 文档变更（如更新 README, CONTRIBUTING）
-- `style`: 代码格式调整（不影响逻辑的空格、格式化等）
-- `refactor`: 代码重构（既不修复 bug 也不添加新功能的代码更改）
-- `perf`: 性能优化
-- `chore`: 构建过程或辅助工具的变动
+Common `<type>` values:
+- `feat`: a new feature (e.g. a new blog post, a new page component)
+- `fix`: a bug fix (e.g. fixing a layout misalignment or a broken link)
+- `docs`: documentation changes (e.g. updating README, CONTRIBUTING)
+- `style`: formatting changes (whitespace, formatting that does not affect logic)
+- `refactor`: code refactoring (a change that neither fixes a bug nor adds a feature)
+- `perf`: performance improvements
+- `chore`: changes to the build process or auxiliary tools
 
-示例：
+Examples:
 - `feat(blog): add 2026-05-26-llm-metacog-blindspot post`
 - `fix(ui): enforce 16:9 aspect ratio and cover fit on blog cards`
 
-## 🔀 PR 流程是什么?
+## 🔀 What is the PR process?
 
-1. **创建分支**：从 `main` 分支切出一个专门的特性分支或修复分支：
+1. **Create a branch**: branch off `main` into a dedicated feature or fix branch:
    ```bash
    git checkout -b feat/your-feature-name
-   # 或者
+   # or
    git checkout -b fix/your-bug-name
    ```
-2. **提交与推送**：在本地开发完成并确认无误后，将代码推送到你的远程分支。
-3. **发起 Pull Request**：
-   - 目标分支选择 `main`。
-   - 填写 PR 模板（会自动载入），简明扼要地描述你的更改和验证方式。
-   - 如果解决了某个 Issue，请在 PR 描述中写明 `Closes #编号`，以便在合并时自动关闭该 Issue。
-4. **等待 Review**：项目维护者将会对你的 PR 进行审查，并在通过后合并入主分支。
+2. **Commit and push**: once development is done and verified locally, push the code to your remote branch.
+3. **Open a Pull Request**:
+   - Target the `main` branch.
+   - Fill in the PR template (loaded automatically), briefly describing your changes and how you verified them.
+   - If it resolves an issue, write `Closes #<number>` in the PR description so the issue closes automatically on merge.
+4. **Wait for review**: a project maintainer will review your PR and merge it into the main branch once approved.

@@ -1,29 +1,29 @@
-# Asset Prompts · 场景资产再生成提示词
+# Asset Prompts · Scene asset regeneration prompts
 
-本目录保存首页房间场景图的**再生成提示词**。当前首页使用低噪点写实摄影资产
-（`src/assets/home/practice-room-*-{day,night}.png`）；页面以现代留白、清楚层级、暖光和克制转场组织内容，
-不把纸纹、全局噪点或装饰粒子烘焙进房间材质。现有 `home-room-ink-*` 文件名仅为历史兼容路径，
-不代表活动视觉方向。
+This directory stores the **regeneration prompts** for the homepage room scene images. The current homepage uses low-noise photorealistic assets
+(`src/assets/home/practice-room-*-{day,night}.png`); the page organizes content with modern negative space, clear hierarchy, warm light and restrained transitions,
+and does not bake paper grain, global noise or decorative particles into room materials. The existing `home-room-ink-*` filenames are historical compatibility paths only
+and do not represent the active visual direction.
 
-## 使用方式
+## Usage
 
-1. 用支持图像生成的模型（如 Gemini image / GPT-image）以对应 md 文件中的 Prompt 生成。
-2. 每个视角必须生成严格配准的 day/night 对；画幅必须与现网一致，否则热点和代码 UI 会错位。
-3. 生成后按「Checklist」逐项过审，以版本化文件写入 `src/assets/`，再更新引用并 `npm run build`。
-4. 替换后跑 `docs/qa/visual-checklist.md` 的首页双主题条目。
+1. Generate with an image-capable model (e.g. Gemini image / GPT-image) using the Prompt in the matching md file.
+2. Every view must be generated as a strictly registered day/night pair; the frame must match the live one, or hotspots and code UI will misalign.
+3. After generating, review against the Checklist item by item, write versioned files into `src/assets/`, then update references and run `npm run build`.
+4. After replacing, run the homepage dual-theme entries in `docs/qa/visual-checklist.md`.
 
-## 通用约束（所有提示词共享）
+## Shared constraints (all prompts)
 
-- 同一房间：overview / writing / projects 必须像同一真实空间里的推镜头。
-- 每组 day/night 为同一机位、同一构图、同一物件与接触关系，只改时间、灯态、曝光和对应阴影。
-- 墙面为雪白哑光漆；木、金属、织物、皮革、橡胶分别呈现真实材质。
-- 禁止颗粒、纸纹、浮雕虫纹或同一种生成纹理跨越不同材质；按低 ISO 实拍质量验收。
-- 全景右工作台的 Supro、金色与蓝色单块、线材位置为构图锁；单块必须平放并服从桌面支撑平面。
-- 图片不内嵌介绍文字、UI、装饰印章或水印；视觉文字由代码叠加并使用常规字体。
+- Same room: overview / writing / projects must read as push-ins within one real space.
+- Each day/night pair shares camera position, composition, objects and contacts; only time, lamp state, exposure and the matching shadows change.
+- Walls are snow-white matte paint; wood, metal, fabric, leather and rubber each show their real material.
+- No grain, paper texture, embossed worm-like squiggles, or one generated texture spanning different materials; accept at low-ISO real-photo quality.
+- The positions of the Supro, gold and blue pedals and cables on the overview's right workbench are a composition lock; pedals must lie flat and obey the desk's support plane.
+- Images embed no introduction text, UI, decorative seals or watermarks; visible text is overlaid by code in a regular font.
 
-## 文件
+## Files
 
-- `home-room-ink-overview.md` — 昼夜全景
-- `home-room-ink-writing.md` — 书桌近景（点击"写作"热点）
-- `home-room-ink-projects.md` — 工作区近景（点击"作品"热点）
-- `home-room-ink-curtain.md` — 幕布近景（点击"生活"热点）
+- `home-room-ink-overview.md` — day/night overview
+- `home-room-ink-writing.md` — desk close-up (「写作」 / "Writing" hotspot)
+- `home-room-ink-projects.md` — workbench close-up (「作品」 / "Projects" hotspot)
+- `home-room-ink-curtain.md` — curtain close-up (「生活」 / "Life" hotspot)

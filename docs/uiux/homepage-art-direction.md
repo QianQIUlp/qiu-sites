@@ -1,13 +1,15 @@
-# 首页艺术方向：东西很多，初见很少
+# Homepage Art Direction: Many Things, Little at First Sight
 
-## 2026-09-22 · 当前首页
+## 2026-09-22 · Current homepage
 
-用户已确认新的 me.qiu.works 原型并要求落到代码：保留「千秋」、真实吉他、空间漫游、可演奏踏板台与中英文表达。首页的具体构图以此版本为准，见 [`ink-and-light-study.md`](./ink-and-light-study.md) 的 2026-09-22 补充。以下原始引语与旧版探索记录完整保留；“人物优先，逐渐发现”仍是共同意图。
+The user has approved the new me.qiu.works prototype and asked for it to be implemented in code: keep 「千秋」 (Qianqiu, the Chinese name), the real guitar, spatial wandering, the playable pedalboard and bilingual Chinese/English expression. The homepage's concrete composition follows this version; see the 2026-09-22 addendum in [`ink-and-light-study.md`](./ink-and-light-study.md). The original quote and the old exploration records below are kept in full; "person first, gradual discovery" remains the shared intent.
 
-> 这是首页的创作原点，不是组件规范，也不是一套等待机械执行的产品框架。
-> 当验收表、视觉契约或实现便利与这里的感受冲突时，先回到这里重新看。
+> This is the creative origin of the homepage, not a component spec, and not a product framework waiting to be executed mechanically.
+> When an acceptance checklist, visual contract or implementation convenience conflicts with the feeling here, come back here and look again first.
 
-## 千秋的原话
+## Qianqiu's original words
+
+The recorded quote is kept verbatim in Chinese, followed by an English translation.
 
 > 我有点担心你的生成结果，因为 Codex 有一个倾向，就是把一切东西过度工程化。
 > 但是你要知道，UI 前端视觉表达这种东西靠的不是一套非常严谨的大的框架，
@@ -26,65 +28,84 @@
 >
 > 这个才是真正需要落盘的东西。我们在做艺术，不是毫无审美的工程。
 
-## 实现时记住的感觉
+English translation:
 
-首页的丰富应当存在于深处，而不是摊在第一眼里。初见要静、要空，要先让名字、吉他和生活的气息
-留在光里；书桌、工作台、文章数量、项目状态与联系方式可以真实存在，但先退进阴影。
+> I'm a bit worried about what you'll generate, because Codex has a tendency to over-engineer everything.
+> But you need to understand that front-end visual expression doesn't rely on a very rigorous, big framework;
+> it relies on an intuitive, emotional sense. You may not understand what I'm saying at all, but I still have to tell you.
+>
+> The reason I'm saying this is that you said "it shouldn't rely on visual metaphor to speak for it anymore." That's wrong —
+> it is exactly visual metaphor that speaks for it.
+>
+> I don't want the homepage to show everything the moment you enter; things should appear as the user gradually walks somewhere.
+> What I'm least happy with right now is the homepage's overall expression: it always feels like something is missing, it isn't minimal enough, there's too much, and it ends up too messy.
+> The effect I want is that there are many things, but at the start many of them don't have to be handed to the reader all at once; instead they can choose to look gradually.
+>
+> At the start, first show Qianqiu and his guitar, his life, the person himself. Then gradually, with shadow or light,
+> or with the feeling of splashed ink, let the user, the reader, explore step by step and discover: oh, so there are these unknown sides too.
+> I want to achieve this effect on the homepage.
+>
+> This is what really needs to be written down. We're making art, not engineering without any aesthetic sense.
 
-读者靠近、停留、触摸或选择之后，光线、阴影和遮挡的退让才把另一面交出来。
-这不是“点击下一步”的教程，也不是把人物拆成若干模块的仪表盘。读者应当感觉是自己在房间里发现，
-而不是被页面依次讲解。
+## The feeling to remember while implementing
 
-视觉隐喻负责第一层认识，后续内容负责让这层感受落到真实的人生与作品上。两者不是互相替代：
-没有视觉隐喻，首页会退化成文字说明；没有真实落点，隐喻会退化成空洞的人设。
+The homepage's richness should live in depth, not be laid out at first glance. First sight should be quiet and empty, letting the name, the guitar and the breath of life
+stay in the light first; the desk, workbench, article counts, project statuses and contact details can really exist but should first recede into shadow.
 
-判断一次改动时，先离开代码和规则，缩小页面看第一眼：哪里最亮，哪里最静，视线先遇见谁，
-暗处是否还让人想走近。若第一眼同时解释了所有内容，或者必须靠一长串说明才能理解如何探索，
-就已经偏离了这份方向。
+Only after the reader approaches, lingers, touches or chooses does the yielding of light, shadow and occlusion hand over the other side.
+This is not a "click Next" tutorial, nor a dashboard that splits the person into modules. Readers should feel they discovered things in the room themselves,
+rather than being walked through by the page in sequence.
 
-## 后续校正：专业感与视觉中心
+Visual metaphor carries the first layer of understanding; the content behind it grounds that feeling in a real life and real work. Neither replaces the other:
+without visual metaphor the homepage degrades into a text explanation; without real destinations the metaphor degrades into a hollow persona.
 
-首页不需要用红章和书法字反复证明“文艺”。页眉去掉「千秋」红章，「我是千秋。」使用
-清楚、稳定的正常标题字，让人的名字专业地出现。
+When judging a change, step away from code and rules first, shrink the page and look at first glance: where is it brightest, where is it quietest, who does the eye meet first,
+and does the dark still make you want to approach? If the first glance explains everything at once, or exploring requires a long explanation to understand,
+it has already drifted from this direction.
 
-工程近景的三张作品卡以作者标注截图为构图准绳：MealCircuit 在左上桌面、Crewlight 在左下机架、
-Hadoop Lab 在右下桌沿。不要再自行改写成三角群组或其他“优化”构图。
+## Later correction: professionalism and visual center
 
-## 再次校正：工程近景改为横向单块效果器
+The homepage does not need red seals and calligraphy to keep proving it is "artistic". The header drops the 「千秋」 red seal, and 「我是千秋。」 ("I am Qianqiu.") uses
+a clear, stable regular heading font so the person's name appears professionally.
 
-工程近景不再使用液态玻璃卡片。三件作品继续严格留在作者标注的左上、左下、右下位置，
-而且必须是三件结构不同的设备，不是同一张皮换色：Docker-Hadoop 以作者提供的横置 Blue Driver
-原型为构图真值，保留顶部信号栏、纵向金色旋钮、中央大标题和右侧黑踏板；MealCircuit 取 Halfman OD
-的深色木盒，把三枚实木旋钮排成左侧纵列，以中部放大的现代设备铭牌承担第一视觉层，再保留红灯与金属彩钉；
-Crewlight 把复古箱头压成横向单块，使用皮革包边、放大的奶油六旋钮面板、青色电源灯、蜂窝网罩与独立彩钉，
-奶油控制面板只占上方约三分之一，蜂窝网罩从其下缘开始并占设备至少六成；控制名、项目铭牌和入口在
-1440px 全场正常观看距离下都必须直接可读，不能以局部放大图作为通过依据。项目名不低于约 24px、控制标签
-不低于约 11px、次要状态不低于约 9px。它们都由 HTML/CSS 构成，不直接铺品牌图；
-旋钮可调、灯可切换、脚踏负责进入项目，设备语言不扩散到普通界面。
+The three project cards in the engineering close-up take the author's annotated screenshot as their composition rule: MealCircuit on the upper-left desktop, Crewlight on the lower-left rack,
+Hadoop Lab at the lower-right desk edge. Do not rewrite them into a triangle group or any other "optimized" composition on your own.
 
-## 2026-07 用户校正：房间保留，古风退场
+## Another correction: engineering close-up becomes horizontal single pedals
 
-这次校正不推翻上面的原始引语，也不取消“东西很多，初见很少”的渐进发现。它修正的是后来叠加得过重的
-中国古风视觉表达：页面不再用书法字、印章、宣纸纹理、全局噪点、花瓣或墨絮来证明文艺感。
-这些视觉元素不再是当前身份，也不应以装饰形式继续出现在界面上；文字只按下方白名单处理。
+The engineering close-up no longer uses liquid-glass cards. The three projects stay strictly in the author's annotated upper-left, lower-left and lower-right positions,
+and they must be three structurally different devices, not the same skin recolored: Docker-Hadoop takes the author-supplied horizontal Blue Driver
+prototype as composition ground truth, keeping the top signal strip, the vertical gold knobs, the large central title and the black footswitch on the right; MealCircuit takes the Halfman OD's
+dark wooden box, arranges three solid-wood knobs in a left column, lets an enlarged modern device nameplate in the middle carry the first visual layer, and keeps the red light and metal colored studs;
+Crewlight compresses a vintage amp head into a horizontal single unit with leather piping, an enlarged cream six-knob panel, a cyan power light, a honeycomb grille and its own colored studs.
+The cream control panel occupies only about the top third, and the honeycomb grille starts at its lower edge and covers at least 60% of the device. Control names, project nameplates and entries must be
+directly readable at normal full-scene viewing distance at 1440px; a zoomed crop cannot count as a pass. Project names are no smaller than about 24px, control labels
+no smaller than about 11px, and secondary status no smaller than about 9px. All are built from HTML/CSS, not laid down as brand images;
+knobs are adjustable, lights toggle, and the footswitch enters the project. The device language does not spread to the ordinary interface.
 
-继续保留的核心是：真实现代房间、吉他、三台结构不同的效果器/箱头设备、暖光与阴影、克制的红色、
-读者主动选择的渐进发现，以及内页舒适的长文阅读。文档与 QA 可用 **Light / Dark** 指代两个主题，
-但可见主题按钮继续保留既有的「昼 / 夜」与「Day / Night」。转场和内容 reveal 可以保留，但只作为
-安静、快速、可减弱的界面反馈，不再解释为泼墨、晕染或显影仪式。
+## 2026-07 user correction: keep the room, retire the antique style
 
-这次校正不授权重写首页或共享界面的其他文案。文字改动只限于：删除「展开卷宗」及英文对应项；
-博客计数「卷 / 题」改为「篇 / 标签」；删除「题跋」；删除可见的「授权协议 · 文末记」区块。
-其余文案以校正前基线为准，必须原样保留。红色仍可作为少量 accent 使用，用于焦点、状态或关键提示；
-它不再承担“朱砂、落款、批注”的固定语义，也不应铺满界面。
+This correction does not overturn the original quote above, nor cancel the progressive discovery of "many things, little at first sight". It corrects the classical-Chinese
+visual expression that was later layered on too heavily: the page no longer uses calligraphy, seals, xuan-paper texture, global noise, petals or ink fluff to prove its artistry.
+These visual elements are no longer the current identity and should not keep appearing as decoration in the interface; text is handled only per the allowlist below.
 
-## 2026-07-29 用户批准：双主页分工
+What remains at the core: a real modern room, the guitar, three structurally different pedal/amp-head devices, warm light and shadow, restrained red,
+progressive discovery chosen by the reader, and comfortable long-form reading on inner pages. Documentation and QA may call the two themes **Light / Dark**,
+but the visible theme button keeps the existing 「昼 / 夜」 (Day / Night) and 「Day / Night」. Transitions and content reveals may stay, but only as
+quiet, fast, reducible interface feedback, no longer interpreted as an ink-splash, ink-bleed or photographic-developing ritual.
 
-Room 不再独自承担“人物空间”和“职业入口”两种任务。`room.qiu.works` 继续执行本文件的原始方向；
-`qiu.works` 由独立的开发者主页快速回答“Qiu 能构建什么”。两者同仓库、分开构建、互相链接，
-但开发者主页不得把 Room 的场景复制成职业页面背景，Room 也不得被重做成作品集。
+This correction does not authorize rewriting other copy on the homepage or shared interface. Text changes are limited to: removing 「展开卷宗」 ("open the dossier") and its English counterpart;
+changing the blog counts 「卷 / 题」 ("volumes / topics") to 「篇 / 标签」 ("articles / tags"); removing 「题跋」 ("colophon"); removing the visible 「授权协议 · 文末记」 ("License · end note") block.
+All other copy follows the pre-correction baseline and must be kept verbatim. Red may still be used as a sparing accent for focus, status or key prompts;
+it no longer carries the fixed meaning of "cinnabar, signature seal, annotation", and it should not flood the interface.
 
-用户明确批准 Room 的一组有限扩展：首屏增加轻量的“学生开发者 · 独立构建者 / CS student · indie developer”
-身份锚点及新的中英文自述；生活近景与页脚增加开发者主页、联系入口；项目档案加入 VeriSilo；分享卡改用
-真实房间与吉他。三台首页设备仍固定为 MealCircuit、Crewlight、Hadoop Lab，场景构图与探索关系
-不因项目档案新增而改变。本次批准只扩展这些具体文字和入口，不改写上面的用户原话，也不授权其他文案漂移。
+## 2026-07-29 user approval: division of labor between two homepages
+
+Room no longer carries both the "personal space" and "career entry" tasks alone. `room.qiu.works` continues to follow this file's original direction;
+`qiu.works`, a separate developer homepage, quickly answers "what can Qiu build". The two share a repository, build separately and link to each other,
+but the developer homepage must not copy the Room scene as a career-page background, and Room must not be redone as a portfolio.
+
+The user explicitly approved a limited set of Room extensions: the first screen adds a lightweight 「学生开发者 · 独立构建者」 / "CS student · indie developer"
+identity anchor plus a new Chinese and English self-description; the life close-up and footer add the developer homepage and contact entries; the project archive adds VeriSilo; the share card switches to
+the real room and guitar. The three homepage devices remain fixed as MealCircuit, Crewlight and Hadoop Lab, and the scene composition and exploration relationships
+do not change because of the project archive addition. This approval extends only these specific texts and entries, does not rewrite the user's original words above, and does not authorize any other copy drift.

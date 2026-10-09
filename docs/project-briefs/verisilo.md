@@ -63,8 +63,8 @@ installer as signed.
 
 ## Display Copy Guidance
 
-- Use the visible status `公开预发布 · v0.1.0-rc4` and the subtitle
-  `浏览器环境隔离与隐私审计平台`.
+- Use the visible status `公开预发布 · v0.1.0-rc4` ("public prerelease · v0.1.0-rc4") and the subtitle
+  `浏览器环境隔离与隐私审计平台` ("browser environment isolation and privacy-auditing platform").
 - State that a Windows x64 installer is downloadable and that it is unsigned,
   without implying the release is stable.
 - Keep the platform scope explicit: Windows-first, Chrome and Edge.

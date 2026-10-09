@@ -1,11 +1,11 @@
-# home-room-ink-writing · 书桌近景
+# home-room-ink-writing · Desk close-up
 
-目标：点击「写作」后的真实电脑近景 Light/Dark 对；显示器留出干净黑屏供代码叠加文章列表。
+Goal: a Light/Dark pair of the real computer close-up shown after clicking 「写作」 ("Writing"); the monitor shows a clean black screen so code can overlay the article list.
 
 ## Canvas
 
-- 1672×941，16:9；与全景是同一房间的推镜头。
-- 黑屏内区约为 x=30.25%–56%、y=32.8%–60.3%，不得被物件或高光遮挡。
+- 1672×941, 16:9; a push-in on the same room as the overview.
+- The black screen's inner area is about x=30.25%–56%, y=32.8%–60.3% and must not be covered by objects or highlights.
 
 ## Prompt
 
@@ -22,7 +22,7 @@
 
 ## Checklist
 
-- [ ] 与 overview 同一物件和材质
-- [ ] Light/Dark 严格配准，灯只在 Dark 资产中亮
-- [ ] 黑屏位置与 `.room-monitor-surface` 对齐，无可读文字
-- [ ] 白墙与各材质干净真实，无跨材质噪点
+- [ ] Same objects and materials as overview
+- [ ] Light/Dark strictly registered; the lamp is lit only in the Dark asset
+- [ ] Black screen aligns with `.room-monitor-surface` and has no readable text
+- [ ] White wall and all materials are clean and real, with no cross-material noise
