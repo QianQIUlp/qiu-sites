@@ -49,30 +49,55 @@ async function init() {
   await yieldTask();
 
   // A small studio environment supplies real moving reflections on the metal.
-  const studio=new THREE.Scene();studio.background=new THREE.Color('#333834');
-  function softbox(x,y,z,w,h,intensity) {
-    const box=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(intensity,intensity*.97,intensity*.9),side:THREE.DoubleSide}));
-    box.position.set(x,y,z);box.lookAt(0,0,0);studio.add(box);
+  // The home room gets its own: warm paper walls and one slatted window to the upper right,
+  // so the varnish picks up the blinds and the light matches the daylight layer around it.
+  const pmrem=new THREE.PMREMGenerator(renderer);
+  function environmentFrom(background,boxes) {
+    const room=new THREE.Scene();room.background=new THREE.Color(background);
+    for(const [x,y,z,w,h,r,g,b] of boxes){
+      const box=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(r,g,b),side:THREE.DoubleSide}));
+      box.position.set(x,y,z);box.lookAt(0,0,0);room.add(box);
+    }
+    const target=pmrem.fromScene(room,.025);
+    room.traverse(n=>{if(n.isMesh){n.geometry.dispose();n.material.dispose();}});
+    return target.texture;
   }
-  softbox(-2,1,3,1.6,5,4);softbox(3,.4,1,.55,4,3);softbox(0,4,0,3,2,2);softbox(-.7,0,3,.4,5,5);
-  const pmrem=new THREE.PMREMGenerator(renderer),environment=pmrem.fromScene(studio,.025);
-  scene.environment=environment.texture;pmrem.dispose();
-  studio.traverse(n=>{if(n.isMesh){n.geometry.dispose();n.material.dispose();}});
+  const softbox=(x,y,z,w,h,i)=>[x,y,z,w,h,i,i*.97,i*.9];
+  const studioEnvironment=environmentFrom('#333834',[softbox(-2,1,3,1.6,5,4),softbox(3,.4,1,.55,4,3),softbox(0,4,0,3,2,2),softbox(-.7,0,3,.4,5,5)]);
+  const blinds=Array.from({length:6},(_,i)=>[3.3,2.9-i*.42,1.1,1.9,.24,5.2,4.4,3.3]);
+  const roomEnvironment=environmentFrom('#5f564b',[...blinds,[-3,.6,.4,2.4,4,1.1,1,.9],[0,-3,.6,5,2,.8,.68,.54],[-.4,3.6,.4,3,1.2,1.3,1.2,1.08]]);
+  pmrem.dispose();
   await yieldTask();
-  scene.add(new THREE.HemisphereLight('#f5eee0','#42493f',.85));
+  const hemisphere=new THREE.HemisphereLight('#f5eee0','#42493f',.85);scene.add(hemisphere);
   const key=new THREE.DirectionalLight('#fff4dd',1.35);key.position.set(-2,3,4);scene.add(key);
   const fill=new THREE.DirectionalLight('#dce9f3',.55);fill.position.set(2,.4,1);scene.add(fill);
+  let studioKeyX=-2;
+  const lighting={
+    studio(){scene.environment=studioEnvironment;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.88;hemisphere.color.set('#f5eee0');hemisphere.groundColor.set('#42493f');hemisphere.intensity=.85;key.color.set('#fff4dd');key.intensity=1.35;key.position.set(studioKeyX,3,4);fill.color.set('#dce9f3');fill.intensity=.55;fill.position.set(2,.4,1);},
+    // Afternoon sun through the window behind the visitor's right shoulder; paper bounces it back.
+    room(){scene.environment=roomEnvironment;renderer.toneMapping=THREE.NeutralToneMapping;renderer.toneMappingExposure=1.0;hemisphere.color.set('#fff3e0');hemisphere.groundColor.set('#7a6650');hemisphere.intensity=.95;key.color.set('#ffe6c6');key.intensity=1.9;key.position.set(2.6,2.8,3.2);fill.color.set('#f1ece4');fill.intensity=.5;fill.position.set(-2.4,.2,1.6);}
+  };
+  lighting.studio();
 
   const metal=new THREE.MeshStandardMaterial({color:'#bfc3c1',metalness:1,roughness:.24,envMapIntensity:.85});
   const darkMetal=new THREE.MeshStandardMaterial({color:'#424341',metalness:.8,roughness:.32});
   const cream=new THREE.MeshStandardMaterial({color:'#d9ca91',roughness:.38});
   const black=new THREE.MeshStandardMaterial({color:'#121513',roughness:.36});
   const side=new THREE.MeshPhysicalMaterial({color:'#351015',roughness:.37,clearcoat:.35,clearcoatRoughness:.3});
-  const varnish=new THREE.MeshPhysicalMaterial({map:bareBody,roughness:.76,clearcoat:.12,clearcoatRoughness:.32,envMapIntensity:.22});
+  const varnish=new THREE.MeshPhysicalMaterial({map:bareBody,roughness:.62,clearcoat:.55,clearcoatRoughness:.2,envMapIntensity:.32});
+  // Qiu's own photo darkens the lacquer towards purple. Grade only the red finish
+  // (not the bare-wood wear) towards the official Rāna photograph's warm cherry.
+  varnish.onBeforeCompile=shader=>{
+    shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+      float lacquer=smoothstep(.55,.85,(diffuseColor.r-max(diffuseColor.g,diffuseColor.b))/max(diffuseColor.r,.001));
+      diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.6,1.,1.35)+vec3(0.,.0075,.0016),lacquer);
+    `);
+  };
   const photographedMetal=new THREE.MeshStandardMaterial({map:photo,metalness:.35,roughness:.38,envMapIntensity:.5});
   const photographedPlastic=new THREE.MeshStandardMaterial({map:photo,roughness:.62,envMapIntensity:.18});
   const maple=new THREE.MeshStandardMaterial({color:'#b39b70',roughness:.5});
-  const amber=new THREE.MeshPhysicalMaterial({color:'#684019',metalness:.25,roughness:.22,clearcoat:.7});
+  // Amber top-hat knobs glow a little where the light passes through them.
+  const amber=new THREE.MeshPhysicalMaterial({color:'#b5541b',emissive:'#4a1a04',metalness:.1,roughness:.18,clearcoat:1,clearcoatRoughness:.08});
 
   function mesh(geometry,material,x=0,y=0,z=0,parent=guitar) {
     const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);parent.add(m);return m;
@@ -215,6 +240,8 @@ async function init() {
   // Cut the original washers out of the flat face. Their pixels belong only to the relief.
   for(const post of posts){const hole=new THREE.Path();hole.absarc(HX(post.px),HY(post.py),18*headScale,0,Math.PI*2,true);head.holes.push(hole);}
   const headFace=photoFace(head,headOriginal,headUV,.007,headGroup);
+  // The headstock is gloss black: a sharp window reflection, not a grey satin film.
+  headFace.material.roughness=.12;headFace.material.envMapIntensity=.55;
   // Keep the original high-resolution lettering and wear. Use the cleaned texture
   // only inside the six narrow string corridors, where the source has baked strings.
   const stringCorridors=Array.from({length:6},(_,i)=>{
@@ -348,7 +375,7 @@ async function init() {
     size(w,h);
     const [focus,extent]=views[view];
     const fit=Math.max(extent,(view==='body'?.39:view==='whole'?.4:.10)/(w/h));
-    compose(focus,fit/zoom,w/h,pitch,yaw);renderer.render(scene,camera);
+    compose(focus,fit/zoom,w/h,pitch,yaw);lighting.studio();renderer.render(scene,camera);
     canvas.dataset.yaw=yaw.toFixed(3);canvas.dataset.pitch=pitch.toFixed(3);canvas.dataset.zoom=zoom.toFixed(2);canvas.dataset.view=view;
     lastHome='';
   }
@@ -357,7 +384,7 @@ async function init() {
     canvas,
     drawHome(x,y){
       const signature=`${x.toFixed(3)},${y.toFixed(3)}`;if(signature===lastHome)return;
-      size(850,850);compose(.300,1.02,1,y*.10,-.08+x*.44);renderer.render(scene,camera);lastHome=signature;
+      size(850,850);compose(.300,1.02,1,y*.10,-.08+x*.44);lighting.room();renderer.render(scene,camera);lastHome=signature;
     },
     setDetail(name){view=name;zoom=1;requestRender();}
   };
@@ -368,7 +395,7 @@ async function init() {
   canvas.addEventListener('pointermove',e=>{
     if(drag&&e.pointerType==='mouse'&&e.buttons===0)release(e);
     if(drag&&drag.id===e.pointerId){yaw=limit(drag.yaw+(e.clientX-drag.x)*.007,-1.12,1.12);pitch=limit(drag.pitch+(e.clientY-drag.y)*.005,-.38,.38);requestRender();}
-    else if(e.pointerType==='mouse'){const rect=canvas.getBoundingClientRect();key.position.x=-2+(e.clientX-rect.left)/rect.width*1.3;requestRender();}
+    else if(e.pointerType==='mouse'){const rect=canvas.getBoundingClientRect();studioKeyX=-2+(e.clientX-rect.left)/rect.width*1.3;requestRender();}
   });
   function release(e){if(!drag||drag.id!==e.pointerId)return;drag=null;canvas.classList.remove('turning');if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);}
   canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);

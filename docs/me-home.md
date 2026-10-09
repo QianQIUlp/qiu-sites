@@ -49,7 +49,7 @@
 | `qiu-potbelly-bare-body.png` → `.webp` | 同一实拍移除弦和五金的派生图，1064 × 1478，运行时用作琴身底材 |
 | `bangdream-potbelly-stringless.png` → `.webp` | 官方正面参考的去弦派生图，1254 × 1254，运行时用于指板及琴头弦路径 |
 | `bangdream-potbelly-fm-rana.png` → `.webp` | ESP 官方正面参考，2400 × 2400，运行时用于琴头标记、加载回退和 WebGL 回退 |
-| `guitar-home.webp` | 同一三维模型的中性帧，1275 × 1275，无损透明 WebP；首屏提前显示，模型首帧完成后隐藏 |
+| `guitar-home.webp` | Neutral frame of the same 3D model under the home room lighting (`drawHome(0,0)` at pixel ratio 1.5), 1275 × 1275, lossless transparent WebP; shown first and hidden once the model draws its first frame. Re-render it whenever the model's look changes |
 | `jam-strings.webp` | Body close-up cut from the same official photograph (pickups, bridge, six strings), rotated landscape, 860 × 620; the playable strings in the strings room |
 | `work-home.webp` | 已确认的 VeriSilo 雕塑中性帧，1191 × 636，无损透明 WebP；展区载入时显示 |
 

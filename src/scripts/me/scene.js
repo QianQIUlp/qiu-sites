@@ -36,8 +36,12 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     const follow=motion?1:.3;
     ctx.save();ctx.translate(width*.505+tilt.x*7*follow,height*.475+tilt.y*4*follow);
     ctx.rotate(.32+tilt.x*.025*follow);
-    ctx.shadowColor='#2b241936';ctx.shadowBlur=18;ctx.shadowOffsetX=9;ctx.shadowOffsetY=16;
-    window.qiuGuitar.drawHome(tilt.x*follow,tilt.y*follow);ctx.drawImage(window.qiuGuitar.canvas,-size/2,-size/2,size,size);
+    window.qiuGuitar.drawHome(tilt.x*follow,tilt.y*follow);
+    // Like everything else in the room, it casts away from the window: a long soft shadow, then a close one.
+    ctx.shadowColor='rgba(74,50,26,.24)';ctx.shadowBlur=size*.032;ctx.shadowOffsetX=-size*.03;ctx.shadowOffsetY=size*.04;
+    ctx.drawImage(window.qiuGuitar.canvas,-size/2,-size/2,size,size);
+    ctx.shadowColor='rgba(46,28,12,.26)';ctx.shadowBlur=size*.006;ctx.shadowOffsetX=-size*.006;ctx.shadowOffsetY=size*.009;
+    ctx.drawImage(window.qiuGuitar.canvas,-size/2,-size/2,size,size);
     document.body.classList.add('guitar-home-ready');
     ctx.restore();
   }
