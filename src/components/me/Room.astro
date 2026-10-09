@@ -120,6 +120,12 @@ const mapPlaces = [
       </div>
       <div class="guitar-stage" data-view="body"><img id="guitar-photo" src={guitarPhoto.src} width="2400" height="2400" decoding="async" fetchpriority="low" alt={t("模型载入前的 BanG Dream! POTBELLY FM Rāna 官方外形参考", "Official BanG Dream! POTBELLY FM Rāna reference photograph, shown while the model loads")} draggable="false"></div>
     </div>
-    <div class="guitar-handling"><span class="guitar-drag" role="group" aria-label={t("拖动方式", "What dragging does")}><button type="button" data-drag-mode="turn" aria-pressed="true">{t("拖动转动", "Drag to turn")}</button><button type="button" data-drag-mode="move" aria-pressed="false">{t("拖动移动", "Drag to move")}</button></span><span>{t("滚轮靠近", "Scroll to get closer")}</span><button id="guitar-reset" type="button">{t("正过来", "Face the front")} <Icon name="southwest" /></button></div>
+    <div class="guitar-handling"><ul class="guitar-controls" aria-label={t("怎么看这把琴", "How to look around")}>
+      <li class="for-mouse"><svg viewBox="0 0 12 16" aria-hidden="true"><rect x="1" y="1" width="10" height="14" rx="5"/><path d="M1 7h10M6 1v6"/><path class="lit" d="M6 1.2V7H1.2V6A4.8 4.8 0 0 1 6 1.2Z"/></svg><span><b>{t("左键拖动", "Left-drag")}</b>{t("转动", "to turn")}</span></li>
+      <li class="for-mouse"><svg viewBox="0 0 12 16" aria-hidden="true"><rect x="1" y="1" width="10" height="14" rx="5"/><path d="M1 7h10M6 1v6"/><path class="lit" d="M6 1.2V7h4.8V6A4.8 4.8 0 0 0 6 1.2Z"/></svg><span><b>{t("右键拖动", "Right-drag")}</b>{t("移动", "to move")}</span></li>
+      <li class="for-mouse"><svg viewBox="0 0 12 16" aria-hidden="true"><rect x="1" y="1" width="10" height="14" rx="5"/><rect class="lit" x="5" y="3" width="2" height="4" rx="1"/></svg><span><b>{t("滚轮", "Scroll")}</b>{t("靠近", "to zoom")}</span></li>
+      <li class="for-touch"><svg viewBox="0 0 16 16" aria-hidden="true"><circle class="lit" cx="8" cy="8" r="3"/></svg><span><b>{t("单指拖动", "One finger")}</b>{t("转动", "turns")}</span></li>
+      <li class="for-touch"><svg viewBox="0 0 16 16" aria-hidden="true"><circle class="lit" cx="4.5" cy="8" r="3"/><circle class="lit" cx="11.5" cy="8" r="3"/></svg><span><b>{t("双指", "Two fingers")}</b>{t("移动、缩放", "move and zoom")}</span></li>
+    </ul><button id="guitar-reset" type="button">{t("正过来", "Face the front")} <Icon name="southwest" /></button></div>
     <span class="guitar-credit">{t("琴身纹理来自我的实拍", "Body texture from my own photograph")}</span>
   </dialog>

@@ -11,7 +11,7 @@ const stage=document.querySelector('.guitar-stage');
 const dialog=document.querySelector('#guitar-closeup');
 const canvas=document.createElement('canvas');
 canvas.id='guitar-model';canvas.tabIndex=0;
-canvas.setAttribute('aria-label',t("三维吉他。拖动转动，右键或 Shift 拖动移动，滚轮靠近；方向键转动，Shift 加方向键移动，空格复位。","3D guitar. Drag to turn, right-drag or Shift-drag to move along it, scroll to get closer. Arrow keys turn, Shift with arrow keys moves, Space resets."));
+canvas.setAttribute('aria-label',t("三维吉他。左键拖动转动，右键拖动移动，滚轮靠近；方向键转动，Shift 加方向键移动，空格复位。","3D guitar. Left-drag to turn, right-drag to move along it, scroll to get closer. Arrow keys turn, Shift with arrow keys moves, Space resets."));
 stage.append(canvas);
 
 const yieldTask=()=>window.scheduler?.yield?window.scheduler.yield():new Promise(resolve=>setTimeout(resolve,0));
@@ -110,8 +110,9 @@ async function init() {
       float e=sqrt(d2)-sqrt(d1),w=fwidth(e)*1.2+.015;
       return 1.-smoothstep(0.,w,e);
     }`;
-  // Checks cover the whole instrument: every plate sits at its own slight angle, so a reflection
-  // breaks into a mosaic while the lacquer still shines. Needs a float named lacquer (0 on bare wood).
+  // Checking belongs to the aged nitro over the flamed maple top alone: not the mahogany, the neck,
+  // the headstock or wood worn bare. Every plate sits at its own slight angle, so a reflection
+  // breaks into a mosaic while the lacquer still shines. Needs a float named checkMask.
   const checkingGLSL=`
       vec3 plate,finePlate;float plateSeen,fineSeen;
       // Plates run a little longer across the grain, and some of their edges never opened, so the
@@ -119,16 +120,22 @@ async function init() {
       vec3 crackPos=vCrackPos*vec3(.7,1.,1.);
       float crack=crackle(crackPos,.0029,plate,plateSeen),fineCrack=crackle(crackPos+.37,.0013,finePlate,fineSeen);
       crack*=.35+.65*smoothstep(.3,.55,noise3(vCrackPos*420.));fineCrack*=smoothstep(.45,.65,noise3(vCrackPos*260.+5.));
-      float checks=max(crack*plateSeen,fineCrack*fineSeen*.55)*lacquer;
+      float checks=max(crack*plateSeen,fineCrack*fineSeen*.55)*checkMask;
       diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.74+vec3(.012,.008,.006),checks);
-      vec3 plateTilt=mat3(vObjX,vObjY,vObjZ)*((hash33(plate*1.7+4.)-.5)*.018*plateSeen+(hash33(finePlate*2.3+9.)-.5)*.008*fineSeen)*lacquer;
+      vec3 plateTilt=mat3(vObjX,vObjY,vObjZ)*((hash33(plate*1.7+4.)-.5)*.018*plateSeen+(hash33(finePlate*2.3+9.)-.5)*.008*fineSeen)*checkMask;
+  `;
+  // Smooth lacquer for everything else: the same coat, with nothing to break it.
+  const smoothGLSL=`
+      vec3 plate=vec3(0.),plateTilt=vec3(0.);float plateSeen=1.,checks=0.;
   `;
   const tiltCoat=`
       clearcoatNormal=normalize(clearcoatNormal+plateTilt-dot(plateTilt,clearcoatNormal)*clearcoatNormal);`;
   // Gloss lacquer that still reads as old: a slightly soft coat, killed in the cracks, and a little
   // duller where plates are too small to resolve (their scattered angles blur the reflection).
+  // Wood worn bare has no coat and next to no sheen of its own: it scatters light, it does not mirror it.
   const coat=`
       material.clearcoat*=lacquer*(1.-.85*checks);
+      material.specularColor*=mix(.2,1.,lacquer);material.specularF90*=mix(.25,1.,lacquer);
       material.clearcoatRoughness=min(1.,material.clearcoatRoughness+.06*(1.-plateSeen)+.05*hash3(plate+2.));`;
   function crackedLacquer(shader,clearcoat=true) {
     shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vCrackPos,vObjX,vObjY,vObjZ;')
@@ -142,11 +149,11 @@ async function init() {
   }
   // The wood under the coat is matte; the shine is the coat's alone.
   const lacquerCoat={roughness:.6,specularIntensity:.35,clearcoat:.9,clearcoatRoughness:.2,envMapIntensity:.5};
-  // The headstock's edges: wine red over mahogany, checked like everything else.
+  // The headstock's edges: wine red over mahogany.
   const side=new THREE.MeshPhysicalMaterial({color:'#3c0507',...lacquerCoat});
   side.onBeforeCompile=shader=>{
     crackedLacquer(shader);
-    shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nfloat lacquer=1.;'+checkingGLSL);
+    shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nfloat lacquer=1.;'+smoothGLSL);
   };
   const figure={value:0};
   const varnish=new THREE.MeshPhysicalMaterial({map:bareBody,...lacquerCoat});
@@ -156,6 +163,8 @@ async function init() {
     shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform float figure;');
     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
       float lacquer=lacquerOf(diffuseColor.rgb,.55,.85);
+      // Only lacquer that is still whole checks; the frayed rim of a worn patch has flaked away.
+      float checkMask=lacquerOf(diffuseColor.rgb,.64,.8);
       // Flamed maple is chatoyant: as the guitar turns, its curls swap light for dark.
       // The curls run across the body, so their bright bands roll along its length; keep their
       // contrast, deepen it a little as ESP's top shows, and shift which curls catch the light.
@@ -170,7 +179,7 @@ async function init() {
       diffuseColor.rgb*=mix(vec3(.84,.76,.6),vec3(1.),lacquer);
       ${checkingGLSL}
     `).replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
-      roughnessFactor=mix(.86,roughnessFactor,lacquer);
+      roughnessFactor=mix(.93,roughnessFactor,lacquer);
     `);
   };
   // ESP's back photograph covers the mahogany back, the scraped neck and the headstock's back.
@@ -179,7 +188,7 @@ async function init() {
     crackedLacquer(shader);
     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
       float lacquer=lacquerOf(diffuseColor.rgb,.55,.8);
-      ${checkingGLSL}
+      ${smoothGLSL}
     `).replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
       roughnessFactor=mix(.84,roughnessFactor,lacquer);
     `);
@@ -210,7 +219,7 @@ async function init() {
       vec3 maple=mix(vec3(.6,.36,.11)*(.7+.5*curl),vec3(.5,.38,.22)*(.8+.3*curl),bare);
       diffuseColor.rgb=mix(mahogany,maple,binding);
       float lacquer=1.-bare;
-      ${checkingGLSL}
+      ${smoothGLSL}
     `).replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
       roughnessFactor=mix(.84,roughnessFactor,lacquer);
     `);
@@ -218,8 +227,15 @@ async function init() {
   const photographedMetal=new THREE.MeshStandardMaterial({map:photo,metalness:.35,roughness:.38,envMapIntensity:.5});
   const photographedPlastic=new THREE.MeshStandardMaterial({map:photo,roughness:.62,envMapIntensity:.18});
   const maple=new THREE.MeshStandardMaterial({color:'#b39b70',roughness:.5});
-  // Amber top-hat knobs glow a little where the light passes through them.
-  const amber=new THREE.MeshPhysicalMaterial({color:'#b5541b',emissive:'#4a1a04',metalness:.1,roughness:.18,clearcoat:1,clearcoatRoughness:.08});
+  // Amber top-hat knobs: clear, tinted plastic. The wine-red top shows through them, darkest where
+  // they are thickest, and the light that gets in glows orange.
+  const amber=new THREE.MeshPhysicalMaterial({color:'#f58224',emissive:'#1e0900',roughness:.05,transmission:.8,thickness:.012,ior:1.5,attenuationColor:'#d9690f',attenuationDistance:.007,specularIntensity:1,envMapIntensity:1.2});
+  // The dial numbers moulded into the skirt, read from the centre, counting up anticlockwise as on ESP's photograph.
+  const dial=document.createElement('canvas');dial.width=2048;dial.height=96;
+  {const g=dial.getContext('2d');g.fillStyle='rgba(74,24,2,.82)';g.font='600 70px Georgia,serif';g.textAlign='center';g.textBaseline='middle';
+    for(let n=0;n<=10;n++){const u=((-.7+n*Math.PI/6)/(Math.PI*2)+1)%1;g.fillText(String(n),u*2048,50);}}
+  const dialTexture=new THREE.CanvasTexture(dial);dialTexture.colorSpace=THREE.SRGBColorSpace;dialTexture.anisotropy=8;
+  const dialPrint=new THREE.MeshStandardMaterial({map:dialTexture,transparent:true,depthWrite:false,roughness:.35,polygonOffset:true,polygonOffsetFactor:-2});
 
   function mesh(geometry,material,x=0,y=0,z=0,parent=guitar) {
     const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);parent.add(m);return m;
@@ -282,6 +298,17 @@ async function init() {
   const wallGeometry=new THREE.BufferGeometry();wallGeometry.setAttribute('position',new THREE.Float32BufferAttribute(wallPositions,3));wallGeometry.setAttribute('normal',new THREE.Float32BufferAttribute(wallNormals,3));wallGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(wallUV,2));wallGeometry.setIndex(wallIndices);
   wallGeometry.addGroup(0,count*6,0);wallGeometry.addGroup(count*6,wallIndices.length-count*6,1);
   const body=mesh(wallGeometry,[varnish,sideFinish]);body.name='Continuous rounded 55 mm body';
+  // Two nickel strap buttons on felt washers, square to the side: one on the tip of the bass horn,
+  // one at the tail, each at the outline's furthest point, halfway down the side.
+  const strapProfile=[[0,.0012],[.0052,.0012],[.0044,.0019],[.0036,.0032],[.0036,.0078],[.0045,.0084],[.0072,.0091],[.0079,.0099],[.0076,.0108],[.006,.0113],[.003,.0117],[0,.0118]].map(([r,h])=>new THREE.Vector2(r,h));
+  const felt=[[0,0],[.0066,0],[.0068,.0006],[.0066,.0012],[0,.0012]].map(([r,h])=>new THREE.Vector2(r,h));
+  for(const [name,pick] of [['Strap button, bass horn',(a,b)=>a.y>b.y],['Strap button, tail',(a,b)=>a.y<b.y]]) {
+    const i=perimeter.reduce((best,p,k)=>pick(p,perimeter[best])?k:best,0),base=atEdge(i,0);
+    const out=new THREE.Vector3(-inward[i].x,-inward[i].y,0),strap=new THREE.Group();strap.name=name;
+    strap.position.set(base.x,base.y,-.0076);strap.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),out);guitar.add(strap);
+    mesh(new THREE.LatheGeometry(felt,40),black,0,0,0,strap);
+    mesh(new THREE.LatheGeometry(strapProfile,48),metal,0,0,0,strap);
+  }
   // The back is registered to the outline: the photograph's body spans x 768–1615, y 1262–2377.
   const backUV=(x,y)=>[(8+(x/S+540-6.6)*.8113)/870,1-(1262+(1000-y/S-77.6)*.7885)/2400];
   const backFace=new THREE.ShapeGeometry(faceOutline,12);
@@ -434,9 +461,8 @@ async function init() {
         cleanMask=max(cleanMask,1.0-smoothstep(3.0,5.0,length(headPixel-mix(a,b,t))));
       }
       diffuseColor.rgb=diffuse*mix(texture2D(map,vMapUv).rgb,texture2D(cleanHead,vMapUv).rgb,cleanMask);
-      // The black face is nitro too, and checked like the rest.
       float lacquer=1.;
-      ${checkingGLSL}
+      ${smoothGLSL}
     `).replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
       // A flat face catches the sun all at once; let it glint, not turn white.
       reflectedLight.directSpecular*=.28;
@@ -511,13 +537,16 @@ async function init() {
   const tailY=Y(1190);
   photographCap(roundBox(.101,.016,.012,.007,metal,X(540),tailY,.026));
   for(const x of [-.045,.045])screw(x,tailY,.04,.0045);
+  // A skirt that slopes up to a tall cap; the cap's rim rings a shallow dish with a small dome.
+  const knobProfile=[[0,0],[.0126,0],[.0128,.0005],[.0127,.0016],[.0122,.0022],[.0098,.0034],[.0089,.0037],[.0086,.0042],[.0085,.0136],[.0083,.0145],[.0077,.015],[.0068,.015],[.0062,.0146],[.0054,.0141],[.0036,.0139],[.0022,.0141],[.0015,.0148],[.0007,.0152],[0,.0153]].map(([r,h])=>new THREE.Vector2(r,h));
+  const dialBand=[[.0123,.00236],[.0099,.00356]].map(([r,h])=>new THREE.Vector2(r,h));
   for(const [px,py] of [[777,1030],[895,1191]]) {
-    const z=bodySample(X(px),Y(py)).z+.0006;
-    disk(.015,.001,black,X(px),Y(py),z);
-    const profile=[[0,0],[.014,0],[.0147,.001],[.014,.004],[.012,.010],[.012,.012],[0,.012]].map(([r,h])=>new THREE.Vector2(r,h));
-    const knob=mesh(new THREE.LatheGeometry(profile,64),amber,X(px),Y(py),z);knob.rotation.x=Math.PI/2;
-    const face=new THREE.Shape();face.absarc(X(px),Y(py),.012,0,Math.PI*2,false);
-    photoFace(face,photo,(x,y)=>[(x/S+540)/1080,1-(1000-y/S)/1501],z+.0122);
+    const z=bodySample(X(px),Y(py)).z+.0004;
+    const knob=new THREE.Group();knob.position.set(X(px),Y(py),z);knob.rotation.x=Math.PI/2;knob.name='Amber top-hat knob';guitar.add(knob);
+    // The pot's knurled steel shaft, seen through the plastic.
+    mesh(new THREE.CylinderGeometry(.003,.003,.011,24),darkMetal,0,.0057,0,knob);
+    mesh(new THREE.LatheGeometry(knobProfile,72),amber,0,0,0,knob);
+    mesh(new THREE.LatheGeometry(dialBand,72),dialPrint,0,0,0,knob);
   }
   // Washer, threaded bushing and lever share one physical pivot and one axis.
   const selector=new THREE.Group();selector.name='Pickup selector';selector.position.set(X(894),Y(965),bodySample(X(894),Y(965)).z+.0005);guitar.add(selector);
@@ -564,7 +593,7 @@ async function init() {
   batchGuitar(THREE,guitar);
   await shadersReady;
 
-  let yaw=-.10,pitch=0,zoom=1,view='body',queued=0,lastHome='',dragMode='turn',glide=0;
+  let yaw=-.10,pitch=0,zoom=1,view='body',queued=0,lastHome='',glide=0;
   const views={whole:[.300,1.00],body:[.071,.51],neck:[.383,.50],head:[.680,.185]};
   // The close-up looks at a point that can travel anywhere along the guitar; the views only start there.
   const target=new THREE.Vector3(0,views.body[0],0),homePoint=new THREE.Vector3(0,.300,0);
@@ -624,8 +653,8 @@ async function init() {
   document.body.classList.add('guitar-model-ready');
   window.dispatchEvent(new Event('guitar-model-ready'));
   new ResizeObserver(requestRender).observe(stage);
-  // One finger or the left button turns, or moves in "move" mode; the right or middle button, or Shift,
-  // does the other. Two fingers always move and pinch.
+  // One finger or the left button turns; the right or middle button moves (Shift-drag too, for a
+  // trackpad without a second button). Two fingers move and pinch.
   const pointers=new Map();let gesture=null;
   const centre=()=>{const list=[...pointers.values()];return [list.reduce((s,p)=>s+p.x,0)/list.length,list.reduce((s,p)=>s+p.y,0)/list.length,list.length>1?Math.hypot(list[0].x-list[1].x,list[0].y-list[1].y):0];};
   function regrip() {
@@ -636,7 +665,7 @@ async function init() {
   }
   canvas.addEventListener('pointerdown',e=>{
     if(e.button>2)return;
-    const other=e.button!==0||e.shiftKey,mode=other?(dragMode==='turn'?'move':'turn'):dragMode;
+    const mode=e.button!==0||e.shiftKey?'move':'turn';
     cancelAnimationFrame(glide);glide=0;
     pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,mode});regrip();canvas.focus({preventScroll:true});canvas.setPointerCapture(e.pointerId);
   });
@@ -659,8 +688,6 @@ async function init() {
   canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
   canvas.addEventListener('lostpointercapture',e=>{if(pointers.delete(e.pointerId))regrip();});
   canvas.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey)return;e.preventDefault();cancelAnimationFrame(glide);glide=0;zoomAt(Math.exp(-e.deltaY*.0012),e.clientX,e.clientY);requestRender();},{passive:false});
-  function setDragMode(mode){dragMode=mode;canvas.classList.toggle('move-mode',mode==='move');document.querySelectorAll('[data-drag-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.dragMode===mode)));}
-  document.querySelectorAll('[data-drag-mode]').forEach(button=>button.addEventListener('click',()=>setDragMode(button.dataset.dragMode)));
   function reset(){yaw=0;pitch=0;glideTo(view);}
   canvas.addEventListener('dblclick',reset);document.querySelector('#guitar-reset').addEventListener('click',reset);
   canvas.addEventListener('keydown',e=>{
