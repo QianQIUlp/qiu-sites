@@ -87,6 +87,10 @@ const pathCanvas = $('#path-field'), bendInput = $('#path-bend'), pathPlay = $('
 const routes = [localize("穿过去", "Through"), localize("绕一段", "Around"), localize("停一下", "A pause")];
 const routeNotes = [[5, 4, 3, 2, 1, 0], [5, 2, 4, 1, 3, 0], [5, 3, 3, 2, 1, 0]];
 let route = 0, shape = 0, bend = 0, pathFrame = 0, pathLast = 0, playback = null;
+// Every thread is a way through. Brushed, they ring like harp strings (when sound is on); clicked,
+// one becomes your path, and the red route and the listening follow it. `chosen` is its offset.
+const STRANDS = 76, glow = new Float32Array(STRANDS);
+let chosen = null, strandLines = [];
 
 function routePoint(t, variant, offset = null) {
   const envelope = Math.pow(Math.sin(Math.PI * t), .85);
@@ -131,26 +135,31 @@ function drawPaths() {
   ctx.restore();
 
   // Order the hairlines by depth; the front strands catch more light.
-  const strands = Array.from({length: 76}, (_, i) => ({i, z: pathPoint(.5, i / 76).z})).sort((a, b) => a.z - b.z);
+  const strands = Array.from({length: STRANDS}, (_, i) => ({i, z: pathPoint(.5, i / STRANDS).z})).sort((a, b) => a.z - b.z);
+  strandLines = [];
   for (const {i, z} of strands) {
     ctx.beginPath();
+    const line = [];
     for (let j = 0; j <= 100; j++) {
-      const p = project(pathPoint(j / 100, i / 76));
+      const p = project(pathPoint(j / 100, i / STRANDS));
+      line.push(p);
       if (!j) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
     }
+    strandLines[i] = line;
     ctx.strokeStyle = i % 13 === 0 ? '#a28c646b' : `rgba(61,68,52,${.2 + (z + .7) * .19})`;
     ctx.lineWidth = i % 13 === 0 ? .95 : .6;ctx.stroke();
+    if (glow[i] > .02) { ctx.strokeStyle = `rgba(232,61,39,${.25 + glow[i] * .7})`;ctx.lineWidth = .7 + glow[i] * 1.3;ctx.stroke(); }
   }
   const progress = playback ? playback.progress : 1;
   ctx.beginPath();
   for (let i = 0; i <= 130; i++) {
-    const p = project(pathPoint(i / 130));
+    const p = project(pathPoint(i / 130, chosen));
     if (!i) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
   }
   ctx.strokeStyle = '#e83d2745';ctx.lineWidth = 1.2;ctx.stroke();
   ctx.beginPath();
   for (let i = 0; i <= 130; i++) {
-    const p = project(pathPoint(i / 130 * progress));
+    const p = project(pathPoint(i / 130 * progress, chosen));
     if (!i) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
   }
   ctx.strokeStyle = red;ctx.lineWidth = 1.65;ctx.stroke();
@@ -164,7 +173,7 @@ function drawPaths() {
   }
   ctx.textAlign = 'left';
   if (playback) {
-    const p = project(pathPoint(progress));
+    const p = project(pathPoint(progress, chosen));
     ctx.beginPath();ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);ctx.fillStyle = '#e83d2719';ctx.fill();
     ctx.beginPath();ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);ctx.fillStyle = red;ctx.fill();
     ctx.strokeStyle = paper;ctx.lineWidth = 1.5;ctx.stroke();
@@ -212,14 +221,16 @@ function framePaths(now) {
       stopPath();$('#path-status').textContent = localize("终点相同。这一段路，是刚才的你选的。", "The same ending. You chose the way here.");
     }
   }
+  let ringing = false;
+  glow.forEach((value, i) => { glow[i] = value > .02 ? value * Math.pow(.965, dt / 16) : 0; ringing ||= glow[i] > 0; });
   drawPaths();
-  if (playback || Math.abs(route - shape) > .001 || Math.abs(+bendInput.value / 100 - bend) > .001) schedulePaths();
+  if (playback || ringing || Math.abs(route - shape) > .001 || Math.abs(+bendInput.value / 100 - bend) > .001) schedulePaths();
 }
 function schedulePaths() {
   if (!pathFrame && !document.hidden && active === 'paths') pathFrame = requestAnimationFrame(framePaths);
 }
 document.querySelectorAll('[data-route]').forEach(button => button.addEventListener('click', () => {
-  route = +button.dataset.route;
+  route = +button.dataset.route;chosen = null;
   document.querySelectorAll('[data-route]').forEach(node => node.setAttribute('aria-pressed', String(node === button)));
   $('#path-measure').textContent = `0${route + 1} / ${routes[route]}`;
   $('#path-status').textContent = [localize("向前，也可以是一种选择。", "Straight ahead can be a choice, too."), localize("多经过一点，不急着抵达。", "Take the longer way. No hurry to arrive."), localize("停顿，也在这条路里面。", "A pause belongs to the path, too.")][route];
@@ -228,6 +239,42 @@ document.querySelectorAll('[data-route]').forEach(button => button.addEventListe
 pathPlay.addEventListener('click', () => playback?.listen ? stopPath() : playPath(true));
 bendInput.addEventListener('input', () => {stopPath();schedulePaths();if (Math.abs(+bendInput.value) > 25) found('paths-bend');});
 dragInput($('.path-instrument'), bendInput);
+const pathStage = $('.path-instrument');
+function strandAt(event, reach = 9) {
+  const box = pathCanvas.getBoundingClientRect(), x = event.clientX - box.left, y = event.clientY - box.top;
+  let hit = -1, best = reach;
+  strandLines.forEach((line, i) => {
+    for (let j = 4; j < line.length - 4; j++) { const d = Math.hypot(line[j].x - x, line[j].y - y); if (d < best) { best = d; hit = i; } }
+  });
+  return hit;
+}
+// Lower threads sound lower: six strings' worth of pitch spread across the bundle.
+const ring = (i, wake = false) => { glow[i] = 1;document.dispatchEvent(new CustomEvent('roompluck', {detail: {index: 5 - Math.min(5, Math.floor(i / STRANDS * 6)), strength: .34, wake}}));schedulePaths(); };
+let lastStrand = -1, pathPress = null;
+pathStage.addEventListener('pointermove', event => {
+  if (event.pointerType !== 'mouse' || event.buttons) return;
+  const i = strandAt(event);
+  if (i >= 0 && i !== lastStrand) ring(i);
+  lastStrand = i;
+});
+pathStage.addEventListener('pointerleave', () => { lastStrand = -1; });
+pathStage.addEventListener('pointerdown', event => { pathPress = {x: event.clientX, y: event.clientY}; });
+pathStage.addEventListener('pointerup', event => {
+  if (!pathPress || Math.hypot(event.clientX - pathPress.x, event.clientY - pathPress.y) > 6) return;
+  pathPress = null;
+  const i = strandAt(event, 14);
+  if (i < 0) return;
+  // The chosen thread becomes the red route; choosing it again lets it go.
+  chosen = chosen === i / STRANDS ? null : i / STRANDS;
+  ring(i, true);stopPath();
+  $('#path-status').textContent = chosen === null ? localize("还没有走过的路，都在这里。", "The paths you haven’t taken are still here.") : localize(`第 ${i + 1} 条路，共 ${STRANDS} 条。终点一样。`, `Way ${i + 1} of ${STRANDS}. The same ending.`);
+  found('paths-pick');
+  schedulePaths();
+});
+document.addEventListener('hint:shimmer', () => {
+  if (still() || active !== 'paths') return;
+  for (let i = 0; i < STRANDS; i += 2) setTimeout(() => { glow[i] = Math.max(glow[i], .55);schedulePaths(); }, i * 16);
+});
 const threads = sway($('.path-instrument'), {reach: .2, demo: .62, room: 'paths', redraw: () => drawPaths()});
 document.addEventListener('hint:threads', () => threads.play());
 

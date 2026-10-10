@@ -57,7 +57,10 @@ const lessons = {
     {key: 'idle-still', after: 2400, note: 'idle-still', write: 0},
     {key: 'idle-letgo', after: 2200, demo: 'hint:breeze', note: 'idle-letgo', write: 1500, when: () => document.querySelector('[data-slip]:not([hidden])')},
   ],
-  paths: [{key: 'paths-bend', after: 2200, demo: 'hint:threads', note: 'paths-bend', write: 1700}],
+  paths: [
+    {key: 'paths-bend', after: 2200, demo: 'hint:threads', note: 'paths-bend', write: 1700},
+    {key: 'paths-pick', after: 2400, demo: 'hint:shimmer', note: 'paths-pick', write: 1600},
+  ],
   blindspot: [
     {key: 'blind-angle', after: 2200, demo: 'hint:glance', note: 'blind-angle', write: 1900},
     {key: 'blind-brush', after: 2400, demo: 'hint:brush', note: 'blind-brush', write: 1300},
