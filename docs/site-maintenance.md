@@ -1,44 +1,44 @@
-# 站点维护说明
+# Site Maintenance Notes
 
-这份文档用于后续维护 Qiu 的小屋。目标是降低改文章、改项目页、做 UI 调整时的上下文成本。
+This document supports ongoing maintenance of Qiu's Room. Its goal is to lower the context cost of editing articles, editing the projects page and making UI adjustments.
 
-## 本地启动
+## Local startup
 
-首次进入仓库后安装依赖：
+Install dependencies the first time you enter the repository:
 
 ```sh
 npm install
 ```
 
-日常开发：
+Day-to-day development:
 
 ```sh
 npm run dev
 ```
 
-提交前至少跑一次生产构建：
+Run a production build at least once before committing:
 
 ```sh
 npm run build
 ```
 
-需要检查构建产物时：
+When you need to inspect the build output:
 
 ```sh
 npm run preview
 ```
 
-`dist/`、`.astro/`、`node_modules/` 是生成目录或依赖目录，不要提交。
+`dist/`, `.astro/` and `node_modules/` are generated or dependency directories; do not commit them.
 
-## 新增文章
+## Adding an article
 
-文章放在 `src/content/posts/`，文件名使用日期开头的 URL-safe slug：
+Articles live in `src/content/posts/`; file names use a date-prefixed URL-safe slug:
 
 ```text
 YYYY-MM-DD-topic.md
 ```
 
-frontmatter 必须匹配 `src/content.config.ts`：
+Frontmatter must match `src/content.config.ts` (the example values below are Chinese site copy: "Article title", "A short summary used by the list page, SEO and the article header.", "Article cover description"):
 
 ```yaml
 ---
@@ -53,105 +53,105 @@ license: "CC BY-NC 4.0"
 ---
 ```
 
-必填字段：
+Required fields:
 
 - `title`
 - `date`
 - `tags`
 - `description`
 
-可选字段：
+Optional fields:
 
 - `ogImage`
 - `ogImageAlt`
 - `toc`
 - `license`
 
-文章图片建议放在 `src/assets/posts/<post-slug>/`。封面图和正文图都要有明确用途；正文 Markdown 图片需要写有意义的 alt 文本。改完文章后跑 `npm run build`，确认内容集合、图片路径和静态路由都能通过。
+Put article images in `src/assets/posts/<post-slug>/`. Cover and body images should each have a clear purpose; Markdown images in the body need meaningful alt text. After editing an article, run `npm run build` to confirm the content collection, image paths and static routes all pass.
 
-长随笔、长教程、长技术文默认建议在正文开头放一个导读 `<aside>`。常用结构固定为：
+Long essays, long tutorials and long technical articles should by default open with an introductory `<aside>`. Its usual structure is fixed to these Chinese headings (kept verbatim because they are site copy):
 
-- `关于这篇文章`
-- `适合谁读`
-- `怎么读这篇文章`
-- `版权与声明`
-- `首发与转载`
+- `关于这篇文章` ("About this article")
+- `适合谁读` ("Who should read it")
+- `怎么读这篇文章` ("How to read this article")
+- `版权与声明` ("Copyright and notice")
+- `首发与转载` ("First publication and reposting")
 
-写导读时注意：
+When writing the introduction:
 
-- `关于这篇文章` 只写主题、张力和写作意图，不写营销腔。
-- `适合谁读` 和 `怎么读这篇文章` 用简短清单即可。
-- 如果没有外部首发链接，`首发与转载` 默认写“首发于：Qiu 的小屋（本站）”。
+- `关于这篇文章` covers only the topic, tension and writing intent, without marketing tone.
+- `适合谁读` and `怎么读这篇文章` can be short lists.
+- If there is no external first-publication link, `首发与转载` defaults to "首发于：Qiu 的小屋（本站）" ("First published at: Qiu's Room (this site)").
 
-多章节技术指南、操作手册、长参考文默认加 `toc: true`。目录由 `src/pages/blog/posts/[...slug].astro` 统一生成，不要手写目录导航。
+Multi-chapter technical guides, manuals and long reference articles get `toc: true` by default. The table of contents is generated centrally by `src/pages/blog/posts/[...slug].astro`; do not hand-write TOC navigation.
 
-如果文章启用了 `toc: true`，并且希望“关于这篇文章”显示在目录前，导读 `<aside>` 必须是正文里的第一个顶层块；它前面不要放额外段落、图片、H1 或其他 HTML 块。
+If an article enables `toc: true` and wants "关于这篇文章" to appear before the TOC, the introductory `<aside>` must be the first top-level block in the body; do not put any extra paragraph, image, H1 or other HTML block before it.
 
-## 新增项目
+## Adding a project
 
-项目页数据集中在 `src/data/projects.ts`。新增或修改 `/projects/` 前，先读：
+Projects page data is centralized in `src/data/projects.ts`. Before adding to or editing `/projects/`, read:
 
 - `src/data/projects.ts`
-- 相关 `docs/project-briefs/*.md`
+- the relevant `docs/project-briefs/*.md`
 
-新增真实项目时，优先补一份 project brief，再把页面展示文案沉淀到 `src/data/projects.ts`。项目文案只写有证据支撑的事实，不补写用户规模、性能指标、成熟度、生产可用性等未经确认的信息。
+When adding a real project, write a project brief first, then settle the displayed copy into `src/data/projects.ts`. Project copy states only evidence-backed facts and does not add unconfirmed information such as user counts, performance metrics, maturity or production readiness.
 
-字段维护要点：
+Field maintenance notes:
 
-- `featuredProjects` 用于真实项目展示。
-- `secondaryProjects` 用于站点基础设施、归档入口、学习线索等次级内容。
-- `selectedGuidePostIds` 必须对应 `src/content/posts/` 中存在的文章 slug。
-- 外部链接设置 `external: true`，渲染时会使用新标签页和安全 `rel`。
-- `docker-hadoop-cluster` 是当前项目的真实仓库 slug；旧的 `dockder-hadoop-cluster` 链接均为错误拼写。该项目的公开显示名是 `Hadoop Lab`，slug 只用于仓库地址与链接。
+- `featuredProjects` is for real project showcases.
+- `secondaryProjects` is for secondary content such as site infrastructure, archive entries and learning threads.
+- `selectedGuidePostIds` must match article slugs that exist in `src/content/posts/`.
+- External links set `external: true`; they render with a new tab and a safe `rel`.
+- `docker-hadoop-cluster` is the project's real repository slug; old `dockder-hadoop-cluster` links are all misspellings. The project's public display name is `Hadoop Lab`; the slug is only used for the repository URL and links.
 
-## UI 检查
+## UI checks
 
-UI 改动后先跑：
+After a UI change, first run:
 
 ```sh
 npm run build
 npm run preview
 ```
 
-再按 `docs/qa/visual-checklist.md` 做手动检查。至少覆盖：
+Then check manually against `docs/qa/visual-checklist.md`. Cover at least:
 
 - `/`
 - `/blog/`
 - `/projects/`
-- 受影响的文章页
-- desktop、768px、375px
-- light 和 dark mode
+- affected article pages
+- desktop, 768px, 375px
+- light and dark mode
 
-重点看：
+Focus on:
 
-- 没有页面级横向滚动。
-- 图片、字体、TOC、文章头部没有明显加载后位移。
-- 文章正文可读，代码块和表格在窄屏内自己横向滚动。
-- focus 状态清楚，Tab 顺序符合视觉阅读顺序。
-- 外链目标正确，`target="_blank"` 链接带 `rel="noopener noreferrer"`。
+- No page-level horizontal scrolling.
+- No obvious post-load shift of images, fonts, TOC or article header.
+- Article body is readable; code blocks and tables scroll horizontally on their own on narrow screens.
+- Focus states are clear and Tab order follows the visual reading order.
+- External link targets are correct, and `target="_blank"` links carry `rel="noopener noreferrer"`.
 
-## 不能随意改的字段和边界
+## Fields and boundaries not to change casually
 
-不要随手改这些内容，除非这次任务明确要求：
+Do not change these unless the task explicitly requires it:
 
-- `src/content.config.ts` 的文章 schema。
-- 现有路由结构：`/`、`/blog/`、`/blog/posts/[...slug]/`、`/projects/`。
-- 文章 frontmatter 字段名。
-- 项目数据字段结构和已确认项目事实。
-- `astro.config.mjs` 中的站点级配置。
-- `BaseLayout.astro` 里的 canonical、OG、favicon、theme-color 等全站元信息。
-- `public/` 下 favicon、apple touch icon、robots 等站点资源。
+- The article schema in `src/content.config.ts`.
+- The existing route structure: `/`, `/blog/`, `/blog/posts/[...slug]/`, `/projects/`.
+- Article frontmatter field names.
+- The project data field structure and confirmed project facts.
+- Site-level configuration in `astro.config.mjs`.
+- Site-wide metadata in `BaseLayout.astro` such as canonical, OG, favicon and theme-color.
+- Site resources under `public/` such as favicon, apple touch icon and robots.
 
-样式改动优先放在：
+Style changes go preferably in:
 
 - `src/styles/global.css`
 - `src/styles/blog.css`
 
-不要为了局部效果大量添加 inline CSS。不要引入新的 UI 框架、React、Tailwind、shadcn 或运行时前端依赖来解决静态 CSS 可以解决的问题。
+Do not add lots of inline CSS for local effects. Do not introduce a new UI framework, React, Tailwind, shadcn or runtime frontend dependencies to solve problems static CSS can solve.
 
-## Codex 做 UI 改动前要读什么
+## What Codex should read before UI changes
 
-Codex 或其他维护者在做 UI 改动前，至少先读这些文件：
+Before making UI changes, Codex or any other maintainer should read at least:
 
 - `AGENTS.md`
 - `.agents/skills/qiu-site-frontend-design/SKILL.md`
@@ -163,16 +163,16 @@ Codex 或其他维护者在做 UI 改动前，至少先读这些文件：
 - `src/components/SiteHeader.astro`
 - `src/styles/global.css`
 - `src/styles/blog.css`
-- 相关页面文件：`src/pages/index.astro`、`src/pages/blog/index.astro`、`src/pages/blog/posts/[...slug].astro`、`src/pages/projects/index.astro`
+- the relevant page files: `src/pages/index.astro`, `src/pages/blog/index.astro`, `src/pages/blog/posts/[...slug].astro`, `src/pages/projects/index.astro`
 
-如果改文章体验，还要读：
+When changing the article experience, also read:
 
 - `src/content.config.ts`
-- 至少一篇长文章和一篇图片较多的文章
+- at least one long article and one image-heavy article
 
-如果改项目页，还要读：
+When changing the projects page, also read:
 
 - `src/data/projects.ts`
-- `docs/project-briefs/` 下对应的项目 brief（`verisilo.md`、`meal-circuit.md`、`crewlight.md`、`docker-hadoop-cluster.md`）
+- the matching project brief under `docs/project-briefs/` (`verisilo.md`, `meal-circuit.md`, `crewlight.md`, `docker-hadoop-cluster.md`)
 
-UI 方向保持“温暖书房”：安静、可读、个人化、适合中文长文。不要把站点改成泛 AI SaaS、营销落地页或堆叠卡片式仪表盘。
+Keep the UI direction a "warm study": quiet, readable, personal and suited to long Chinese text. Do not turn the site into a generic AI SaaS, marketing landing page or stacked-card dashboard.

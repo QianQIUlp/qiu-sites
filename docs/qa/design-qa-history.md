@@ -7,7 +7,7 @@
 - Current material/interaction contract: `docs/uiux/ink-and-light-study.md`
 
 The current review no longer treats the old interactive-room reference as the final target. The target is the
-user's stated feeling: **东西很多，初见很少** — first meet Qiu, the guitar, and lived experience; let writing
+user's stated feeling: **东西很多，初见很少** ("many things, little at first sight") — first meet Qiu, the guitar, and lived experience; let writing
 and engineering emerge from shadow only after the visitor approaches.
 
 ## Current screenshot evidence
@@ -101,8 +101,8 @@ final result: passed
 
 ## Measured comparison
 
-- “我是千秋。” now uses the same `var(--font-serif)` and 700 weight as the project-page heading
-  “作品与探索”; QiuBrush is not applied.
+- “我是千秋。” ("I am Qianqiu.") now uses the same `var(--font-serif)` and 700 weight as the project-page heading
+  “作品与探索” ("Works and explorations"); QiuBrush is not applied.
 - MealCircuit occupies x 179–628 / y 126–354, matching the annotated upper-left region.
 - Crewlight occupies x 200–580 / y 515–743, matching the annotated lower-left region.
 - Docker-Hadoop-Cluster occupies x 779–1480 / y 407–728, matching the annotated lower-right region.
@@ -134,7 +134,7 @@ final result: passed
 - All seven generated article routes contain exactly one `data-toc-drawer`; the feature no longer depends on a
   per-article `toc` frontmatter flag.
 - The representative SSH article exposes 39 links. The heading-free essay exposes one useful fallback link,
-  「文章开头」, instead of an empty drawer.
+  「文章开头」 ("Start of article"), instead of an empty drawer.
 - The same native summary control opens and closes the drawer on successive clicks. The article width and scroll
   position do not reflow when the drawer changes state. When closed, the panel computes to `display: none` and
   exposes zero focusable TOC links.

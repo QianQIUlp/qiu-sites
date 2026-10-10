@@ -1,10 +1,10 @@
 # 现代房间 · Modern Room
 
-## 2026-10-08 · 光、质感与各自的房间（待用户确认）
+## 2026-10-08 · Light, texture and rooms of their own (pending user confirmation)
 
-用户反馈：原九宫格的内容、作品（表面之下 / 做法）、未走之路的线束球体和自由拖动都要保留；问题在于缺少质感、房间排版雷同、首页三维模型不如实拍好看、踏板做工粗糙。本轮在原实现上叠加，不替换房间内容。
+User feedback: keep the original nine-room grid content, the work room (表面之下 / 做法, "Beneath the surface / How I work"), the paths room's thread sphere and free dragging; what was missing was texture, the rooms all shared one layout, the home 3D model looked worse than the photograph, and the pedals were crude. This round layers on top of the existing implementation and does not replace room content.
 
-- **一扇窗的光**：`#room` 内的 `.daylight` 层（百叶窗光斑、摇动的树影、暖色日光、纸张颗粒、暗角）固定在视口上，`pointer-events:none`。每个区域用 `#room[data-place]` 改变光的时刻；琴弦之间关掉日光，只留房间自己的台灯。物体阴影统一朝远离窗户的左下方投射。
+- **Light from one window**: the `.daylight` layer inside `#room` (blind light patches, swaying leaf shadows, warm sunlight, paper grain, vignette) is fixed to the viewport with `pointer-events:none`. Each area changes the time of day through `#room[data-place]`; the strings room turns daylight off and keeps only its own lamp. Object shadows all fall lower-left, away from the window.
 - **Home guitar** (superseded on 2026-10-09 by `open-world-brief.md`): the photo swap and tap-to-strum were a misreading and have been undone. The home room keeps the Three.js model with mouse-follow and click-to-pick-up, makes no sound, and only its look (materials, lighting) is being improved against the Rāna photograph.
   - *Look (2026-10-09, pending Qiu's review)*: `guitar-model.js` has two lighting rigs. The home render uses `lighting.room()`: warm key from the upper right (the daylight layer's window), paper-bounce fill, Neutral tone mapping, and an environment map with a slatted window to the side so the clearcoat picks up the blinds as the guitar turns. The close-up keeps `lighting.studio()` (ACES, dark softbox studio). The lacquer is a satin clearcoat, and a shader grade pulls only the red finish (not the bare-wood wear) of Qiu's darker body texture towards the official photo's warm cherry. The headstock face is gloss black (roughness .2) and the knobs are translucent amber. The 2D cast shadow in `scene.js` now falls lower-left, away from the window, in two layers like every other object; `guitar-home.webp` was re-rendered from the new look.
   - *Finish (2026-10-09, pending Qiu's review)*: modelled on ESP's own POTBELLY FM Rāna (ESP brand, ¥1,760,000): "Distressed See Thru Wine Red (Lacquer)", aged by hand; flamed maple top with natural binding, mahogany back and neck, hard maple board. The flame is chatoyant: as the guitar turns, the curl pattern rolls along the body (`figure` uniform from yaw/pitch) instead of losing contrast. The lacquer is graded towards ESP's pure wine red (sRGB ≈ 75,0,0) and the worn maple to a dirtier amber. Sides: natural maple binding along the top 8 mm, then wine red over mahogany; wear continues from what the front and back photographs show at that point of the edge, plus rubbed corners and chips. Back, scraped neck back and headstock back use ESP's back photograph (`esp-rana-back.webp`). Hardware is aged nickel rather than chrome.
@@ -12,212 +12,212 @@
   - *Neck, headstock and tuners (2026-10-09, Qiu's correction)*: the board is a 6 mm maple slab on one lofted C-profile mahogany neck. The neck swells into a volute behind the nut and flows into the headstock back. At the body end the shaft steps onto a heel block that sits flush with the back where the bass horn hugs the neck, and rounds off on the treble side. The back photograph is unrolled around the neck by arc length, so the sides keep its grain. The tuners are GOTOH, laid out from the back photograph: a pillow-edged worm barrel, a round gear case whose cover keeps the photograph's GOTOH stamp, a flange screwed to the wood, and a small rounded oval button. `esp-rana-back.webp` has the photographed housings painted out (the round covers are kept for the 3D cases to sample). The headstock back is registered with its own row fit (back row = 1.161 × front row − 11.9).
   - *Hardware details (2026-10-09, Qiu's correction)*: two nickel strap buttons on black felt washers, square to the side at the tip of the bass horn and at the tail (each at the outline's furthest point, halfway down the side). The two knobs are amber top hats built as a lathe: a skirt with moulded 0–10 numbers (a canvas texture, counting up anticlockwise as on ESP's photograph), a tall cap with a dished top and small dome, and the pot shaft inside. The plastic is a transmissive `MeshPhysicalMaterial`, so the wine-red top shows through it.
   - *Close-up handling (2026-10-09, Qiu's correction)*: the close-up turns all the way round. The camera looks at a point that can travel anywhere along the guitar: left-drag turns; right-drag (or middle-drag, or Shift-drag on a trackpad) moves; two fingers move and pinch; the wheel zooms toward the pointer (up to 6×); Shift plus the arrow keys moves. A legend at the bottom of the close-up spells out the controls with small mouse icons (left-drag to turn, right-drag to move, scroll to zoom), or one finger / two fingers on touch screens; ordinary visitors would never guess right-drag. The Body / Neck / Head / Whole buttons glide there and are only starting points.
-- **琴弦之间**：深色台灯房间。琴弦改为真实琴身特写（`jam-strings.webp`：拾音器、琴桥、六根弦），按下或划过才发声，鼠标悬停不触发；拨动的弦显示振动包络。新增指针式 VU 表。踏板保留 CENTAUR / BD-2 / AFTER HOURS 三台与原有音频链，补上踏板底板、压铸质感、旋钮滚花、镀铬开关、插头、LED 投光，回声开时磁带轮转动。
-- **声音**：弹拨合成加入拨弦位置、双偏振轻微失谐与分数延迟调音；整条链末端加一个小木屋混响。首次点击琴弦即打开声音。
-- **房间各自的构图**（桌面端 ≥701px）：未走之路为对角线构图（问句在左上、「还要选择吗。」在右下）；留一笔整间是纸、标题竖排在右侧；盲点为居中海报；另一面左右镜像。窄屏保持原布局。
+- **Strings room (琴弦之间)**: a dark lamp-lit room. The strings are now a real body close-up (`jam-strings.webp`: pickups, bridge, six strings); a string sounds only when pressed or swept, never on hover, and a plucked string shows its vibration envelope. Adds a needle VU meter. The pedals keep the three CENTAUR / BD-2 / AFTER HOURS units and the existing audio chain, and gain a pedalboard base, die-cast finish, knurled knobs, chrome footswitches, plugs and LED glow; the tape reels spin while the echo is on.
+- **Sound**: the pluck synth adds pick position, slightly detuned dual polarisation and fractional-delay tuning; a small wooden-room reverb sits at the end of the chain. The first click on the strings turns sound on.
+- **Room compositions** (desktop ≥701px): paths is diagonal (question top-left, 「还要选择吗。」 bottom-right); trace makes the whole room the paper with a vertical title on the right; blindspot is a centred poster; rethink is mirrored left-right. Narrow screens keep the original layouts.
 
-## 2026-09-30 · 首页字体与符号一致性
+## 2026-09-30 · Homepage font and glyph consistency
 
-- `/`、`/en/` 的 UI 箭头、缩放、重置、播放与录音等控制符号使用内联 SVG，保留原有方向、文案和状态，不依赖系统字形。
-- 首页自托管固定版本的 Arimo、Gelasio、Cousine、Noto Sans SC 与 Noto Serif SC；继续使用普通 sans / serif / mono 字体角色。阅读页与 QStudio 不在本次字体改动内。
-- 「千秋」、画布「确定」与「空」使用同一 Noto Sans SC 900 小子集，保留中文姓名、实体/描边、真实吉他和空间构图。字体加载后刷新画布字形缓存及作品铭牌。
-- WOFF2 子集只包含首页源码使用的字符，预加载首屏必要字体，使用 `font-display: swap` 并保留失败回退。新增首页文案后运行字体再生成脚本；来源、OFL 授权和方法见 `src/assets/me/fonts/README.md`。
-- 保留既有导航与渐进发现；本次只修复跨环境字体和缺字符号，不新增首屏内容目录。
+- UI arrows, zoom, reset, play, record and other control glyphs on `/` and `/en/` use inline SVG, keeping the original direction, copy and state without depending on system glyphs.
+- The homepage self-hosts pinned versions of Arimo, Gelasio, Cousine, Noto Sans SC and Noto Serif SC, continuing the ordinary sans / serif / mono font roles. Reading pages and QStudio are outside this font change.
+- 「千秋」 (Qianqiu), the canvas 「确定」 ("certain") and 「空」 ("empty") use the same small Noto Sans SC 900 subset, keeping the Chinese name, solid/outline styles, the real guitar and the spatial composition. After fonts load, the canvas glyph cache and project nameplates refresh.
+- WOFF2 subsets contain only characters used by homepage source, preload the fonts essential to the first screen, use `font-display: swap` and keep a failure fallback. After adding homepage copy, run the font regeneration script; sources, OFL licensing and method are in `src/assets/me/fonts/README.md`.
+- Existing navigation and progressive discovery are kept; this change only fixes cross-environment fonts and missing glyphs and adds no first-screen content directory.
 
-## 2026-09-29 · 九宫格与加载优化实装
+## 2026-09-29 · Nine-grid and loading optimization implemented
 
-用户审阅并要求将 `me-current.html` 当前原型实装到源码；以「表达真切，构思大胆，细节可信」为原则，在已认可的原有风格上扩展。本节覆盖下文四空间数量的旧约定，其余未涉及部分继续有效。
+The user reviewed and asked for the current `me-current.html` prototype to be implemented into source, extending the already-approved original style under the principle 「表达真切，构思大胆，细节可信」 ("sincere expression, bold concepts, credible details"). This section overrides the old four-space convention below; other unaffected parts remain in force.
 
-- 九宫格：未走之路 / 留一笔 / 盲点；散页 / 中央 / 琴弦；另一面 / 不赶时间 / 拆开看看。仍先遇见千秋与吉他，通过地图、漫游、入口和键盘发现深处。
-- 新区域以文章和真实项目为材料：连续莫比乌斯纸带、可放下的催促、同端点的路径与旋转后显出间隙的「确定」。保留原文链接，英文提供相应内容与中文造型的解释。
-- 四个作品用精细暗色雕塑与光的切面呈现，各自有形态与真实的起因、做法、边界。已弃用的三层网页截图纸片不进入正式实现。
-- 作品首次进入和每次选定时自动完整展示一次；播放、暂停、继续、重播和手动接管都应有效。离开或后台暂停，不让隐藏的演示占用持续渲染。
-- 首屏先显示同模型的无损吉他画面，三维就绪后接续。保留全精度贴图、实拍细节和几何，通过 Worker、按材质合并绘制、拆包和离屏停绘缩短等待。
-- 中文和英文完整接入 `/`、`/en/`，首页资源由 Astro/Vite 打包，不依赖原型目录。保留原有阅读路径、主题、SEO、音频边界与无 JS 阅读入口。
-- 本轮完成源码和必要验收后交回审阅；不由本地实现推定部署或提前开 PR。
+- Nine-grid: 未走之路 ("The Road Not Taken") / 留一笔 ("Leave a Stroke") / 盲点 ("Blind Spot"); 散页 ("Loose Pages") / 中央 ("Center") / 琴弦 ("Strings"); 另一面 ("The Other Side") / 不赶时间 ("No Rush") / 拆开看看 ("Take It Apart"). Visitors still meet Qianqiu and the guitar first, then discover the depths through the map, wandering, entries and keyboard.
+- New areas use articles and real projects as material: a continuous Möbius paper strip, urgings that can be put down, paths sharing endpoints, and 「确定」 ("certain") revealing a gap after rotation. Original article links are kept; English provides matching content and an explanation of the Chinese character form.
+- The four projects are presented as finely crafted dark sculptures with cross-sections of light, each with its own form and real origin, approach and boundaries. The abandoned three-layer webpage-screenshot paper slips do not enter the production implementation.
+- On first entry and each time a project is selected, it auto-plays a full showcase once; play, pause, resume, replay and manual takeover should all work. Leaving or backgrounding pauses it, so a hidden demo does not consume continuous rendering.
+- The first screen first shows a lossless guitar image of the same model, handing over once 3D is ready. Full-precision textures, photographed details and geometry are kept; waiting is shortened with a Worker, per-material draw merging, code splitting and stopping rendering off-screen.
+- Chinese and English are fully wired into `/` and `/en/`; homepage assets are bundled by Astro/Vite with no dependency on the prototype directory. Existing reading paths, themes, SEO, audio boundaries and the no-JS reading entry are kept.
+- After source and necessary acceptance are complete this round, it goes back for review; local implementation does not imply deployment or an early PR.
 
-## 2026-09-22 · me.qiu.works 已确认原型落地
+## 2026-09-22 · Approved me.qiu.works prototype landed
 
-本节是根站首页 `/` 与 `/en/` 的基础契约，叠加上方最新补充，优先于下文旧房间的首页构图、文案冻结和主题要求。下文保留为历史；文章、项目档案及长文的既有内容和 Light/Dark 阅读体验继续有效。
+This section is the base contract for the root-site homepage `/` and `/en/`; combined with the latest addenda above, it takes precedence over the old room's homepage composition, copy freeze and theme requirements below. The text below is kept as history; the existing content of articles, the project archive and long-form pages, and their Light/Dark reading experience, remain in force.
 
-- 首页以用户确认的空间原型为准：暖灰留白、巨大的中文「千秋」、酒红色真实吉他；英文也保留中文姓名，以 “Qiu, between notes.” 和 “Stay awhile.” 作轻量陪衬。
-- 不使用 AI 房间背景、滚动式个人履历或项目卡片墙。主站 `qiu.works` 负责 QStudio；个人站目标域名为 `me.qiu.works`。
-- 四个去处通过拖动、缩放、地图和键盘探索：中央、散页、琴弦、留一笔。首页固定浅底，吉他近看深底，不继承阅读页的主题切换。
-- 保留用户认可的 BanG Dream! POTBELLY FM Rāna 模型、SH-1n 与反斑马 SH-16、实拍磨损、入口鼠标跟随及独立近看。未见背面仍是近似重建，不宣称完整扫描。
-- 音乐区的金色过载、蓝色过载、回声是可实际调音的三个踏板，与历史上的项目入口设备不同。保留拨弦、和弦、音色、九个旋钮、6 秒循环及叠录；音色是 Web Audio 合成及灵感实现，不宣称硬件精确仿真。
-- 初次进入静音；用户主动发声后启用音频。后台暂停、减弱动态偏好、键盘操作和 WebGL 照片回退必须保留。
-- 中文/英文共用 Astro 组件与交互模块。切换语言保留空间位置，整页导航会清空临时录音和线条。散页中的原文链接继续指向中文，档案导航按语言进入对应列表。
-- 源码、资产来源与部署边界见 [`../me-home.md`](../me-home.md)。仅根站接入，不改动 `developer/` 的 QStudio 实现。
+- The homepage follows the user-approved spatial prototype: warm-gray negative space, a huge Chinese 「千秋」, a real wine-red guitar; English also keeps the Chinese name, with "Qiu, between notes." and "Stay awhile." as light accompaniment.
+- No AI room background, scrolling personal résumé or project card wall. The main site `qiu.works` handles QStudio; the personal site's target domain is `me.qiu.works`.
+- Four destinations are explored through dragging, zoom, the map and keyboard: 中央 ("Center"), 散页 ("Loose Pages"), 琴弦 ("Strings"), 留一笔 ("Leave a Stroke"). The homepage has a fixed light background and the guitar close-up a dark one; neither inherits the reading pages' theme switch.
+- Keep the user-approved BanG Dream! POTBELLY FM Rāna model, the SH-1n and reverse-zebra SH-16, the photographed wear, the entry mouse-following and the separate close-up. The unseen back is still an approximate reconstruction and is not claimed to be a full scan.
+- The music area's gold overdrive, blue overdrive and echo are three genuinely tweakable pedals, distinct from the historical project-entry devices. Plucking, chords, tone, nine knobs, the 6-second loop and overdub are kept; the tone is a Web Audio synthesis and inspired implementation, not claimed as a precise hardware emulation.
+- Muted on first entry; audio is enabled after the user actively makes sound. Background pause, the reduced-motion preference, keyboard operation and the WebGL photo fallback must be kept.
+- Chinese/English share Astro components and interaction modules. Switching language keeps the spatial position; a full-page navigation clears temporary recordings and lines. Original-article links in the loose pages keep pointing to Chinese; archive navigation goes to the list in the matching language.
+- Source, asset provenance and deployment boundaries are in [`../me-home.md`](../me-home.md). Only the root site is wired; QStudio's implementation in `developer/` is not changed.
 
-本站当前视觉实现契约。文件名沿用旧路径，避免已有链接失效；“墨光书房”不再是需要复刻的活动视觉系统。
-改首页前先读 [`homepage-art-direction.md`](./homepage-art-direction.md)，再读
-[`person-first-intent.md`](./person-first-intent.md)。本文件负责实现一致性，不取代用户原始引语与感性构图判断。
+This is the site's current visual implementation contract. The filename keeps its old path so existing links don't break; "墨光书房" ("ink-and-light study") is no longer an active visual system to replicate.
+Before changing the homepage, read [`homepage-art-direction.md`](./homepage-art-direction.md) first, then
+[`person-first-intent.md`](./person-first-intent.md). This file is responsible for implementation consistency and does not replace the user's original quote or intuitive compositional judgment.
 
-## 2026-07 用户校正
+## 2026-07 user correction
 
-当前方向是一个**现代、真实、人物优先的个人房间**。第一眼先遇见千秋、吉他和生活气息；写作与工程
-继续通过光影和空间逐渐被发现。保留暖光、克制红色、三台项目效果器/箱头、Light/Dark 双主题和长文可读性。
+The current direction is a **modern, realistic, person-first personal room**. At first glance you meet Qianqiu, the guitar and the breath of life; writing and engineering
+continue to be discovered gradually through light, shadow and space. Warm light, restrained red, the three project pedals/amp heads, the Light/Dark themes and long-form readability are kept.
 
-从活动界面中移除书法/QiuBrush、印章、宣纸纹理、全局颗粒、花瓣和墨絮等视觉装饰。转场与 reveal
-可以保留，但按普通界面反馈描述，不再包装成传统媒介仪式。
+Visual decoration such as calligraphy/QiuBrush, seals, xuan-paper texture, global grain, petals and ink fluff is removed from the active interface. Transitions and reveals
+may stay, but are described as ordinary interface feedback, no longer packaged as traditional-medium rituals.
 
-**文案白名单**：删除「展开卷宗」及英文对应项；博客计数「卷 / 题」改为「篇 / 标签」；删除「题跋」；
-删除可见的「授权协议 · 文末记」区块。除此之外，首页、共享界面、文章与项目文案以 `f6ed8fd` 为基线
-原样保留。视觉校正、可读性改进或“去古风”都不得被解释为广泛改写文案的授权。
+**Copy allowlist**: remove 「展开卷宗」 ("open the dossier") and its English counterpart; change the blog counts 「卷 / 题」 ("volumes / topics") to 「篇 / 标签」 ("articles / tags"); remove 「题跋」 ("colophon");
+remove the visible 「授权协议 · 文末记」 ("License · end note") block. Beyond these, homepage, shared interface, article and project copy is kept verbatim with `f6ed8fd` as the baseline.
+Visual correction, readability improvements or "removing the antique style" must never be interpreted as authorization for broad copy rewrites.
 
-## 2026-07-29 双主页实施补充
+## 2026-07-29 dual-homepage implementation addendum
 
-Room 的正式域名是 `https://room.qiu.works`；开发者主页位于 `https://qiu.works`，其独立契约见
-[`developer-workbench.md`](./developer-workbench.md)。Room 的现代房间构图、吉他、遮光探索、三台设备与
-Light/Dark 主题不因域名和站点分工变化而重排。
+Room's official domain is `https://room.qiu.works`; the developer homepage is at `https://qiu.works`, with its own contract in
+[`developer-workbench.md`](./developer-workbench.md). Room's modern room composition, guitar, shaded exploration, three devices and
+Light/Dark themes are not rearranged because of the domain and site division of labor.
 
-在上方四项白名单之外，用户逐项批准以下 Room 变更：
+Beyond the four allowlist items above, the user approved the following Room changes item by item:
 
-- 首屏加入轻量身份锚点，并使用已确认的中英文姓名与自述；
-- 生活近景和页脚加入开发者主页与 Contact 链接；
-- 项目数据加入 VeriSilo，并用稳定项目 key 生成锚点；首页仍只显示既有三台设备；
-- 中英文分享卡改为真实房间与吉他，站点元数据统一使用 `room.qiu.works`。
+- the first screen adds a lightweight identity anchor, using the approved Chinese and English name and self-description;
+- the life close-up and footer add developer homepage and Contact links;
+- project data adds VeriSilo, with anchors generated from a stable project key; the homepage still shows only the existing three devices;
+- the Chinese and English share cards switch to the real room and guitar, and site metadata uniformly uses `room.qiu.works`.
 
-这是有限增补，不是新的自由改写权限。除原四项和本节列出的内容外，可见与辅助文案仍以 `f6ed8fd` 为基线。
+This is a limited addition, not a new license for free rewriting. Apart from the original four items and the content listed in this section, visible and assistive copy still uses `f6ed8fd` as its baseline.
 
-## 设计原则
+## Design principles
 
-1. **人物优先** — 首页先回答“这里是谁”，再让访客自行发现写作、工程和生活入口。
-2. **真实空间** — 房间、吉他、墙面、木、金属、织物、皮革与橡胶保留各自真实材质和接触关系；
-   不用纸纹、统一颗粒或生成噪点覆盖照片。
-3. **安静层级** — 用字号、字重、对比、留白和必要分隔组织信息，避免卡片套卡片、装饰标签和额外底板。
-4. **克制色彩** — 红色是少量全站 accent，不是古风符号，也不垄断状态语义；设备自身的蓝、金、木色和灯色
-   属于真实物件局部，不扩散成普通界面颜色。
-5. **阅读优先** — 内页可以比首页更平面；正文宽度、行高、代码、表格、目录和移动端体验优先于视觉主题。
+1. **Person first** — the homepage first answers "who is here", then lets visitors discover the writing, engineering and life entries on their own.
+2. **Real space** — the room, guitar, wall, wood, metal, fabric, leather and rubber each keep their real material and contact relationships;
+   photos are not covered with paper texture, uniform grain or generated noise.
+3. **Quiet hierarchy** — organize information with font size, weight, contrast, whitespace and necessary separators, avoiding cards within cards, decorative labels and extra backing panels.
+4. **Restrained color** — red is a sparing site-wide accent, not an antique symbol, and it does not monopolize status meaning; the devices' own blue, gold, wood and light colors
+   belong locally to real objects and do not spread into ordinary interface colors.
+5. **Reading first** — inner pages may be flatter than the homepage; body width, line height, code, tables, TOC and mobile experience take precedence over the visual theme.
 
-## 主题系统：Light / Dark
+## Theme system: Light / Dark
 
-- `html[data-theme="dark"]` 为 **Dark**，默认无该属性为 **Light**；选择存于 `localStorage.theme`。
-- 两个主题使用同一构图、同一物件、同一热点和同一信息层级。配对摄影资产只允许时间、灯态、曝光和
-  对应阴影变化，不允许元素消失、移位、悬浮或改变接触关系。
-- 首页继续使用严格配准的 day/night 房间摄影图。Light 保持低噪点的自然白天房间，Dark 保持暖灯下的夜间房间；
-  不为 Light 叠加宣纸、纸光池或另一套浅色悬浮控件。
-- 内页在两态下都保持舒适对比，不通过材质噪点区分主题。
-- **Light / Dark** 是文档和 QA 的中性主题名称；面向用户的按钮继续显示既有「昼 / 夜」与
-  「Day / Night」，不因视觉校正擅自改名。
+- `html[data-theme="dark"]` is **Dark**; without the attribute the default is **Light**; the choice is stored in `localStorage.theme`.
+- Both themes use the same composition, objects, hotspots and information hierarchy. Paired photo assets may only change time, lamp state, exposure and
+  the matching shadows; elements may not disappear, move, float or change contact relationships.
+- The homepage continues to use strictly registered day/night room photos. Light stays a low-noise natural daytime room, Dark a night room under a warm lamp;
+  do not overlay xuan paper, paper light pools or a separate set of light floating controls for Light.
+- Inner pages keep comfortable contrast in both states and do not distinguish themes by material noise.
+- **Light / Dark** are neutral theme names for docs and QA; the user-facing button keeps showing the existing 「昼 / 夜」 (Day / Night) and
+  「Day / Night」, and is not renamed on its own because of the visual correction.
 
-### 主题转场
+### Theme transition
 
-主题切换可以保留现有的圆形 wipe、短暂 blur 或淡化，但它只是状态变化反馈：
+Theme switching may keep the existing circular wipe, brief blur or fade, but it is only state-change feedback:
 
-- 动画短、稳定，不遮挡内容，也不改变页面结构；
-- 连续点击后不残留遮罩；
-- `prefers-reduced-motion: reduce` 下即时切换；
-- 文档和界面不把它命名为晕染、泼墨或其他传统媒介效果。
+- the animation is short and stable, does not cover content and does not change page structure;
+- no leftover overlay after rapid clicks;
+- instant switch under `prefers-reduced-motion: reduce`;
+- docs and interface do not name it ink bleed, ink splash or any other traditional-medium effect.
 
-## 色彩与表面
+## Color and surfaces
 
-- 全站基础层级使用中性背景、正文、次要文字、边框和分隔 token。旧 CSS token 名可以在迁移期间保留，
-  但不再要求用“焦浓重淡清”解释它们，也不把内部 token 名显示给用户。
-- 红色保留为克制 accent，可用于当前状态、焦点、少量关键提示或品牌细节。大面积按钮、长段文字、
-  普通正文链接和错误信息不得全部染红。
-- 红色不再绑定印章、落款、卷题、题跋或批注意义；`--cinnabar` 若暂时保留，只按兼容性变量处理。
-- 页面避免多层不透明底板。需要分组时优先使用留白、细线、缩进和轻微对比差。
-- 阴影遵循房间主光与物理接触关系；不要为每张卡片添加互相矛盾的漂浮阴影。
+- The site-wide base hierarchy uses neutral background, body text, secondary text, border and separator tokens. Old CSS token names may stay during migration,
+  but they no longer need to be explained by "焦浓重淡清" (the five ink tones: scorched, thick, heavy, light, clear), and internal token names are not shown to users.
+- Red stays as a restrained accent, usable for current state, focus, a few key prompts or brand details. Large buttons, long passages,
+  ordinary body links and error messages must not all be dyed red.
+- Red is no longer bound to seal, signature, volume title, colophon or annotation meanings; if `--cinnabar` stays temporarily, treat it only as a compatibility variable.
+- Pages avoid multiple layers of opaque backing panels. When grouping is needed, prefer whitespace, hairlines, indentation and slight contrast differences.
+- Shadows follow the room's main light and physical contact; do not add mutually contradictory floating shadows to every card.
 
-## 字体与文案
+## Fonts and copy
 
-- 标题使用清楚的常规 serif 或 sans，正文与 UI 使用高可读系统字体，代码与技术元信息可使用 monospace。
-- QiuBrush、Long Cang 与其他书法字体不再出现在可见界面，也不再要求维护字体子集或字符白名单。
-- 首页姓名、导航、组件标题和目录使用常规字体；字体替换不得顺带改写其文字。
-- 可见文案严格遵守上方白名单及 2026-07-29 的逐项批准；其他既有文字不以“更直接”“更现代”或
-  “更易理解”为理由调整。
+- Headings use a clear regular serif or sans, body and UI use highly readable system fonts, and code and technical metadata may use monospace.
+- QiuBrush, Long Cang and other calligraphy fonts no longer appear in the visible interface, and no font subset or character allowlist needs to be maintained for them.
+- The homepage name, navigation, component titles and TOC use regular fonts; a font replacement must not rewrite their text along the way.
+- Visible copy strictly follows the allowlist above and the 2026-07-29 item-by-item approval; other existing text is not adjusted for being "more direct", "more modern" or
+  "easier to understand".
 
-## Reveal 与装饰层
+## Reveal and decoration layers
 
-- 现有 `data-reveal` 可继续用于视口内的轻微淡入/位移，但正文和首屏关键信息必须立即可读。
-- 同一路由不叠加多种入场动画；`prefers-reduced-motion` 下禁用位移、平滑滚动和非必要淡化。
-- 全站不使用花瓣、墨絮、漂浮尘点或其他纯装饰粒子。删除粒子后不得用另一组装饰动画替代。
-- 照片边缘可以按布局需要做普通渐变或遮罩融合，但不得伪造宣纸、泼墨或古画边缘。
+- The existing `data-reveal` may continue to be used for slight in-viewport fade/shift, but body text and key first-screen information must be readable immediately.
+- No stacking of multiple entrance animations on one route; under `prefers-reduced-motion`, disable shifts, smooth scrolling and non-essential fades.
+- The site uses no petals, ink fluff, floating dust or other purely decorative particles. After removing particles, do not replace them with another decorative animation.
+- Photo edges may use ordinary gradients or mask blending as the layout needs, but must not fake xuan paper, ink splash or antique-painting edges.
 
-## 首页房间
+## Homepage room
 
-首页创作方向仍是 [`homepage-art-direction.md`](./homepage-art-direction.md) 保存的“东西很多，初见很少”。
-第一眼保留姓名/简短介绍、吉他和极少的生活气息；完整导航、书桌、工作台和内容数量先退入阴影。
+The homepage's creative direction remains "东西很多，初见很少" ("many things, little at first sight") as preserved in [`homepage-art-direction.md`](./homepage-art-direction.md).
+First glance keeps the name/short introduction, the guitar and a little breath of life; full navigation, desk, workbench and content counts recede into shadow first.
 
-竖屏窄屏首页（宽度不超过 600px）保留姓名、单句问候、无条件初始化的真实 3D 吉他、一个主入口和简短的吉他查看提示。隐藏副标题、底部说明、重复的操作提示及手动缩放/overview 辅助控件；侧边场景入口、房间地图和动态开关仍可用，拖动/捏合继续负责漫游和缩放。桌面与横屏构图不变。这是渐进展示，不删去其他场景或内容。
+The portrait narrow-screen homepage (width up to 600px) keeps the name, a one-line greeting, the unconditionally initialized real 3D guitar, one primary entry and a short guitar-viewing hint. It hides the subtitle, bottom explanation, duplicate operation hints and manual zoom/overview helper controls; side scene entries, the room map and the motion toggle remain available, and drag/pinch continue to handle wandering and zoom. Desktop and landscape composition are unchanged. This is progressive disclosure, not removal of other scenes or content.
 
-桌面端继续由文章与作品两个遮光区域控制渐进发现；生活/吉他不增加第三个完成状态。
-停留、键盘聚焦或进入近景后，目标区域平缓变亮；当前会话可以累计保留已访问区域。
-这种发现不显示步骤条、完成度、教程面板或显眼的 onboarding 文案。
+On desktop, two shaded areas for articles and projects continue to control progressive discovery; life/guitar adds no third completion state.
+After lingering, keyboard focus or entering a close-up, the target area brightens gently; the current session may accumulate and keep visited areas.
+This discovery shows no step bar, completion percentage, tutorial panel or prominent onboarding copy.
 
-叙事结构：人物与吉他初见 → 阴影中的入口被发现 → writing/projects/life 近景 → 返回房间。
-所有既有名称保持不变，只有文案白名单中的四项例外；转场不使用传统画卷或泼墨隐喻。
+Narrative structure: first meeting with the person and guitar → entries in shadow are discovered → writing/projects/life close-ups → return to the room.
+All existing names stay unchanged, with only the four allowlist items as exceptions; transitions do not use traditional scroll-painting or ink-splash metaphors.
 
-- 场景图水平翻转、文案栏与热点坐标必须同步；overview 与近景保持同一房间和物件连续性。
-- 电脑内容必须落在真实显示器内；项目内容必须落在真实桌面或设备支撑平面上，不能悬浮或穿透家具。
-- Light/Dark 的 overview、writing、projects 资产严格配准；主题变化不改变热点位置。
-- 房间材质按低 ISO 写实摄影验收：雪白哑光墙、木、金属、织物、皮革、橡胶各自清楚，
-  不共享纸纹、颗粒或生成噪点。
-- 移动端三个入口首次加载即稳定可用，不要求先进入某一区域再返回。
+- Horizontal flipping of the scene image, the copy column and hotspot coordinates must stay in sync; overview and close-ups keep the same room and object continuity.
+- Computer content must land inside the real monitor; project content must land on the real desk or device support plane, never floating or passing through furniture.
+- Light/Dark overview, writing and projects assets are strictly registered; theme changes do not change hotspot positions.
+- Room materials are accepted at low-ISO photorealistic quality: snow-white matte wall, wood, metal, fabric, leather and rubber each distinct,
+  not sharing paper texture, grain or generated noise.
+- On mobile the three entries are stable and usable on first load, without requiring entering one area and returning first.
 
-### 三台项目设备
+### Three project devices
 
-三件作品继续严格位于作者标注位置：MealCircuit 左上桌面，Crewlight 左下机架，
-Hadoop Lab 右下桌沿。它们是三套独立 HTML/CSS 设备，不得简化为同模板换色、倾斜卡片或通栏 HUD。
+The three projects stay strictly in the author's annotated positions: MealCircuit on the upper-left desktop, Crewlight on the lower-left rack,
+Hadoop Lab at the lower-right desk edge. They are three independent HTML/CSS devices and must not be simplified into a recolored template, tilted cards or a full-width HUD.
 
-- **Docker-Hadoop**：横置 Blue Driver 结构，蓝色双层机箱、顶部信号栏、纵向金色旋钮和大黑踏板。
-- **MealCircuit**：深色胡桃木盒、左侧三枚纵列实木旋钮、中部现代 maker-style 设备铭牌、状态灯和金属彩钉。
-  marker 字形若保留，只属于这个设备的拉丁产品字标，不扩展成站点书法系统。
-- **Crewlight**：复古箱头设备，克制皮革包边、奶油六旋钮面板、青色电源灯、低对比蜂窝网罩和独立彩钉；
-  控制面板约占上方三分之一，网罩至少占六成。
+- **Docker-Hadoop**: horizontal Blue Driver structure, blue two-tier enclosure, top signal strip, vertical gold knobs and a large black footswitch.
+- **MealCircuit**: dark walnut box, three solid-wood knobs in a left column, a modern maker-style device nameplate in the middle, a status light and metal colored studs.
+  If the marker lettering is kept, it belongs only to this device's Latin product wordmark and does not extend into a site calligraphy system.
+- **Crewlight**: vintage amp-head device with restrained leather piping, a cream six-knob panel, a cyan power light, a low-contrast honeycomb grille and its own colored studs;
+  the control panel takes about the top third and the grille at least 60%.
 
-项目名、控制标签、状态和入口按 1440px 全场正常观看距离验收，不用局部放大截图代替：项目名约不低于 24px、
-控制标签约不低于 11px、次要状态约不低于 9px。旋钮支持指针和键盘调节，灯可切换，脚踏进入正确项目；
-设备语言不扩散到普通导航和按钮。
+Project names, control labels, status and entries are accepted at normal full-scene viewing distance at 1440px, not substituted by zoomed crops: project names no smaller than about 24px,
+control labels no smaller than about 11px, secondary status no smaller than about 9px. Knobs support pointer and keyboard adjustment, lights toggle, and the footswitch enters the correct project;
+the device language does not spread to ordinary navigation and buttons.
 
-窄屏项目列表保持约 90%/95%/96% 的轻微错宽与左右节奏，间距约 `clamp(20px, 5.5vw, 26px)`。
-在 **375 × 667** 短屏中仍要看到自然留白，标题、状态、控制和入口不重叠、不被底部控件截断，
-主要交互区至少 44 × 44px，页面无水平滚动。
+The narrow-screen project list keeps a slight staggered width of about 90%/95%/96% with left-right rhythm, spacing about `clamp(20px, 5.5vw, 26px)`.
+On a **375 × 667** short screen there must still be natural whitespace; titles, status, controls and entries do not overlap or get cut off by bottom controls,
+primary interaction areas are at least 44 × 44px, and the page has no horizontal scrolling.
 
-## 内页与长文
+## Inner pages and long-form
 
-- Blog、文章和项目页使用现代编辑布局：清楚标题、摘要、元信息、正文与来源关系，不强制双线古籍栏、卷轴或纸张底板。
-- 页面小标签沿用既有文案，博客计数只把「卷 / 题」改为「篇 / 标签」。
-- 导读、边界说明和项目备注保留原内容与结构，只删除「题跋」标签。
-- 文章 frontmatter 中的 license 数据保留，但不渲染「授权协议 · 文末记」可见区块。
-- 所有文章自动提供目录；无二至四级标题时至少提供“文章开头”。目录使用常规字体，展开/收起不挤压正文。
-- 正文保持舒适行宽、字号和行高；长代码块与表格在自身容器内滚动，不制造页面级横向滚动。
-- 图片保持真实色彩、正确比例和有用 alt；不叠宣纸纹理、全局噪点或硬边装饰框。
+- Blog, article and project pages use a modern editorial layout: clear title, summary, metadata, body and source relationships, without forcing double-line classical-book ruling, scrolls or paper backing panels.
+- Small page labels keep existing copy; the blog counts only change 「卷 / 题」 to 「篇 / 标签」.
+- Introductions, boundary notes and project remarks keep their original content and structure; only the 「题跋」 label is removed.
+- The license data in article frontmatter is kept, but the visible 「授权协议 · 文末记」 block is not rendered.
+- All articles automatically get a TOC; without level-2 to level-4 headings, provide at least 「文章开头」 ("Start of article"). The TOC uses regular fonts, and expanding/collapsing does not squeeze the body.
+- Body keeps comfortable line length, font size and line height; long code blocks and tables scroll within their own containers without creating page-level horizontal scrolling.
+- Images keep true color, correct proportions and useful alt text; no overlaid xuan-paper texture, global noise or hard-edged decorative frames.
 
-## 可访问性与响应式
+## Accessibility and responsiveness
 
-- Light/Dark 都要满足文字、链接、焦点、代码和控件的可读对比。
-- 键盘顺序符合视觉顺序；所有交互元素有清楚的 `:focus-visible`；导航用链接，状态操作用按钮。
-- 窄屏主要导航、主题切换、项目旋钮/灯/脚踏及返回控件至少 44 × 44px。
-- 必测 1440px、768px、375px，以及 375 × 667 短屏；无页面级水平滚动、重叠或不可达内容。
-- JavaScript 关闭时真实文章、项目和返回链接仍可访问；减弱动效时不依赖动画揭示内容。
+- Both Light and Dark must meet readable contrast for text, links, focus, code and controls.
+- Keyboard order follows visual order; all interactive elements have a clear `:focus-visible`; navigation uses links and state actions use buttons.
+- On narrow screens, primary navigation, the theme toggle, project knobs/lights/footswitches and back controls are at least 44 × 44px.
+- Must test 1440px, 768px, 375px and the 375 × 667 short screen; no page-level horizontal scrolling, overlap or unreachable content.
+- With JavaScript off, real articles, projects and back links remain accessible; with reduced motion, content reveal does not depend on animation.
 
 ## Do / Don't
 
 **Do**
 
-- 先退远看首页的明暗、人物焦点和留白，再检查组件细节。
-- 使用真实房间材质、普通字体、既有文案、克制红色和稳定的 Light/Dark 配对资产。
-- 优先修复阅读、焦点、触控和短屏布局，再增加视觉细节。
-- 改动后运行 `npm run build`，并按 `docs/qa/visual-checklist.md` 验证两种主题。
+- First step back and look at the homepage's light and dark, person focus and whitespace, then check component details.
+- Use real room materials, regular fonts, existing copy, restrained red and stable Light/Dark paired assets.
+- Prioritize fixing reading, focus, touch and short-screen layout before adding visual details.
+- After changes, run `npm run build` and verify both themes per `docs/qa/visual-checklist.md`.
 
 **Don't**
 
-- 不使用书法/QiuBrush、印章、宣纸纹理、花瓣、墨絮或替代粒子；不要把视觉清理扩大成文案重写。
-- 不把红色铺满普通按钮、链接和大段内容，也不为红色强加朱砂/落款语义。
-- 不给卡片套卡片，不用全局噪点把不同材质压成同一表面。
-- 不改变三台项目设备的结构与作者标注位置，不把设备语言扩散成全站 UI。
-- 不把首页做成内容总览、人格清单或分步教程。
-- 不新增运行时依赖解决静态 CSS 问题。
+- Don't use calligraphy/QiuBrush, seals, xuan-paper texture, petals, ink fluff or replacement particles; don't expand visual cleanup into a copy rewrite.
+- Don't flood ordinary buttons, links and long content with red, or force cinnabar/signature meaning onto red.
+- Don't nest cards in cards, or flatten different materials into one surface with global noise.
+- Don't change the structure or author-annotated positions of the three project devices, or spread the device language into site-wide UI.
+- Don't turn the homepage into a content overview, personality checklist or step-by-step tutorial.
+- Don't add runtime dependencies to solve static CSS problems.
 
-## 变更守卫
+## Change guard
 
-任何可见改动提交前：
+Before committing any visible change:
 
-1. `npm run build` 通过。
-2. 按 `docs/qa/visual-checklist.md` 检查 Light 与 Dark，以及 1440px、768px、375px 和 375 × 667。
-3. 首页改动反查 `homepage-art-direction.md` 和 `person-first-intent.md`。
-4. 触碰色彩、字体、主题、转场、房间、项目设备或长文系统时，同步更新本文件与
-   `.agents/skills/qiu-site-frontend-design/`，但不改写历史引语或历史 PR 审计。
-5. 将最终可见文字与 `f6ed8fd` 对比；只允许四项旧白名单和 2026-07-29 逐项批准的身份、链接与 VeriSilo 差异。
+1. `npm run build` passes.
+2. Check Light and Dark, and 1440px, 768px, 375px and 375 × 667, per `docs/qa/visual-checklist.md`.
+3. For homepage changes, cross-check `homepage-art-direction.md` and `person-first-intent.md`.
+4. When touching color, fonts, themes, transitions, the room, project devices or the long-form system, update this file and
+   `.agents/skills/qiu-site-frontend-design/` together, without rewriting historical quotes or historical PR audits.
+5. Compare final visible text with `f6ed8fd`; only the four old allowlist items and the identity, link and VeriSilo differences approved item by item on 2026-07-29 are allowed.

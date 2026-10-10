@@ -1,71 +1,71 @@
-# 千秋 · me.qiu.works
+# 千秋 (Qianqiu) · me.qiu.works
 
-2026-09-30：首页字体改为固定版本、自托管的 WOFF2 子集，控制符号改为内联 SVG。保留现有空间构图、文案及导航；详情与再生成方法见 `src/assets/me/fonts/README.md`。本次修复以 PR 交回用户审核，不合并、不由本地验收推定发布。
+2026-09-30: homepage fonts switched to pinned-version, self-hosted WOFF2 subsets, and control glyphs switched to inline SVG. The existing spatial composition, copy and navigation are kept; for details and the regeneration method see `src/assets/me/fonts/README.md`. This fix is handed back to the user for review as a PR; it is not merged, and local acceptance is not taken to imply release.
 
-2026-09-22：将用户确认的中英文空间原型接入根站 Astro。`qiu.works` 仍由 `developer/` 中的 QStudio 负责；本次不修改该应用。
+2026-09-22: wired the user-approved bilingual spatial prototype into the root Astro site. `qiu.works` is still served by QStudio in `developer/`; that app is not changed here.
 
-2026-09-29：用户确认将 `prototypes/me-current.html` 的九宫格扩展、作品切面与自动演示、吉他性能优化实装到源码。保留原有风格，源码与构建产物不依赖原型目录。此次授权为本地实装与验收，部署和 PR 留待审阅。
+2026-09-29: the user approved implementing the nine-grid expansion, project cross-sections with auto demo, and guitar performance optimizations from `prototypes/me-current.html` into source. The original style is kept, and neither source nor build output depends on the prototype directory. This authorization covers local implementation and acceptance; deployment and PR are left for review.
 
-## 源码
+## Source
 
-- `src/pages/index.astro` 与 `src/pages/en/index.astro`：正式首页入口。
-- `src/layouts/PersonalHome.astro`：首页独立布局、双语 SEO、分享图和无 JavaScript 阅读入口。
-- `src/components/me/Room.astro`、`MoreRooms.astro`、`Pedalboard.astro`：共享的双语页面与踏板标记，初始文案在构建时输出；交互文案沿用 `language.js`，无翻译库。
-- `src/styles/me/`：已确认的空间、吉他、音乐及英文排版；`site.css` 是站点导航接入细节。
-- `src/styles/me/fonts.css`、`icons.css`：首页专用字体及共享 SVG 尺寸；`Icon.astro` 与 `icons.js` 让初始标记和动态状态共用同一图形。
-- `src/scripts/me/scene.js`：空间、纸张、画线、音色控制与循环录音。
-- `src/scripts/me/boot.js`：先启动空间与操作，再动态载入三维和新增区域。
-- `src/scripts/me/extra-rooms.js`、`nine-rooms.js`：莫比乌斯纸带、放下纸片、路径演奏和错位文字；状态仅留在当前访问中。
-- `src/scripts/me/work-specimen.js`：按需载入的四件项目雕塑，切面展示起因、做法与边界。
-- `src/scripts/me/guitar-model.js`：照片投射与几何共同构成的 Three.js 吉他。
-- `src/scripts/me/guitar-surface.js`、`guitar-surface-worker.js`、`guitar-batches.js`：后台计算同一琴身曲面、合并静态五金绘制，不削减几何或贴图分辨率。
-- `src/scripts/me/audio-engine.js`：原生 Web Audio 拨弦合成、过载、滤波与反馈回声。
-- `src/assets/me/`：四张本地贴图及两张模型无损预览；Vite 输出带内容指纹的静态 URL，无原型目录依赖。
-- `src/vendor/three/`：沿用原型的 Three.js 0.180.0，保留 MIT LICENSE。未增加 npm 依赖。
+- `src/pages/index.astro` and `src/pages/en/index.astro`: production homepage entries.
+- `src/layouts/PersonalHome.astro`: the homepage's own layout, bilingual SEO, share image and no-JavaScript reading entry.
+- `src/components/me/Room.astro`, `MoreRooms.astro`, `Pedalboard.astro`: shared bilingual page and pedal markup, with initial copy emitted at build time; interactive copy continues to use `language.js`, with no translation library.
+- `src/styles/me/`: the approved space, guitar, music and English typography; `site.css` holds site-navigation integration details.
+- `src/styles/me/fonts.css`, `icons.css`: homepage-only fonts and shared SVG sizing; `Icon.astro` and `icons.js` let initial markup and dynamic state share the same graphics.
+- `src/scripts/me/scene.js`: space, papers, line drawing, tone controls and loop recording.
+- `src/scripts/me/boot.js`: starts the space and controls first, then dynamically loads 3D and the added areas.
+- `src/scripts/me/extra-rooms.js`, `nine-rooms.js`: Möbius paper strip, putting down paper slips, path playing and offset text; state stays only within the current visit.
+- `src/scripts/me/work-specimen.js`: four on-demand project sculptures whose cross-sections show origin, approach and boundaries.
+- `src/scripts/me/guitar-model.js`: the Three.js guitar built from photo projection plus geometry.
+- `src/scripts/me/guitar-surface.js`, `guitar-surface-worker.js`, `guitar-batches.js`: compute the same body surface in the background and merge static hardware draws, without reducing geometry or texture resolution.
+- `src/scripts/me/audio-engine.js`: native Web Audio plucked-string synthesis, overdrive, filtering and feedback echo.
+- `src/assets/me/`: four local textures and two lossless model previews; Vite emits content-hashed static URLs with no dependency on the prototype directory.
+- `src/vendor/three/`: Three.js 0.180.0 carried over from the prototype, keeping its MIT LICENSE. No npm dependencies were added.
 
-运行 `npm ci`、`npm run dev`。发布前运行 `npm run build`、`npm run preview`，检查实际构建产物。首页代码仅在首页加载，阅读页继续使用原有布局与主题。
+Run `npm ci`, `npm run dev`. Before release run `npm run build`, `npm run preview` and check the real build output. Homepage code loads only on the homepage; reading pages keep their existing layout and themes.
 
-## 路由与交互
+## Routes and interaction
 
-中文 `/`、英文 `/en/`，两种语言都保留姓名「千秋」。九宫格的上排为 `#paths`、`#trace`、`#blindspot`，中排为 `#papers`、`#home`、`#music`，下排为 `#rethink`、`#idle`、`#work`；`#overview` 查看全貌。地图、空间入口、拖动和键盘都可导航。语言切换保留位置，但整页导航清空临时录音、纸张位置及线条。散页和新增区域的文章来源指向中文原文；「所有文章 / 项目档案」进入对应语言的现有列表。
+Chinese `/`, English `/en/`; both languages keep the name 「千秋」 (Qianqiu). The nine-grid's top row is `#paths`, `#trace`, `#blindspot`, the middle row `#papers`, `#home`, `#music`, and the bottom row `#rethink`, `#idle`, `#work`; `#overview` shows the whole map. The map, spatial entries, dragging and keyboard all navigate. Language switching keeps the position, but a full-page navigation clears temporary recordings, paper positions and lines. Article sources in the loose-leaf pages and added areas point to the Chinese originals; 「所有文章 / 项目档案」 ("All articles / Project archive") go to the existing list in the matching language.
 
-入口吉他随鼠标轻转，点击打开近看。近看支持拖动、缩放、方向键、细节位置、空格复位和 Esc 返回。闲置与离屏时不持续渲染；减少动态偏好与手动关闭动态均停止跟随和缓动。WebGL 无法初始化时，首页保留同模型预览，近看保留参考照片。
+The entry guitar turns slightly with the mouse; clicking opens a close-up. The close-up supports dragging, zoom, arrow keys, detail positions, Space to reset and Esc to go back. Nothing renders continuously when idle or off-screen; the reduced-motion preference and the manual motion toggle both stop following and easing. When WebGL cannot initialize, the homepage keeps a preview of the same model and the close-up keeps the reference photo.
 
-「另一面」让一条连续纸带承载判断的修正；「盲点」保留中文造型「确定」，英文旁注解释其含义，转动后显示真实文章中留下的自我纠正。「未走之路」可改变线束与路线，只有主动点击聆听才启用声音；「不赶时间」可拖动或点击放下四个「应该」，并随时恢复。
+「另一面」 ("The Other Side") lets one continuous paper strip carry the correction of a judgment; 「盲点」 ("Blind Spot") keeps the Chinese character form 「确定」 ("certain"), with an English side note explaining its meaning, and turning it reveals self-corrections left in real articles. 「未走之路」 ("The Road Not Taken") can change the bundle of lines and the route, and sound is enabled only after actively clicking to listen; 「不赶时间」 ("No Rush") lets you drag or click to put down four 「应该」 ("shoulds") and restore them at any time.
 
-「拆开看看」用四种象征性雕塑承载 VeriSilo、MealCircuit、Crewlight 和 Hadoop Lab 的真实问题、做法与边界，不宣称物理硬件模型。首次进入和每次选择作品，自动播放一次 13.4 秒完整展示；可暂停、继续、重播。手动拖动切面或选择阶段会接管演示，离开暂停，已播放后普通返回不会重新开始。关闭动态时保留切面展示，取消镜头环绕。
+「拆开看看」 ("Take It Apart") uses four symbolic sculptures to carry the real problems, approaches and boundaries of VeriSilo, MealCircuit, Crewlight and Hadoop Lab, without claiming to be physical hardware models. On first entry and every time a project is selected, a full 13.4-second showcase auto-plays once; it can be paused, resumed and replayed. Manually dragging the cross-section or choosing a stage takes over the demo, leaving pauses it, and once played an ordinary return does not restart it. With motion off, the cross-section showcase stays and the camera orbit is cancelled.
 
-音乐区支持六根弦、A S D F G H、空格扫弦及 Open / Em / G / C / D。九个旋钮支持竖直拖动、滚轮、方向键、Shift 精调及双击复位。三个踏板均可旁通，四个预设提供起点。
+The music area supports six strings, A S D F G H, Space to strum, and Open / Em / G / C / D. The nine knobs support vertical dragging, the scroll wheel, arrow keys, Shift for fine adjustment and double-click to reset. All three pedals can be bypassed, and four presets provide starting points.
 
-初始静音，主动弹奏或打开声音后才启动音频，不请求麦克风。6 秒循环记录音高与力度，可叠录；所有层共用当前效果器，并非独立音轨。后台暂停录音和循环、静音输出，返回后不会自动恢复循环。刷新后不保留录音。
+It starts muted; audio starts only after the user plays or turns sound on, and the microphone is never requested. A 6-second loop records pitch and velocity and can be overdubbed; all layers share the current effects, not separate tracks. In the background, recording and the loop pause and output is muted; on return the loop does not resume automatically. Recordings are not kept after refresh.
 
-## 素材与表达边界
+## Assets and expression boundaries
 
-琴型为用户确认的 **BanG Dream! POTBELLY FM Rāna**，琴头是 BanG Dream! 标识。琴颈拾音器 SH-1n 带银色罩；琴桥 SH-16 开放式反斑马，奶油色线圈朝琴颈、黑色朝琴桥。
+The guitar model is the user-confirmed **BanG Dream! POTBELLY FM Rāna**, with the BanG Dream! logo on the headstock. The neck pickup is an SH-1n with a silver cover; the bridge SH-16 is an open reverse zebra, with the cream coil toward the neck and black toward the bridge.
 
-| 资产 | 来源与用途 |
+| Asset | Source and use |
 | --- | --- |
-| `qiu-potbelly-stringless.png` → `.webp` | 用户实拍的去弦派生图，1064 × 1478，运行时用于拾音器及五金细节 |
-| `qiu-potbelly-bare-body.png` → `.webp` | 同一实拍移除弦和五金的派生图，1064 × 1478，运行时用作琴身底材 |
-| `bangdream-potbelly-stringless.png` → `.webp` | 官方正面参考的去弦派生图，1254 × 1254，运行时用于指板及琴头弦路径 |
-| `bangdream-potbelly-fm-rana.png` → `.webp` | ESP 官方正面参考，2400 × 2400，运行时用于琴头标记、加载回退和 WebGL 回退 |
+| `qiu-potbelly-stringless.png` → `.webp` | String-removed derivative of the user's own photo, 1064 × 1478; used at runtime for pickup and hardware detail |
+| `qiu-potbelly-bare-body.png` → `.webp` | Derivative of the same photo with strings and hardware removed, 1064 × 1478; used at runtime as the body base material |
+| `bangdream-potbelly-stringless.png` → `.webp` | String-removed derivative of the official front reference, 1254 × 1254; used at runtime for the fretboard and headstock string paths |
+| `bangdream-potbelly-fm-rana.png` → `.webp` | ESP official front reference, 2400 × 2400; used at runtime for headstock markings, loading fallback and WebGL fallback |
 | `guitar-home.webp` | Neutral frame of the same 3D model under the home room lighting (`drawHome(0,0)` at pixel ratio 1.5), 1275 × 1275, lossless transparent WebP; shown first and hidden once the model draws its first frame. Re-render it whenever the model's look changes |
 | `jam-strings.webp` | Body close-up cut from the same official photograph (pickups, bridge, six strings), rotated landscape, 860 × 620; the playable strings in the strings room |
 | `esp-rana-back.webp` | ESP's official back photograph of the ESP-brand POTBELLY FM Rāna (`ESP_POTBELLY_FM_Rana_back.png`, 2400 × 2400), mirrored into the front photograph's frame (x = 2392 − x), cropped to x 760–1630 (870 × 2400), edges dilated so the outline never samples background, and the six photographed tuner housings painted out with the headstock's own grain (their round GOTOH covers are kept for the 3D tuner cases to sample). Runtime texture for the body back (registered to the outline: x 768–1615, y 1262–2377), the neck back and heel (nut at row 412, 2611 px per metre down the neck) and the headstock back (row = 1.161 × front row − 11.9) |
-| `work-home.webp` | 已确认的 VeriSilo 雕塑中性帧，1191 × 636，无损透明 WebP；展区载入时显示 |
+| `work-home.webp` | Neutral frame of the approved VeriSilo sculpture, 1191 × 636, lossless transparent WebP; shown while the showcase loads |
 
-PNG 保留为贴图源文件；首页和 Three.js 运行时加载同尺寸的高质量 WebP（quality 95）。四张贴图总量从 4.95 MB 降至 1.05 MB，约减少 79%。
+PNGs are kept as texture source files; the homepage and the Three.js runtime load same-size high-quality WebP (quality 95). The four textures dropped from 4.95 MB to 1.05 MB in total, about 79% smaller.
 
-入口预览约 194 KB，优先加载；三张模型专用贴图以低优先级提前请求，官方参考图直接复用页面图片，避免重复传输。曲面通过 Vite 打包的 Worker 计算，Worker 不可用时按批让出主线程；静态几何按材质合并，贴图尺寸、顶点、法线与 UV 保持原型。作品三维代码在展区可见时才加载，离屏停止渲染。原型的本机性能对照保留为研发证据，不能当作访客网络下的速度承诺。
+The entry preview is about 194 KB and loads with priority; the three model-only textures are requested early at low priority, and the official reference image reuses the page image directly to avoid duplicate transfer. The surface is computed in a Worker bundled by Vite, and when Workers are unavailable it yields the main thread in batches; static geometry is merged by material, and texture sizes, vertices, normals and UVs match the prototype. The project 3D code loads only when the showcase is visible and stops rendering off-screen. The prototype's local performance comparison is kept as development evidence and must not be taken as a speed promise on visitors' networks.
 
-官方来源：[型号页](https://espguitars.co.jp/collaborate/33185/)、[正面图片](https://espguitars.co.jp/wp-content/uploads/2023/11/BanGDream_POTBELLY_FM_Rana_front.png)。官方图片与品牌标识属于各自权利人，不适用仓库代码的 MIT 授权。
+Official sources: [model page](https://espguitars.co.jp/collaborate/33185/), [front image](https://espguitars.co.jp/wp-content/uploads/2023/11/BanGDream_POTBELLY_FM_Rana_front.png). Official images and brand marks belong to their respective rights holders and are not covered by the repository code's MIT license.
 
-原型阶段使用 imagegen 去除实拍中的弦和五金，再以独立几何重建，避免把弦和开关烙在漆面上。本次直接复用已确认贴图。被遮挡木纹是补绘，背面与侧面材质是近似重建，模型不是实物扫描；未找到可核实的匹配官方背面图片，因此没有开放完整 360° 旋转。
+During prototyping, imagegen removed strings and hardware from the real photo, which were then rebuilt as separate geometry so strings and switches are not baked into the finish. This integration reuses the approved textures directly. Occluded wood grain is painted in, back and side materials are approximate reconstructions, and the model is not a scan of the real instrument; no verifiable matching official back image was found, so full 360° rotation is not enabled.
 
-音色是拨弦合成与经典踏板灵感，并非实琴采样或原机电路仿真。BD-2 的外观参考 [BOSS 产品页](https://www.boss.info/us/products/bd-2/)。原型音频检查已覆盖输出、旁通、静音、最大增益、回声尾音和九个旋钮；接入时沿用音频算法，仅调整模块路径。
+The tone is plucked-string synthesis inspired by classic pedals, not real-guitar samples or circuit emulation of the original units. The BD-2's appearance references the [BOSS product page](https://www.boss.info/us/products/bd-2/). Prototype audio checks covered output, bypass, mute, maximum gain, echo tails and all nine knobs; integration keeps the audio algorithm and only adjusts module paths.
 
-## 发布边界
+## Release boundaries
 
-Astro `site`、canonical、语言 alternate、robots 与 sitemap 指向 `https://me.qiu.works`。这次只是源码接入，**未发布、未绑定 Cloudflare 域名**。
+Astro `site`, canonical, language alternates, robots and sitemap point to `https://me.qiu.works`. This is only a source integration — **not published and no Cloudflare domain bound**.
 
-发布时将 `me.qiu.works` 绑定到根站 Pages 项目，确认 TLS 与中英文路径；保留旧 `room.qiu.works` 可访问或配置保留路径/查询参数的跳转，避免 QStudio 和外部旧链接失效。主站 QStudio 当前分支的未推送修改不包含在本次个人站分支中。
+At release, bind `me.qiu.works` to the root-site Pages project and confirm TLS and the Chinese and English paths; keep the old `room.qiu.works` reachable or configure a redirect that preserves path/query parameters, so QStudio and external old links do not break. Unpushed changes on the main QStudio site's current branch are not included in this personal-site branch.

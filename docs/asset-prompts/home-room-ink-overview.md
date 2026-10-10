@@ -1,11 +1,11 @@
-# home-room-ink-overview · 全景
+# home-room-ink-overview · Overview
 
-目标：主页房间全景的严格配准 Light/Dark 对。左侧留安静人物介绍区；右侧工作台保留 Supro 与两颗平放单块。
+Goal: a strictly registered Light/Dark pair of the homepage room overview. The left side keeps a quiet area for the personal introduction; the right workbench keeps the Supro and two flat-lying pedals.
 
 ## Canvas
 
-- 1672×941，16:9 横构图。
-- 左半为人物介绍留白，右半为真实工作台；Light/Dark 像固定机位的两次曝光。
+- 1672×941, 16:9 landscape.
+- Left half is negative space for the introduction, right half is the real workbench; Light/Dark look like two exposures from a fixed camera position.
 
 ## Prompt
 
@@ -26,8 +26,8 @@
 
 ## Checklist
 
-- [ ] Light/Dark 物件、线材和接触面严格配准
-- [ ] 墙面雪白、平滑、真实，无纸纹/浮雕虫纹
-- [ ] 不同材质没有共享生成纹理或噪点
-- [ ] 左半留白足够叠加常规字体的「我是千秋。」与简短介绍
-- [ ] Supro 与两颗单块位置不变；单块平放且完整落在桌面内
+- [ ] Light/Dark objects, cables and contact surfaces are strictly registered
+- [ ] Wall is snow white, smooth and real, with no paper grain or embossed worm-like squiggles
+- [ ] Different materials share no generated texture or noise
+- [ ] Left half leaves enough space to overlay 「我是千秋。」 ("I am Qianqiu.") in a regular font plus a short introduction
+- [ ] Supro and the two pedals stay in place; pedals lie flat and sit fully on the desk surface

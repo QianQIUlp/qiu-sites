@@ -58,7 +58,7 @@ The 2026-07 user correction controls current implementation:
 - Theme transition and `data-reveal` may remain as quiet interface feedback. Describe them neutrally and respect reduced motion.
 - Room copy is frozen to `f6ed8fd` except for the original four changes and the 2026-07-29 user-approved identity anchor,
   developer/contact links and VeriSilo project entry documented in the active contract. Preserve every other visible and
-  assistive string byte-for-byte, including 「昼 / 夜」 and `Day / Night`. Developer-profile copy is governed by its own
+  assistive string byte-for-byte, including 「昼 / 夜」 (Day / Night) and `Day / Night`. Developer-profile copy is governed by its own
   bilingual content contract. Visual cleanup never authorizes copy rewriting.
 - Homepage project positions and structures remain fixed: MealCircuit at the upper-left work surface, Crewlight at the
   lower-left rack, Docker-Hadoop-Cluster at the lower-right desk edge. Do not regroup, tilt or flatten them into one template.

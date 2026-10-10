@@ -1,11 +1,11 @@
-# home-room-ink-curtain · 幕布近景
+# home-room-ink-curtain · Curtain close-up
 
-目标：点击「生活」热点后的现代房间近景——左侧深红丝绒幕布与窗边一角的特写，
-暗示舞台与生活的另一面。
+Goal: the modern room close-up shown after clicking the 「生活」 ("Life") hotspot — a close-up of the deep red velvet curtain on the left and a corner of the window,
+hinting at the stage and the other side of life.
 
 ## Canvas
 
-- 与现网 curtain 近景一致（横构图，约 3:2）。
+- Match the live curtain close-up (landscape, about 3:2).
 
 ## Prompt
 
@@ -23,7 +23,7 @@
 
 ## Checklist
 
-- [ ] 幕布为克制的深酒红，不刺眼、不承担古风语义
-- [ ] 与 overview 最左边缘幕布连续
-- [ ] 暖光与投影符合房间物理关系
-- [ ] 边缘为自然镜头衰减，无纸纹、泼墨或装饰粒子
+- [ ] Curtain is a restrained deep wine red, not glaring, and carries no antique/classical-Chinese connotation
+- [ ] Continuous with the curtain at the far left edge of overview
+- [ ] Warm light and shadows match the room's physical layout
+- [ ] Edges use natural lens falloff, with no paper grain, ink splashes or decorative particles
