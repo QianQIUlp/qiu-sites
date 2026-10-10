@@ -16,8 +16,8 @@
 .loose-paper.held{cursor:grabbing}
 
 /* The window's light on the floor: four panes, skewed by the low afternoon sun. */
-.paper-sun{position:absolute;left:59%;top:3%;width:37%;height:52%;display:grid;grid-template:1fr 1fr/1fr 1fr;gap:6% 6.5%;transform:skewX(-19deg) rotate(-5deg);pointer-events:none;animation:sun-breathe 19s ease-in-out infinite alternate}
-.paper-sun i{display:block;border-radius:2px;filter:blur(2.5px);background:linear-gradient(162deg,rgba(255,246,222,.95),rgba(255,234,192,.84) 62%,rgba(255,224,174,.76));box-shadow:0 0 0 2px rgba(255,192,122,.26),0 0 44px 8px rgba(255,204,136,.24)}
+.paper-sun{position:absolute;left:59%;top:3%;width:37%;height:52%;display:grid;grid-template:1fr 1fr/1fr 1fr;gap:6% 6.5%;transform-origin:100% 0;transform:skewX(calc(-19deg - var(--gold,0) * 14deg)) rotate(-5deg) scale(calc(1 + var(--gold,0) * .16),1);opacity:calc(1 - var(--dusk,0) * .3);pointer-events:none}
+.paper-sun i{display:block;border-radius:2px;filter:blur(2.5px);animation:sun-breathe 19s ease-in-out infinite alternate;background:linear-gradient(162deg,color-mix(in oklab,rgba(255,246,222,.95),rgba(255,190,124,.94) calc(var(--gold,0) * 100%)),color-mix(in oklab,rgba(255,234,192,.84),rgba(255,160,104,.86) calc(var(--gold,0) * 100%)) 62%,color-mix(in oklab,rgba(255,224,174,.76),rgba(244,128,96,.8) calc(var(--gold,0) * 100%)));box-shadow:0 0 0 2px rgba(255,192,122,.26),0 0 44px 8px rgba(255,204,136,.24)}
 .paper-sun::before{content:"";position:absolute;inset:-80% -70%;background:radial-gradient(closest-side,rgba(66,48,28,0) 30%,rgba(66,48,28,.055) 56%,rgba(66,48,28,0) 100%)}
 .paper-sun::after{content:"";position:absolute;inset:-8% -10% 0 0;background:var(--dapple) no-repeat 100% 0/86% auto;filter:blur(7px);opacity:.36;mix-blend-mode:multiply;transform-origin:100% 0;animation:dapple-sway 11s ease-in-out infinite alternate}
 @keyframes sun-breathe{0%{opacity:.86}55%{opacity:1}100%{opacity:.9}}
@@ -55,7 +55,7 @@ html[lang=en] .paper-b .draft-kept{font-size:clamp(15px,1.35vw,22px)}
 .paper-c .draft-kept{top:72%}
 .paper-c .draft-note{bottom:5%}
 
-body[data-motion=off] .paper-sun,body[data-motion=off] .paper-sun::after,body[data-motion=off] .paper-face>.paper-dapple{animation:none}
+body[data-motion=off] .paper-sun i,body[data-motion=off] .paper-sun::after,body[data-motion=off] .paper-face>.paper-dapple{animation:none}
 
 @media(max-width:600px){
   .paper-sun{left:52%;top:15%;width:42%;height:21%}

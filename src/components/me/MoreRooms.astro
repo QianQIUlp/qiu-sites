@@ -5,6 +5,10 @@ import workPreview from '../../assets/me/work-home.webp';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const t = (zh: string, en: string) => lang === 'en' ? en : zh;
+// hand-font:start
+const idleNote = t('你不动，它才走。', 'It only moves when you don’t.');
+// hand-font:end
+const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
 ---
 <section class="place paths" data-scene="paths" aria-labelledby="paths-title" inert>
   <div class="place-heading">
@@ -99,8 +103,13 @@ const t = (zh: string, en: string) => lang === 'en' ? en : zh;
 </section>
 
 <section class="place idle" data-scene="idle" aria-labelledby="idle-title" inert>
+  <div class="idle-sun" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="place-heading"><span class="eyebrow">{t('不赶时间 / AN UNPRODUCTIVE CORNER', 'AN UNPRODUCTIVE CORNER')}</span><h2 id="idle-title"><Fragment set:html={t('这里，<br><em>不用有用。</em>', 'Here,<br><em>nothing is due.</em>')} /></h2><p><Fragment set:html={t('把几个「应该」放进去。<br>拖过去，或者点一下纸片。', 'Let go of a few “shoulds”.<br>Drag a slip into the hollow. Or tap it.')} /></p></div>
   <div class="idle-void" aria-hidden="true"><span class="idle-outline" lang="zh-Hans">空</span><div class="paper-hole"><div class="hole-rim"></div><div class="hole-bottom"><span>{t('也没关系。', 'That’s okay.')}</span></div></div><span class="hole-cross"><Icon name="plus" /></span></div>
+  <canvas class="idle-dust" aria-hidden="true"></canvas>
+  <div class="idle-clock" aria-hidden="true"><svg viewBox="-50 -50 100 100"><circle class="clock-face" r="46" />{clockTicks.map(angle => <line class="clock-tick" class:list={{ major: angle % 90 === 0 }} x1="0" y1={angle % 90 === 0 ? -40 : -42} x2="0" y2="-45" transform={`rotate(${angle})`} />)}<line class="clock-hour" x1="0" y1="5" x2="0" y2="-24" /><line class="clock-minute" x1="0" y1="7" x2="0" y2="-36" /><circle class="clock-pin" r="2.2" /></svg></div>
+  <p class="pencil-note note-idle" data-note="idle-still" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{idleNote}</span></p>
+  <div class="idle-lamp" aria-hidden="true"><i class="lamp-cord"></i><svg class="lamp-shade" viewBox="0 0 80 64"><path class="lamp-cap" d="M36 0h8v9h-8Z" /><path class="lamp-body" d="M13 50C13 27 25 9 40 9s27 18 27 41Z" /><path class="lamp-inside" d="M13 50C22 57 58 57 67 50C58 46 22 46 13 50Z" /><circle class="lamp-bulb" cx="40" cy="53" r="6.5" /></svg><i class="lamp-pool"></i></div>
   <div class="obligation-slips" data-room-control>
     <button class="obligation obligation-a" data-slip="0" aria-label={t('放下用完额度的催促', 'Let go of the need to use up your quota')}><span class="slip-kicker">{t('应该', 'I SHOULD')}</span><strong><Fragment set:html={t('把额度<br>用完。', 'Use it<br>all up.')} /></strong><span class="slip-foot">{t('放下', 'Let go')} <Icon name="southeast" /></span></button>
     <button class="obligation obligation-b" data-slip="1" aria-label={t('放下让订阅回本的催促', 'Let go of the need to earn back your subscription')}><span class="slip-kicker">{t('应该', 'I SHOULD')}</span><strong><Fragment set:html={t('把订阅<br>补回来。', 'Make it<br>pay off.')} /></strong><span class="slip-foot">{t('放下', 'Let go')} <Icon name="southwest" /></span></button>
@@ -108,6 +117,7 @@ const t = (zh: string, en: string) => lang === 'en' ? en : zh;
     <button class="obligation obligation-d" data-slip="3" aria-label={t('放下总要做点什么的催促', 'Let go of the need to always do something')}><span class="slip-kicker">{t('应该', 'I SHOULD')}</span><strong><Fragment set:html={t('总得做点<br>什么。', 'Do<br>something.')} /></strong><span class="slip-foot">{t('放下', 'Let go')} <Icon name="northwest" /></span></button>
   </div>
   <div class="idle-sentence" aria-live="polite"><span id="idle-preface">{t('我不欠资源一次使用。', 'I don’t owe a resource a use.')}</span><p id="idle-message"><Fragment set:html={t('留白，<br><em>也可以留下来。</em>', 'Leave room<br><em>for nothing.</em>')} /></p></div>
+  <div class="idle-sentence idle-dusk" aria-live="polite"><span></span><p></p></div>
   <button id="restore-slips" class="small-action">{t('把纸片摆回来', 'Bring the slips back')} <Icon name="restore" /></button>
   <div class="extra-footer"><a href="/blog/posts/2026-06-18-resource-usage-rule/" target="_blank" rel="noopener noreferrer">{t('这处留白，来自《我不欠资源一次使用》', 'On leaving things unused · Read in Chinese')} <Icon name="northeast" /></a><button data-place="home">{t('回到吉他旁边', 'Back to the guitar')} <span><Icon name="northeast" /></span></button></div>
 </section>

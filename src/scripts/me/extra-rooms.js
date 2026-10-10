@@ -314,6 +314,12 @@ function updateIdle() {
   $('#idle-preface').textContent = [localize("我不欠资源一次使用。", "I don’t owe a resource a use."), localize("资源不能主动生成任务。", "A resource cannot invent a task for me."), localize("资源只能服务已经存在的任务。", "Resources serve work that already matters."), localize("没有事情接住它，让它过期也没关系。", "If nothing needs it, it can expire. That’s okay."), localize("我不欠资源一次使用。", "I don’t owe a resource a use.")][count];
   $('#idle-message').innerHTML = count === slips.length ? localize("什么都没做。<br><em>也很好。</em>", "Nothing done.<br><em>And that’s fine.</em>") : localize("留白，<br><em>也可以留下来。</em>", "Leave room<br><em>for nothing.</em>");
 }
+// Balled up, a sheet loses its corners: a lumpy outline, different every time. (A clip-path would
+// cut away the slip's own cast shadow, so the lump is drawn with corner radii instead.)
+function crumpled() {
+  const r = () => Math.round(34 + Math.random() * 32);
+  return `${r()}% ${r()}% ${r()}% ${r()}% / ${r()}% ${r()}% ${r()}% ${r()}%`;
+}
 function letGo(slip) {
   if (released.has(slip)) return;
   const version = resetVersion, a = slip.getBoundingClientRect(), b = hole.getBoundingClientRect();
@@ -322,15 +328,24 @@ function letGo(slip) {
   const dy = (b.y + b.height / 2 - a.y - a.height / 2) / scale;
   const start = getComputedStyle(slip).transform;
   released.add(slip);slip.style.pointerEvents = 'none';
+  // Balled up first, then tossed: it tumbles along a short arc, ticks off the rim and drops in.
   // Translate before the current matrix so a dragged slip finishes from its actual location.
+  const shadow = 'drop-shadow(-10px 16px 14px rgba(58,40,20,.2))';
+  const ball = crumpled(), round = slip.offsetHeight / slip.offsetWidth || 1, squeeze = n => `scale(${(n * round).toFixed(3)},${n})`, at = (k, lift = 0) => `translate(${dx * k}px,${dy * k - lift}px) ${start}`;
+  slip.classList.add('crumpling');
+  if (!still()) document.dispatchEvent(new CustomEvent('roomsound', {detail: 'crumple'}));
   const animation = slip.animate([
-    {transform: start, opacity: 1, filter: 'brightness(1)'},
-    {transform: `translate(${dx * .8}px,${dy * .8}px) ${start} rotate(28deg) scale(.65)`, opacity: 1, filter: 'brightness(.82)', offset: .6},
-    {transform: `translate(${dx}px,${dy}px) ${start} rotate(63deg) scale(.015)`, opacity: 0, filter: 'brightness(.4)'}
-  ], {duration: still() ? 0 : 800, easing: 'cubic-bezier(.5,.05,.8,.5)', fill: 'forwards'});
+    {transform: `${start}`, borderRadius: '0%', filter: `${shadow} brightness(1)`, opacity: 1, easing: 'cubic-bezier(.3,.6,.4,1)'},
+    {transform: `${at(0)} ${squeeze(.6)} rotate(-16deg)`, borderRadius: ball, filter: `${shadow} brightness(.97)`, offset: .26, easing: 'cubic-bezier(.3,0,.6,1)'},
+    {transform: `${at(.08, 26)} ${squeeze(.5)} rotate(18deg)`, borderRadius: ball, offset: .36, easing: 'cubic-bezier(.2,.5,.5,1)'},
+    {transform: `${at(.55, 64)} ${squeeze(.42)} rotate(170deg)`, borderRadius: ball, offset: .6, easing: 'cubic-bezier(.5,0,.9,.6)'},
+    {transform: `${at(.9)} ${squeeze(.38)} rotate(290deg)`, borderRadius: ball, filter: `${shadow} brightness(.9)`, offset: .79, easing: 'cubic-bezier(.2,.6,.4,1)'},
+    {transform: `${at(.95, 12)} ${squeeze(.36)} rotate(318deg)`, borderRadius: ball, opacity: 1, offset: .87, easing: 'cubic-bezier(.6,0,1,.7)'},
+    {transform: `${at(1)} ${squeeze(.03)} rotate(372deg)`, borderRadius: ball, filter: `${shadow} brightness(.35)`, opacity: 0}
+  ], {duration: still() ? 0 : 1250, fill: 'forwards'});
   animation.finished.then(() => {
     if (resetVersion !== version) return;
-    slip.hidden = true;animation.cancel();updateIdle();
+    slip.hidden = true;animation.cancel();slip.classList.remove('crumpling');updateIdle();
     if (released.size === slips.length) $('#restore-slips').focus({preventScroll: true});
   }).catch(() => {});
 }
@@ -369,6 +384,6 @@ slips.forEach(slip => {
 });
 $('#restore-slips').addEventListener('click', () => {
   resetVersion++;released.clear();
-  slips.forEach(slip => { slip.getAnimations().forEach(animation => animation.cancel());slip.hidden = false;slip.style.transform = '';slip.style.pointerEvents = '';slip.style.zIndex = ''; });
+  slips.forEach(slip => { slip.getAnimations().forEach(animation => animation.cancel());slip.classList.remove('crumpling');slip.hidden = false;slip.style.transform = '';slip.style.pointerEvents = '';slip.style.zIndex = ''; });
   updateIdle();
 });

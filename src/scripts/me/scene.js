@@ -136,7 +136,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     document.querySelectorAll('.language-switch a').forEach(link=>link.hash=place);
     document.querySelector('#where-name').textContent=places[place].name;
     document.querySelector('#where-hint').textContent=place==='papers'?t("举到光里看看 · 点一下翻面","Hold a page to the light · Click to turn"):place==='music'?t("划过琴弦 · A S D F G H","Pluck a string · A S D F G H"):place==='trace'?t("画一根弦 · 松手再拨动","Draw a line · Let go, then pluck"):width<=600?t("拖动画面 · 双指缩放","Drag to wander · Pinch to zoom"):t("拖动画面漫游 · 滚轮缩放","Drag to wander · Scroll to zoom");
-    const roomHints={rethink:t("拖动纸带 · 换一面想想", "Turn the ribbon · Think again"),work:t("移动切面 · 看见做法与边界", "Move the section · Reveal decisions"),idle:t("把「应该」放下 · 留一会儿白", "Let go of a “should” · Take a moment"),paths:t("拨开线束 · 听一条自己的路", "Bend the threads · Hear your path"),blindspot:t("转动「确定」 · 看见藏住的间隙", "Turn certainty · Find its gaps")};
+    const roomHints={rethink:t("拖动纸带 · 换一面想想", "Turn the ribbon · Think again"),work:t("移动切面 · 看见做法与边界", "Move the section · Reveal decisions"),idle:t("把「应该」放下 · 或者，别动", "Let go of a “should” · Or stay still"),paths:t("拨开线束 · 听一条自己的路", "Bend the threads · Hear your path"),blindspot:t("转动「确定」 · 看见藏住的间隙", "Turn certainty · Find its gaps")};
     if(roomHints[place])document.querySelector('#where-hint').textContent=roomHints[place];
     document.querySelectorAll('[data-scene]').forEach(node=>node.inert=node.dataset.scene!==place);
     document.querySelectorAll('.room-map button').forEach(node=>{const current=node.dataset.place===place;node.classList.toggle('active',current);if(current)node.setAttribute('aria-current','location');else node.removeAttribute('aria-current');});
@@ -282,7 +282,9 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     catch{enabled=false;setControl(localSound,t("声音暂不可用","Sound is unavailable"),null);soundButton.querySelector('span').textContent=t("声音暂不可用","Sound is unavailable");soundButton.setAttribute('aria-pressed','false');localSound.setAttribute('aria-pressed','false');return false;}
     finally{soundButton.disabled=localSound.disabled=false;}
   }
-  soundButton.addEventListener('click',()=>setSound(!enabled));localSound.addEventListener('click',()=>setSound(!enabled));
+  soundButton.addEventListener('click',()=>setSound(!enabled));
+  // Small sounds from the rooms themselves, heard only when sound is on.
+  document.addEventListener('roomsound',event=>{if(!enabled||!rig||document.hidden)return;if(event.detail==='lamp')rig.click(.55,.58);if(event.detail==='crumple')rig.crumple?.();});localSound.addEventListener('click',()=>setSound(!enabled));
   function frequencyFor(index){const fret=active==='music'?chords[chord][index]:0;return fret<0?null:frequencies[index]*2**(fret/12);}
   function pluck(index,strength=1,fromLoop=false){
     const frequency=frequencyFor(index);if(!frequency)return;

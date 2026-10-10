@@ -16,14 +16,15 @@ Official sources are pinned to Google Fonts commit
 | Noto Sans SC | `notosanssc/NotoSansSC[wght].ttf` | `noto-sans-sc.ttf` | Source-used CJK UI, 400–900 |
 | Noto Sans SC | same source | same source | Small display subset `千秋确定空`, 900 |
 | Noto Serif SC | `notoserifsc/NotoSerifSC[wght].ttf` | `noto-serif-sc.ttf` | Source-used CJK serif, 400 |
-| Long Cang | `longcang/LongCang-Regular.ttf` | `long-cang.ttf` | Pencil handwriting for the loose pages' drafts, CJK only |
-| Caveat | `caveat/Caveat[wght].ttf` | `caveat.ttf` | Pencil handwriting for the drafts, Latin only, 450 |
+| Long Cang | `longcang/LongCang-Regular.ttf` | `long-cang.ttf` | Pencil handwriting for drafts and notes, CJK only |
+| Caveat | `caveat/Caveat[wght].ttf` | `caveat.ttf` | Pencil handwriting for drafts and notes, Latin only, 450 |
 
 Arimo and Gelasio retain the prior Latin metrics. Cousine is Courier New
 compatible, so its small labels are checked for fit. Chinese display glyphs stay
 selectable HTML text; canvas glyph caches are refreshed after the same font loads.
-The handwriting faces ("Me Hand") cover only the draft strings between the
-`hand-font` markers in `src/components/me/Room.astro`.
+The handwriting faces ("Me Hand") cover only the strings between the
+`// hand-font:start` / `// hand-font:end` markers in the homepage components
+(`src/components/me/*.astro`): the page drafts and the pencil notes.
 The small display subset is inlined into the homepage stylesheet by Vite. The
 primary Latin sans, and serif on English pages, have explicit font preloads.
 

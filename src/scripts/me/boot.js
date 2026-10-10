@@ -2,6 +2,7 @@
 import './scene.js';
 import './papers.js';
 import './hints.js';
+import './afternoon.js';
 
 requestAnimationFrame(() => setTimeout(() => {
   // Explicit imports let Vite split and fingerprint each module and its assets.
