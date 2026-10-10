@@ -1,29 +1,196 @@
 ---
+// Four pedals on one board, read left to right in signal order: Gold → Blue → Harmonist → After Hours. Each face is drawn in millimetre-like units
+// (a Centaur is 94 × 119, a BOSS compact 73 × 129), so the proportions read as the pedals they love.
 import type { Lang } from '../../i18n';
+import PedalKnob from './PedalKnob.astro';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const t = (zh: string, en: string) => lang === 'en' ? en : zh;
+const hint = (name: string) => t(`${name}：绕着旋钮拖动来转，滚轮或方向键也可以；双击回到默认`, `${name}: drag around the knob to turn it, or scroll / use arrow keys; double-click to reset`);
+const f = (n: number) => n.toFixed(2);
+const ring = (count: number, r1: number, r2: number) => Array.from({ length: count }, (_, i) => {
+  const a = (i / count) * Math.PI * 2;
+  return `M${f(Math.cos(a) * r1)} ${f(Math.sin(a) * r1)}L${f(Math.cos(a) * r2)} ${f(Math.sin(a) * r2)}`;
+}).join('');
+const hex = (r: number) => Array.from({ length: 6 }, (_, i) => {
+  const a = (i / 6) * Math.PI * 2 + Math.PI / 6;
+  return `${i ? 'L' : 'M'}${f(Math.cos(a) * r)} ${f(Math.sin(a) * r)}`;
+}).join('') + 'Z';
+const threads = ring(44, 6.1, 7.5);
+const nut = hex(9.6);
+// The chrome stomp switch is inlined, not a <use>, so its cap can sink when pressed.
+const stomp = (x: number, y: number) => `<g class="stomp" transform="translate(${x} ${y})"><ellipse cx="-1.6" cy="2.6" rx="10.4" ry="9.8" fill="#000" opacity=".42" filter="url(#pg-soft)"/><path d="${nut}" fill="url(#fs-nut)" stroke="#2f302d" stroke-width=".35"/><circle r="7.5" fill="url(#fs-ring)"/><path d="${threads}" stroke="#00000055" stroke-width=".35"/><g class="stomp-cap"><circle r="5.6" fill="#3d3f3b"/><circle r="5.2" fill="url(#fs-cap)"/><circle r="5.2" fill="url(#pk-sheen)"/></g></g>`;
+// Signal runs left to right. Each entry is (x, y) of a right-angle plug in a side jack: 1 points right, -1 left.
+// Pedal bottoms sit at y = 136; jacks are at a fixed height on each enclosure.
+const plugs: [number, number, number][] = [[8, 47, -1], [102, 47, 1], [116, 29, -1], [189, 29, 1], [203, 29, -1], [276, 29, 1], [290, 41, -1], [374, 41, 1]];
+const cables = [
+  'M2.6 50.4C2.6 80 -6 120 -26 150',
+  'M107.4 50.4C107.4 96 110.6 96 110.6 32.4',
+  'M194.4 32.4C194.4 86 197.6 86 197.6 32.4',
+  'M281.4 32.4C281.4 92 284.6 92 284.6 44.4',
+  'M379.4 44.4C379.4 84 392 124 414 150',
+];
+const reelSpokes = [0, 120, 240].map(a => `M0 0L${f(Math.cos(a * Math.PI / 180) * 6.2)} ${f(Math.sin(a * Math.PI / 180) * 6.2)}`).join('');
+const ribs = Array.from({ length: 13 }, (_, i) => `M8.5 ${f(66 + i * 3.9)}H64.5`).join('');
 ---
-<div class="patch-cable cable-one" aria-hidden="true"></div><div class="patch-cable cable-two" aria-hidden="true"></div>
-<article class="pedal pedal-gold" data-effect="gold" data-on="false" aria-label={t("金色过载，半人马灵感", "Gold overdrive, inspired by the Centaur")}>
- <i class="screw screw-tl" aria-hidden="true"></i><i class="screw screw-tr" aria-hidden="true"></i><i class="screw screw-bl" aria-hidden="true"></i><i class="screw screw-br" aria-hidden="true"></i><i class="jack jack-left" aria-hidden="true"></i><i class="jack jack-right" aria-hidden="true"></i>
- <div class="pedal-dials"><label class="dial" title={t("金色过载 Gain：上下拖动、滚轮或方向键调节", "Gold overdrive Gain: drag vertically, scroll, or use arrow keys")}><span class="dial-label">GAIN</span><span class="dial-control" style="--angle:-48.599999999999994deg"><span class="dial-ticks" aria-hidden="true"></span><span class="knob" aria-hidden="true"><i></i></span><input type="range" data-param="goldDrive" aria-label={t("金色过载 Gain", "Gold overdrive Gain")} min="0" max="100" step="1" value="32"></span><output>3.2</output></label><label class="dial" title={t("金色过载 Treble：上下拖动、滚轮或方向键调节", "Gold overdrive Treble: drag vertically, scroll, or use arrow keys")}><span class="dial-label">TREBLE</span><span class="dial-control" style="--angle:13.5deg"><span class="dial-ticks" aria-hidden="true"></span><span class="knob" aria-hidden="true"><i></i></span><input type="range" data-param="goldTone" aria-label={t("金色过载 Treble", "Gold overdrive Treble")} min="0" max="100" step="1" value="55"></span><output>5.5</output></label><label class="dial" title={t("金色过载 Output：上下拖动、滚轮或方向键调节", "Gold overdrive Output: drag vertically, scroll, or use arrow keys")}><span class="dial-label">OUTPUT</span><span class="dial-control" style="--angle:0deg"><span class="dial-ticks" aria-hidden="true"></span><span class="knob" aria-hidden="true"><i></i></span><input type="range" data-param="goldLevel" aria-label={t("金色过载 Output", "Gold overdrive Output")} min="0" max="100" step="1" value="50"></span><output>5.0</output></label></div>
- <div class="gold-art" aria-hidden="true"><svg viewBox="0 0 140 70"><path d="M16 57 30 43l24 2 11-13 14-4 8-16 8-7 6 5-5 12-10 11 9 8 15 6 10-5M31 44l-3 16m26-15 1 16m27-28-1 20 14 7M66 32 62 22l-10-4M90 20l21-2 17-10m-17 10 16 8M113 3q17 12 0 30M15 60h90"/><circle cx="99" cy="9" r="3"/></svg><strong>CENTAUR</strong><span>GOLD OVERDRIVE</span></div>
- <button class="footswitch" data-pedal="gold" aria-pressed="false" aria-label={t("金色过载开关", "Gold overdrive switch")}><i class="led" aria-hidden="true"></i><span class="metal-switch" aria-hidden="true"></span><span class="pedal-state">{t("旁通", "BYPASS")}</span></button>
- <span class="pedal-edition">KLON-INSPIRED / QIU'S STUDY</span>
+<svg class="pedal-defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="pk-black-cap" cx=".4" cy=".32" r=".75"><stop offset="0" stop-color="#55524b"/><stop offset=".45" stop-color="#22201c"/><stop offset="1" stop-color="#0b0a09"/></radialGradient>
+    <radialGradient id="pk-black-face" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#3d3b36"/><stop offset=".7" stop-color="#151411"/><stop offset="1" stop-color="#0d0c0a"/></radialGradient>
+    <radialGradient id="pk-sheen" cx=".3" cy=".24" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset=".32" stop-color="#fff" stop-opacity=".06"/><stop offset=".7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>
+    <radialGradient id="pk-boss-skirt" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#2e2e2c"/><stop offset="1" stop-color="#0c0c0c"/></radialGradient>
+    <radialGradient id="pk-boss-cap" cx=".36" cy=".3" r=".8"><stop offset="0" stop-color="#fbfbf6"/><stop offset=".35" stop-color="#c3c4bd"/><stop offset=".62" stop-color="#6c6d68"/><stop offset=".85" stop-color="#d9dad3"/><stop offset="1" stop-color="#8a8b85"/></radialGradient>
+    <radialGradient id="pk-cream" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fbf3dc"/><stop offset=".6" stop-color="#d8c79c"/><stop offset="1" stop-color="#8f7f5c"/></radialGradient>
+    <linearGradient id="pk-cream-head" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff8e4"/><stop offset=".5" stop-color="#e2d3aa"/><stop offset="1" stop-color="#a5946c"/></linearGradient>
+    <radialGradient id="fs-cap" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="#ffffff"/><stop offset=".3" stop-color="#d7d8d2"/><stop offset=".62" stop-color="#7b7d77"/><stop offset=".82" stop-color="#e4e4de"/><stop offset="1" stop-color="#5d5f5a"/></radialGradient>
+    <linearGradient id="fs-nut" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1f1ea"/><stop offset=".45" stop-color="#9c9e97"/><stop offset=".55" stop-color="#5f615c"/><stop offset="1" stop-color="#c9cac3"/></linearGradient>
+    <radialGradient id="fs-ring" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#d9dad3"/><stop offset=".7" stop-color="#7d7f79"/><stop offset="1" stop-color="#3f413d"/></radialGradient>
+    <radialGradient id="led-red" r=".5"><stop offset="0" stop-color="#ff5a38" stop-opacity=".75"/><stop offset=".35" stop-color="#ff3a1c" stop-opacity=".22"/><stop offset="1" stop-color="#ff3a1c" stop-opacity="0"/></radialGradient>
+    <radialGradient id="led-amber" r=".5"><stop offset="0" stop-color="#ffb347" stop-opacity=".75"/><stop offset=".35" stop-color="#ff9a2a" stop-opacity=".22"/><stop offset="1" stop-color="#ff9a2a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="pg-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e1a6"/><stop offset=".22" stop-color="#d6bb7a"/><stop offset=".55" stop-color="#ae9257"/><stop offset=".8" stop-color="#c8ac6c"/><stop offset="1" stop-color="#9d8350"/></linearGradient>
+    <linearGradient id="pg-blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5aa6dc"/><stop offset=".35" stop-color="#2f84c2"/><stop offset=".8" stop-color="#1f639d"/><stop offset="1" stop-color="#18528a"/></linearGradient>
+    <linearGradient id="pg-ice" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef3f3"/><stop offset=".3" stop-color="#c3d0d5"/><stop offset=".75" stop-color="#93a5af"/><stop offset="1" stop-color="#7f929d"/></linearGradient>
+    <linearGradient id="pg-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4b6d66"/><stop offset=".45" stop-color="#2c4843"/><stop offset="1" stop-color="#1b302c"/></linearGradient>
+    <linearGradient id="pg-plate-edge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".04" stop-color="#fff" stop-opacity=".08"/><stop offset=".96" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient>
+    <linearGradient id="pg-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b120f"/><stop offset="1" stop-color="#18231e"/></linearGradient>
+    <linearGradient id="pg-badge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f4ef"/><stop offset=".5" stop-color="#9c9d97"/><stop offset=".55" stop-color="#5e5f5a"/><stop offset="1" stop-color="#d5d6cf"/></linearGradient>
+    <linearGradient id="pg-light" x1="0" y1="0" x2="1" y2=".8"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".3" stop-color="#fff" stop-opacity=".04"/><stop offset=".7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></linearGradient>
+    <filter id="pg-brush" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".006 .95" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 -.12"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+    <filter id="pg-speckle" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="1" seed="9"/><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 -.2"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+    <filter id="pg-hammer" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".22" numOctaves="2" seed="3"/><feDiffuseLighting surfaceScale="2.2" lighting-color="#fff" diffuseConstant="1"><feDistantLight azimuth="235" elevation="48"/></feDiffuseLighting><feComposite in2="SourceGraphic" operator="in"/></filter>
+    <filter id="pg-soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.1"/></filter>
+    <pattern id="pg-ribs" width="4" height="3.9" patternUnits="userSpaceOnUse"><rect width="4" height="3.9" fill="#191a19"/><rect y="1.6" width="4" height=".9" fill="#2e302e"/><rect y="2.5" width="4" height=".5" fill="#0a0b0a"/></pattern>
+    <g id="pg-screw"><circle r="2.2" fill="url(#fs-nut)"/><circle r="2.2" fill="none" stroke="#0007" stroke-width=".3"/><path d="M-1.5 0H1.5M0-1.5V1.5" stroke="#3a3a35" stroke-width=".45"/></g>
+  </defs>
+</svg>
+
+<div class="pedal-rig">
+<article class="pedal pedal-gold" data-effect="gold" data-on="false" aria-label={t("金色过载，Klon Centaur 灵感", "Gold overdrive, inspired by the Klon Centaur")} style="--px:8;--w:94;--h:119">
+  <svg class="pedal-face" viewBox="0 0 94 119" aria-hidden="true">
+    <rect width="94" height="119" rx="6" fill="url(#pg-gold)"/>
+    <rect width="94" height="119" rx="6" fill="#fff" filter="url(#pg-brush)" class="face-brush"/>
+    <rect width="94" height="119" rx="6" fill="url(#pg-light)"/>
+    <rect x=".4" y=".4" width="93.2" height="118.2" rx="5.7" class="face-bevel"/>
+    <g class="centaur" transform="translate(20 35) scale(.55)">
+      <path class="centaur-ground" d="M2 79Q50 76 98 79"/>
+      <path d="M22.5 38C15 35 9.5 40 7.5 47.5C6.5 53 4 57.5 .5 60C6.5 60.5 11 57 13 52C14.5 48 17 45 21.5 44.5Z"/>
+      <path class="centaur-far" d="M34 48C33 54 35 58 37 61L37 68L36.5 75.5L35.5 77.5L40.5 77.5L40 75L40.5 67L41 60C42 56 42 52 41 49Z"/>
+      <path class="centaur-far" d="M58 48C59 53 60.5 57 63 60L66.5 63L69.5 62.5L71 64.5L67.5 67.5L62 64C58.5 61 56.5 56 55.5 51Z"/>
+      <path d="M22 42C19.5 48 20.5 54 24 58.5C23.4 61 23 63.5 23.6 65.5C24.6 68 26 70.5 26.2 74L25 77.6L31 77.6L29.8 74C29.6 70 28.6 66.8 29 64.2C29.4 61.6 31.6 59.4 33.6 56.6C35.6 52.6 35.2 47.4 33 43.6Z"/>
+      <path d="M64 44C67 49 70 52 73 53.5L76 54C78 52.5 80 50.5 82 49.5L83.5 51.5C81.5 53.5 80 56 78 58C74.5 59 70 57.5 66 55C63.5 53 61.5 50 61 47Z"/>
+      <path d="M21 39C22 33 28 30.5 36 31C44 31.5 52 32.5 60 32C66 31.6 71 33.5 72.6 38C74 42.5 72.5 47.5 68.5 50C64.5 52.5 59 51.5 53 51.8C46 52.2 40 53.6 34 53C28.5 52.4 23.5 50 21.6 46C20.8 43.6 20.6 41.2 21 39Z"/>
+      <path d="M62.4 39C63.6 35 64.4 31.5 64.2 28.5C63.6 25 62.4 21 63.2 17.8C64 15.8 66.4 15.2 69 15.2C71.8 15.2 74.4 15.8 75.4 17.8C76.2 20 74.8 24.5 73.2 28C72.2 31 72.8 35 74.4 39Z"/>
+      <path d="M67 15.8L67.6 12.4L70.4 12.4L70.6 15.8Z"/><circle cx="69" cy="9.5" r="3.4"/>
+      <path d="M66.2 8C62 6.5 59.5 9.5 55.5 8.5C58 12 62 12.5 66.4 11.4Z"/>
+      <path class="centaur-arm" d="M73.5 18L80 14L87 10.5"/>
+      <path class="centaur-arm" d="M64 18.5L58.5 14.5L68.5 10.8"/>
+      <path class="centaur-bow" d="M83-1Q96 9.5 88 22"/>
+      <path class="centaur-string" d="M83-1L68.5 10.8L88 22"/>
+      <path class="centaur-arrow" d="M68.5 10.8L98 6.5M98 6.5L94.6 5.2M98 6.5L95.2 8.6"/>
+      <path class="centaur-hatch" d="M30 36.5C38 34.6 50 35.4 60 35M27 47.5C34 49.6 46 49.2 56 48.2M66 22Q69 24 72 21.6M66.6 31Q69 32.4 71.6 30.6"/>
+    </g>
+    <text x="47" y="88" class="gold-title">CENTAUR</text>
+    <text x="47" y="92.4" class="gold-sub">PROFESSIONAL · OVERDRIVE</text>
+    <circle class="led-glow" cx="47" cy="98" r="16" fill="url(#led-red)"/>
+    <g transform="translate(47 98)" class="led"><circle r="2.3" fill="#1c1812"/><circle r="1.6" class="led-lens"/><circle cx="-.5" cy="-.55" r=".45" fill="#fff" opacity=".6"/></g>
+    <Fragment set:html={stomp(47, 108.2)} />
+    <use href="#pg-screw" x="5" y="5"/><use href="#pg-screw" x="89" y="5" transform="rotate(30 89 5)"/><use href="#pg-screw" x="5" y="114" transform="rotate(80 5 114)"/><use href="#pg-screw" x="89" y="114" transform="rotate(10 89 114)"/>
+  </svg>
+  <PedalKnob kind="klon" param="goldDrive" label="GAIN" aria={t("金色过载 Gain", "Gold overdrive Gain")} hint={hint('GAIN')} value={32} x={20} y={19.5} size={27}/>
+  <PedalKnob kind="klon" param="goldTone" label="TREBLE" aria={t("金色过载 Treble", "Gold overdrive Treble")} hint={hint('TREBLE')} value={55} x={47} y={19.5} size={27}/>
+  <PedalKnob kind="klon" param="goldLevel" label="OUTPUT" aria={t("金色过载 Output", "Gold overdrive Output")} hint={hint('OUTPUT')} value={50} x={74} y={19.5} size={27}/>
+  <button class="footswitch" data-pedal="gold" aria-pressed="false" aria-label={t("金色过载开关", "Gold overdrive switch")} style="--fx:47;--fy:108.2;--fs:30"></button>
 </article>
-<article class="pedal pedal-blue" data-effect="blue" data-on="false" aria-label={t("蓝色过载，Blues Driver 灵感", "Blue overdrive, inspired by the Blues Driver")}>
- <i class="jack jack-left" aria-hidden="true"></i><i class="jack jack-right" aria-hidden="true"></i><i class="screw screw-tl" aria-hidden="true"></i><i class="screw screw-tr" aria-hidden="true"></i>
- <div class="pedal-dials"><label class="dial" title={t("蓝色过载 Level：上下拖动、滚轮或方向键调节", "Blue overdrive Level: drag vertically, scroll, or use arrow keys")}><span class="dial-label">LEVEL</span><span class="dial-control" style="--angle:0deg"><span class="dial-ticks" aria-hidden="true"></span><span class="knob" aria-hidden="true"><i></i></span><input type="range" data-param="blueLevel" aria-label={t("蓝色过载 Level", "Blue overdrive Level")} min="0" max="100" step="1" value="50"></span><output>5.0</output></label><label class="dial" title={t("蓝色过载 Tone：上下拖动、滚轮或方向键调节", "Blue overdrive Tone: drag vertically, scroll, or use arrow keys")}><span class="dial-label">TONE</span><span class="dial-control" style="--angle:0deg"><span class="dial-ticks" aria-hidden="true"></span><span class="knob" aria-hidden="true"><i></i></span><input type="range" data-param="blueTone" aria-label={t("蓝色过载 Tone", "Blue overdrive Tone")} min="0" max="100" step="1" value="50"></span><output>5.0</output></label><label class="dial" title={t("蓝色过载 Gain：上下拖动、滚轮或方向键调节", "Blue overdrive Gain: drag vertically, scroll, or use arrow keys")}><span class="dial-label">GAIN</span><span class="dial-control" style="--angle:-21.60000000000001deg"><span class="dial-ticks" aria-hidden="true"></span><span class="knob" aria-hidden="true"><i></i></span><input type="range" data-param="blueDrive" aria-label={t("蓝色过载 Gain", "Blue overdrive Gain")} min="0" max="100" step="1" value="42"></span><output>4.2</output></label></div>
- <div class="blue-name"><span>Blues Driver</span><strong>BD-2</strong><small>OVERDRIVE</small></div>
- <button class="footswitch blue-tread" data-pedal="blue" aria-pressed="false" aria-label={t("蓝色过载开关", "Blue overdrive switch")}><i class="led" aria-hidden="true"></i><span class="rubber-pad" aria-hidden="true"><b>BOSS</b></span><span class="pedal-state">{t("旁通", "BYPASS")}</span></button>
- <i class="thumbscrew" aria-hidden="true"></i>
+<article class="pedal pedal-compact pedal-blue" data-effect="blue" data-on="false" aria-label={t("蓝色过载，BOSS BD-2 Blues Driver 灵感", "Blue overdrive, inspired by the BOSS BD-2 Blues Driver")} style="--px:116;--w:73;--h:129">
+  <svg class="pedal-face" viewBox="0 0 73 129" aria-hidden="true">
+    <rect width="73" height="129" rx="5" fill="url(#pg-blue)"/>
+    <rect width="73" height="129" rx="5" fill="#fff" filter="url(#pg-speckle)" class="face-speckle"/>
+    <rect width="73" height="129" rx="5" fill="url(#pg-light)"/>
+    <rect x=".4" y=".4" width="72.2" height="128.2" rx="4.7" class="face-bevel"/>
+    <circle class="led-glow" cx="8.5" cy="30" r="13" fill="url(#led-red)"/>
+    <g transform="translate(8.5 30)" class="led"><circle r="2.2" fill="#1b1b1b"/><circle r="1.5" class="led-lens"/><circle cx="-.5" cy="-.55" r=".45" fill="#fff" opacity=".6"/></g>
+    <text x="8.5" y="35.4" class="compact-check">CHECK</text>
+    <text x="13.5" y="40.6" class="compact-name">Blues Driver</text>
+    <rect x="55" y="35.4" width="13.5" height="6.4" rx="1.2" fill="#111"/><text x="61.75" y="40.2" class="compact-model">BD-2</text>
+    <g class="compact-plate">
+      <path d="M2.6 46.5H70.4V121.6Q70.4 125.4 66.6 125.4H6.4Q2.6 125.4 2.6 121.6Z" fill="url(#pg-blue)"/>
+      <path d="M2.6 46.5H70.4V121.6Q70.4 125.4 66.6 125.4H6.4Q2.6 125.4 2.6 121.6Z" fill="url(#pg-plate-edge)"/>
+      <text x="36.5" y="55.6" class="compact-plate-print">OVERDRIVE</text>
+      <rect x="6.5" y="61" width="60" height="58.5" rx="3" fill="#0d0e0d"/>
+      <rect x="7.5" y="62" width="58" height="56.5" rx="2.4" fill="url(#pg-ribs)"/>
+      <path d={ribs} class="compact-ribs-hi"/>
+      <rect x="22" y="97" width="29" height="9" rx="1.4" fill="#111"/>
+      <text x="36.5" y="104.2" class="compact-badge">BOSS</text>
+      <rect x="31" y="124.6" width="11" height="4" rx="1" class="thumbscrew"/>
+    </g>
+    <path d="M2.6 46.5H70.4" stroke="#0007" stroke-width=".8"/>
+  </svg>
+  <PedalKnob kind="boss" param="blueLevel" label="LEVEL" aria={t("蓝色过载 Level", "Blue overdrive Level")} hint={hint('LEVEL')} value={50} x={14.5} y={15} size={21.5}/>
+  <PedalKnob kind="boss" param="blueTone" label="TONE" aria={t("蓝色过载 Tone", "Blue overdrive Tone")} hint={hint('TONE')} value={50} x={36.5} y={15} size={21.5}/>
+  <PedalKnob kind="boss" param="blueDrive" label="GAIN" aria={t("蓝色过载 Gain", "Blue overdrive Gain")} hint={hint('GAIN')} value={42} x={58.5} y={15} size={21.5}/>
+  <button class="footswitch compact-switch" data-pedal="blue" aria-pressed="false" aria-label={t("蓝色过载开关", "Blue overdrive switch")}></button>
 </article>
-<article class="pedal pedal-echo" data-effect="echo" data-on="false" aria-label={t("夜游回声", "After Hours echo")}>
- <i class="screw screw-tl" aria-hidden="true"></i><i class="screw screw-tr" aria-hidden="true"></i><i class="screw screw-bl" aria-hidden="true"></i><i class="screw screw-br" aria-hidden="true"></i><i class="jack jack-left" aria-hidden="true"></i><i class="jack jack-right" aria-hidden="true"></i>
- <div class="echo-brand"><span>AFTER HOURS</span><small>{t("磁带般的回声", "TAPE-LIKE ECHO")}</small></div>
- <div class="pedal-dials"><label class="dial" title={t("回声 Time：上下拖动、滚轮或方向键调节", "Echo Time: drag vertically, scroll, or use arrow keys")}><span class="dial-label">TIME</span><span class="dial-control" style="--angle:-7.5deg"><span class="dial-ticks" aria-hidden="true"></span><span class="knob" aria-hidden="true"><i></i></span><input type="range" data-param="echoTime" aria-label={t("回声 Time", "Echo Time")} min="80" max="800" step="10" value="420"></span><output>420 ms</output></label><label class="dial" title={t("回声 Repeat：上下拖动、滚轮或方向键调节", "Echo Repeat: drag vertically, scroll, or use arrow keys")}><span class="dial-label">REPEAT</span><span class="dial-control" style="--angle:-7.5deg"><span class="dial-ticks" aria-hidden="true"></span><span class="knob" aria-hidden="true"><i></i></span><input type="range" data-param="echoFeedback" aria-label={t("回声 Repeat", "Echo Repeat")} min="0" max="72" step="1" value="34"></span><output>3.4</output></label><label class="dial" title={t("回声 Mix：上下拖动、滚轮或方向键调节", "Echo Mix: drag vertically, scroll, or use arrow keys")}><span class="dial-label">MIX</span><span class="dial-control" style="--angle:-59.39999999999999deg"><span class="dial-ticks" aria-hidden="true"></span><span class="knob" aria-hidden="true"><i></i></span><input type="range" data-param="echoMix" aria-label={t("回声 Mix", "Echo Mix")} min="0" max="100" step="1" value="28"></span><output>2.8</output></label></div>
- <div class="echo-display"><span>DELAY</span><strong id="echo-readout">420</strong><small>ms</small><i aria-hidden="true">I II III IV V</i><span class="tape" aria-hidden="true"><b class="reel"></b><b class="tape-run"></b><b class="reel"></b></span></div>
- <button class="footswitch" data-pedal="echo" aria-pressed="false" aria-label={t("回声开关", "Echo switch")}><i class="led" aria-hidden="true"></i><span class="metal-switch" aria-hidden="true"></span><span class="pedal-state">{t("旁通", "BYPASS")}</span></button>
- <span class="pedal-edition">LET THE NOTE STAY A LITTLE</span>
+<article class="pedal pedal-compact pedal-harm" data-effect="harm" data-on="false" aria-label={t("和声效果器，BOSS PS-6 Harmonist 灵感", "Harmony pedal, inspired by the BOSS PS-6 Harmonist")} style="--px:203;--w:73;--h:129">
+  <svg class="pedal-face" viewBox="0 0 73 129" aria-hidden="true">
+    <rect width="73" height="129" rx="5" fill="url(#pg-ice)"/>
+    <rect width="73" height="129" rx="5" fill="#fff" filter="url(#pg-speckle)" class="face-speckle"/>
+    <rect width="73" height="129" rx="5" fill="url(#pg-light)"/>
+    <rect x=".4" y=".4" width="72.2" height="128.2" rx="4.7" class="face-bevel"/>
+    <circle class="led-glow" cx="8.5" cy="30" r="13" fill="url(#led-red)"/>
+    <g transform="translate(8.5 30)" class="led"><circle r="2.2" fill="#1b1b1b"/><circle r="1.5" class="led-lens"/><circle cx="-.5" cy="-.55" r=".45" fill="#fff" opacity=".6"/></g>
+    <text x="8.5" y="35.4" class="compact-check">CHECK</text>
+    <text x="13.5" y="40.6" class="compact-name compact-name-harm">Harmonist</text>
+    <rect x="55" y="35.4" width="13.5" height="6.4" rx="1.2" fill="#1d2328"/><text x="61.75" y="40.2" class="compact-model">PS-6</text>
+    <g class="compact-plate">
+      <path d="M2.6 46.5H70.4V121.6Q70.4 125.4 66.6 125.4H6.4Q2.6 125.4 2.6 121.6Z" fill="url(#pg-ice)"/>
+      <path d="M2.6 46.5H70.4V121.6Q70.4 125.4 66.6 125.4H6.4Q2.6 125.4 2.6 121.6Z" fill="url(#pg-plate-edge)"/>
+      <text x="36.5" y="55.6" class="compact-plate-print">HARMONIST · PITCH SHIFTER</text>
+      <rect x="6.5" y="61" width="60" height="58.5" rx="3" fill="#0d0e0d"/>
+      <rect x="7.5" y="62" width="58" height="56.5" rx="2.4" fill="url(#pg-ribs)"/>
+      <path d={ribs} class="compact-ribs-hi"/>
+      <rect x="22" y="97" width="29" height="9" rx="1.4" fill="#111"/>
+      <text x="36.5" y="104.2" class="compact-badge">BOSS</text>
+      <rect x="31" y="124.6" width="11" height="4" rx="1" class="thumbscrew"/>
+    </g>
+    <path d="M2.6 46.5H70.4" stroke="#0007" stroke-width=".8"/>
+  </svg>
+  <PedalKnob kind="boss" param="harmBalance" label="BALANCE" aria={t("和声 Balance", "Harmonist Balance")} hint={hint('BALANCE')} value={45} x={14.5} y={15} size={21.5}/>
+  <PedalKnob kind="boss" param="harmKey" label="KEY" aria={t("和声 Key", "Harmonist Key")} hint={hint('KEY')} min={0} max={11} step={1} value={7} x={36.5} y={15} size={21.5} steps={12}/>
+  <PedalKnob kind="boss" param="harmShift" label="SHIFT" aria={t("和声 Shift", "Harmonist Shift")} hint={hint('SHIFT')} min={0} max={6} step={1} value={2} x={58.5} y={15} size={21.5} steps={7}/>
+  <button class="footswitch compact-switch" data-pedal="harm" aria-pressed="false" aria-label={t("和声开关", "Harmonist switch")}></button>
 </article>
+<article class="pedal pedal-echo" data-effect="echo" data-on="false" aria-label={t("夜游：磁带回声", "After Hours: tape echo")} style="--px:290;--w:84;--h:119">
+  <svg class="pedal-face" viewBox="0 0 84 119" aria-hidden="true">
+    <rect width="84" height="119" rx="5" fill="url(#pg-green)"/>
+    <rect width="84" height="119" rx="5" fill="#fff" filter="url(#pg-hammer)" class="face-hammer"/>
+    <rect width="84" height="119" rx="5" fill="url(#pg-light)"/>
+    <rect x=".4" y=".4" width="83.2" height="118.2" rx="4.7" class="face-bevel"/>
+    <text x="42" y="9.6" class="echo-title">AFTER HOURS</text>
+    <text x="42" y="13.8" class="echo-sub">{t("磁带回声 · 夜游", "tape echo")}</text>
+    <g class="tape-window" transform="translate(0 5)">
+      <rect x="9" y="38" width="66" height="31" rx="3" fill="#0a100d" stroke="#0a120e" stroke-width="1.6"/>
+      <rect x="10" y="39" width="64" height="29" rx="2.4" fill="url(#pg-glass)"/>
+      <path d="M27 63.6 L37 66 H47 L57 63.6" class="tape-ribbon"/>
+      <rect x="39.5" y="65" width="5" height="2.6" rx=".4" fill="#a39d84"/>
+      <g class="reel"><circle cx="27" cy="53.5" r="10.2" class="reel-pack"/><g transform="translate(27 53.5)"><g class="reel-spin"><circle r="7" class="reel-flange"/><path d={reelSpokes} class="reel-spoke"/><circle r="1.7" class="reel-hub"/></g></g></g>
+      <g class="reel"><circle cx="57" cy="53.5" r="7.6" class="reel-pack reel-pack-small"/><g transform="translate(57 53.5)"><g class="reel-spin"><circle r="7" class="reel-flange"/><path d={reelSpokes} class="reel-spoke"/><circle r="1.7" class="reel-hub"/></g></g></g>
+      <text x="42" y="44.6" class="echo-digits"><tspan id="echo-readout">420</tspan><tspan class="echo-unit"> ms</tspan></text>
+      <path d="M11 40.5H73" stroke="#fff" stroke-opacity=".12" stroke-width=".5"/>
+    </g>
+    <circle class="led-glow" cx="42" cy="81.5" r="16" fill="url(#led-amber)"/>
+    <g transform="translate(42 81.5)" class="led"><circle r="2.5" fill="#141412"/><circle r="1.7" class="led-lens led-amber"/><circle cx="-.55" cy="-.6" r=".5" fill="#fff" opacity=".65"/></g>
+    <Fragment set:html={stomp(42, 97.5)} />
+    <text x="42" y="112.5" class="face-fine">LET THE NOTE STAY A LITTLE</text>
+    <use href="#pg-screw" x="5" y="5"/><use href="#pg-screw" x="79" y="5" transform="rotate(40 79 5)"/><use href="#pg-screw" x="5" y="114" transform="rotate(70 5 114)"/><use href="#pg-screw" x="79" y="114"/>
+  </svg>
+  <PedalKnob kind="chicken" param="echoTime" label="TIME" aria={t("回声 Time", "Echo Time")} hint={hint('TIME')} min={80} max={800} step={10} value={420} x={17} y={30} size={25}/>
+  <PedalKnob kind="chicken" param="echoFeedback" label="REPEAT" aria={t("回声 Repeat", "Echo Repeat")} hint={hint('REPEAT')} min={0} max={72} value={34} x={42} y={30} size={25}/>
+  <PedalKnob kind="chicken" param="echoMix" label="MIX" aria={t("回声 Mix", "Echo Mix")} hint={hint('MIX')} value={28} x={67} y={30} size={25}/>
+  <button class="footswitch" data-pedal="echo" aria-pressed="false" aria-label={t("夜游回声开关", "After Hours echo switch")} style="--fx:42;--fy:97.5;--fs:30"></button>
+</article>
+<svg class="patch-cables" viewBox="0 0 382 140" aria-hidden="true">
+  {cables.map(c => <path class="cable" d={c} />)}
+  {cables.map(c => <path class="cable-shine" d={c} />)}
+  {plugs.map(([x, y, side]) => <g class="plug" transform={`translate(${x} ${y}) scale(${side} 1)`}><rect x="0" y="-1.6" width="1.4" height="3.2" class="plug-nut"/><rect x="1.4" y="-2.2" width="1.6" height="4.4" rx=".3" class="plug-ferrule"/><rect x="3" y="-3.4" width="4.6" height="6.8" rx="1.3" class="plug-body"/><rect x="3.4" y="-3" width="3.8" height="1.4" rx=".6" class="plug-shine"/></g>)}
+</svg>
+</div>

@@ -1,0 +1,142 @@
+/* The pedalboard: four pedals drawn in shared units (--u = one "millimetre"), so every pedal, knob,
+   plug and cable scales together and keeps the proportions of the pedals it is a love letter to. */
+/* Registered, so --u is resolved once against the deck and inherited as a plain length. */
+@property --u{syntax:"<length>";inherits:true;initial-value:1px}
+.pedal-defs{position:absolute;width:0;height:0;overflow:hidden}
+.pedal-deck{position:absolute;left:33%;right:4%;top:45.5%;bottom:6.5%;container-type:size;pointer-events:auto}
+.pedal-rig{--u:min(calc(100cqw / 396),calc(100cqh / 146));position:absolute;left:50%;bottom:calc(var(--u) * 3);width:calc(var(--u) * 382);height:calc(var(--u) * 140);transform:translateX(-50%)}
+/* A Pedaltrain-style board: aluminium rails over loop fabric. */
+.pedal-rig:before{content:"";position:absolute;left:calc(var(--u) * -6);right:calc(var(--u) * -6);top:calc(var(--u) * 14);bottom:calc(var(--u) * -3);border-radius:calc(var(--u) * 2.4);z-index:-2;
+  background:repeating-linear-gradient(180deg,#7e7a72 0,#c9c5bb calc(var(--u) * .7),#8b877f calc(var(--u) * 1.6),#57544e calc(var(--u) * 15),#2d2b28 calc(var(--u) * 16.2),#161412 calc(var(--u) * 16.6),#1b1917 calc(var(--u) * 24),#121110 calc(var(--u) * 24.6));
+  box-shadow:inset 0 0 0 calc(var(--u) * .4) #00000055,0 calc(var(--u) * 2) 0 #0c0b0a,0 calc(var(--u) * 10) calc(var(--u) * 16) #000c;filter:brightness(.62) saturate(.6)}
+.pedal-rig:after{content:"";position:absolute;inset:calc(var(--u) * 14) calc(var(--u) * -6) calc(var(--u) * -3);border-radius:calc(var(--u) * 2.4);z-index:-2;pointer-events:none;background:radial-gradient(70% 90% at 62% 0,#ffd9a01f,transparent 70%)}
+
+.pedal{position:absolute;left:calc(var(--u) * var(--px));bottom:calc(var(--u) * 4);width:calc(var(--u) * var(--w));height:calc(var(--u) * var(--h));border-radius:calc(var(--u) * 5);z-index:1;
+  transition:transform .09s ease-out,filter .4s ease;
+  /* The enclosure's side, then the lamp's shadow falling down and to the left. */
+  box-shadow:0 calc(var(--u) * 2.2) 0 var(--side,#0008),calc(var(--u) * -1) calc(var(--u) * 3.2) calc(var(--u) * 1.4) #000a,calc(var(--u) * -6) calc(var(--u) * 10) calc(var(--u) * 12) #0009}
+.pedal-face{position:absolute;inset:0;width:100%;height:100%;overflow:visible;border-radius:inherit}
+.pedal-gold{--side:#6a552c}.pedal-blue{--side:#123a5d}.pedal-harm{--side:#5a6a73}.pedal-echo{--side:#0f1f1c}
+.pedal.stomping{transform:translateY(calc(var(--u) * .8))}
+.pedal.stomping{box-shadow:0 calc(var(--u) * 1.4) 0 var(--side,#0008),calc(var(--u) * -1) calc(var(--u) * 2.2) calc(var(--u) * 1) #000a,calc(var(--u) * -5) calc(var(--u) * 8) calc(var(--u) * 10) #0009}
+.pedal[data-on=true]{filter:drop-shadow(0 0 calc(var(--u) * 9) var(--spill,#ff4a2a2e))}
+.pedal-echo{--spill:#ffa23c2b}
+
+/* Faces: print, metal and paint. */
+.face-bevel{fill:none;stroke:#fff;stroke-opacity:.28;stroke-width:.5}
+.face-brush{opacity:.55;mix-blend-mode:overlay}
+.face-speckle{opacity:.22;mix-blend-mode:overlay}
+.face-hammer{opacity:.5;mix-blend-mode:overlay}
+.pedal-face text{font-family:var(--sans);text-anchor:middle}
+.gold-title{font:700 7.6px var(--serif);letter-spacing:1.6px;fill:#2e2414;paint-order:stroke;stroke:#f7e6b455;stroke-width:.35}
+.gold-sub{font:600 2.3px var(--mono);letter-spacing:.7px;fill:#3b2f1a}
+.centaur path,.centaur circle{fill:#2a2012;stroke:none}
+.centaur .centaur-far{fill:#3d3019}
+.centaur .centaur-arm,.centaur .centaur-bow,.centaur .centaur-string,.centaur .centaur-arrow,.centaur .centaur-ground,.centaur .centaur-hatch{fill:none;stroke:#2a2012;stroke-linecap:round;stroke-linejoin:round}
+.centaur .centaur-arm{stroke-width:2.4}
+.centaur .centaur-bow{stroke-width:1.5}
+.centaur .centaur-string{stroke-width:.45}
+.centaur .centaur-arrow{stroke-width:.8}
+.centaur .centaur-ground{stroke-width:.6;stroke-dasharray:2.2 1.8;stroke-opacity:.6}
+.centaur .centaur-hatch{stroke:#d9c182;stroke-width:.5;stroke-opacity:.45}
+.compact-check{font:700 2.1px var(--sans)!important;letter-spacing:.2px;fill:#111}
+.compact-name{font:italic 800 7.2px var(--sans)!important;letter-spacing:-.25px;text-anchor:start!important;fill:#0e1418}
+.pedal-blue .compact-name{fill:#0c1a26}
+.compact-model{font:800 4.2px var(--sans)!important;fill:#f2f2ec}
+.compact-plate-print{font:700 2.6px var(--sans)!important;letter-spacing:.9px;fill:#0e1418;opacity:.8}
+.compact-badge{font:900 6.2px var(--sans)!important;letter-spacing:.35px;fill:url(#pg-badge)}
+.compact-ribs-hi{stroke:#ffffff10;stroke-width:.35}
+.thumbscrew{fill:#1d1f1e;stroke:#3a3d3b;stroke-width:.4}
+.compact-plate{transform-box:fill-box;transform-origin:50% 0;transition:transform .08s ease-out}
+.pedal-compact.stomping .compact-plate{transform:scaleY(.988) translateY(.4px)}
+.echo-title{font:600 6.2px var(--serif)!important;letter-spacing:1.4px;fill:#ecdfb2}
+.echo-sub{font:italic 2.7px var(--serif)!important;letter-spacing:.5px;fill:#cbbf91;opacity:.85}
+.face-fine{font:1.9px var(--mono)!important;letter-spacing:.55px;fill:#cfc49a;opacity:.65}
+.tape-ribbon{fill:none;stroke:#3a2a1b;stroke-width:.9}
+.reel-pack{fill:#3b2a1c;stroke:#22180f;stroke-width:.4}
+.reel-flange{fill:#c4c0b0;fill-opacity:.22;stroke:#d9d3bd;stroke-opacity:.55;stroke-width:.5}
+.reel-spoke{stroke:#ddd6be;stroke-width:1.6;stroke-linecap:round;opacity:.8}
+.reel-hub{fill:#d9d3bd}
+.reel-spin{transform-box:fill-box;transform-origin:center;animation:reel-turn var(--reel,2.6s) linear infinite;animation-play-state:paused}
+.pedal-echo[data-on=true] .reel-spin{animation-play-state:running}
+.reel:nth-of-type(2) .reel-spin{animation-duration:calc(var(--reel,2.6s) * .78)}
+@keyframes reel-turn{to{transform:rotate(360deg)}}
+.echo-digits{font:500 4.4px var(--mono)!important;letter-spacing:.2px;fill:#6d6a3e;transition:fill .3s}
+.echo-unit{font-size:2.6px}
+.pedal-echo[data-on=true] .echo-digits{fill:#ffc768;filter:drop-shadow(0 0 .8px #ffb34799)}
+
+/* LEDs: dark red glass when off; on, they light the paint around them. */
+.led-lens{fill:#4a120a;transition:fill .18s ease}
+.led-lens.led-amber{fill:#4a2a08}
+.led-glow{opacity:0;transition:opacity .35s ease;mix-blend-mode:screen;pointer-events:none}
+[data-on=true] .led-lens{fill:#ff4426;filter:drop-shadow(0 0 1.2px #ff3a1c)}
+[data-on=true] .led-lens.led-amber{fill:#ffb23e;filter:drop-shadow(0 0 1.2px #ff9a2a)}
+[data-on=true] .led-glow{opacity:1}
+
+/* The chrome stomp switch: the cap sinks into its collar under your foot. */
+.stomp-cap{transform-box:fill-box;transform-origin:center;transition:transform .07s ease-out}
+.pedal.stomping .stomp-cap{transform:translateY(.7px) scale(.94)}
+.footswitch{position:absolute;left:calc(var(--u) * (var(--fx) - var(--fs) / 2));top:calc(var(--u) * (var(--fy) - var(--fs) / 2));width:calc(var(--u) * var(--fs));height:calc(var(--u) * var(--fs));border-radius:50%;z-index:3;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.footswitch.compact-switch{left:calc(var(--u) * 2.6);top:calc(var(--u) * 46.5);width:calc(var(--u) * 67.8);height:calc(var(--u) * 79);border-radius:calc(var(--u) * 3)}
+.footswitch:focus-visible{outline:2px solid #ffcf9a;outline-offset:calc(var(--u) * 1)}
+
+/* Knobs: placed and sized in pedal units; skirt and pointer turn, sheen and shadow stay with the lamp. */
+.pedal .dial{position:absolute;left:calc(var(--u) * (var(--x) - var(--s) / 2));top:calc(var(--u) * (var(--y) - var(--s) / 2));width:calc(var(--u) * var(--s));height:calc(var(--u) * var(--s));z-index:2;display:block;font-family:var(--mono)}
+.dial-control{position:absolute;inset:0;display:block;touch-action:none}
+.knob{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.knob-turn{transform-box:fill-box;transform-origin:center;transform:rotate(var(--angle));transition:transform .05s linear}
+.dial.dragging .knob-turn{transition:none}
+.knob-cast{fill:#000;opacity:.45;filter:url(#pg-soft)}
+.knob-knurl{stroke:#3c3a35;stroke-width:.7}
+.dial-boss .knob-knurl{stroke:#2c2c2a}
+.knob-line{fill:#f3ecd6}
+.dial-boss .knob-line{fill:#f6f6f2}
+.knob-scale{fill:none;stroke:currentColor;stroke-width:.9;opacity:.7}
+.knob-head{stroke:#7f6f4f;stroke-width:.35}
+.knob-groove{stroke:#5d5038;stroke-width:1;stroke-linecap:round;opacity:.65}
+.dial-label{position:absolute;left:50%;bottom:calc(100% - var(--u) * 1.8);transform:translateX(-50%);white-space:nowrap;font:700 calc(var(--u) * 3.1)/1 var(--sans);letter-spacing:.06em;pointer-events:none}
+.pedal-gold .dial{color:#2c2214}.pedal-gold .dial-label{font:700 calc(var(--u) * 3.3)/1 var(--serif);letter-spacing:.12em;bottom:calc(100% - var(--u) * 2.4)}
+.pedal-compact .dial{color:#0e1418}.pedal-compact .dial-label{font-size:calc(var(--u) * 2.7);bottom:calc(100% - var(--u) * 1.4)}
+.pedal-echo .dial{color:#d9cda0}.pedal-echo .dial-label{font:600 calc(var(--u) * 2.8)/1 var(--serif);letter-spacing:.14em;bottom:calc(100% - var(--u) * .6)}
+.dial input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:grab;touch-action:none;-webkit-appearance:none;appearance:none}
+.dial.dragging input{cursor:grabbing}
+.dial:has(input:focus-visible) .knob{outline:2px solid #ffcf9a;outline-offset:calc(var(--u) * .5);border-radius:50%}
+/* While turning, a small paper tag says where the knob is. */
+.dial-readout{position:absolute;left:50%;top:calc(100% + var(--u) * .5);transform:translate(-50%,-4px);padding:3px 6px;border-radius:3px;background:#17130fe8;color:#f2ebdc;font:10px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s,transform .15s;z-index:5;box-shadow:0 4px 10px #0008}
+.dial:hover .dial-readout,.dial.dragging .dial-readout,.dial:has(input:focus-visible) .dial-readout{opacity:1;transform:translate(-50%,0)}
+
+/* Patch cables and right-angle plugs; the guitar comes in on the left and the signal leaves on the right. */
+.patch-cables{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
+.cable{fill:none;stroke:#0d0d0c;stroke-width:2.6;stroke-linecap:round;filter:drop-shadow(-1px 2px 1.4px #000a)}
+.cable-shine{fill:none;stroke:#ffffff26;stroke-width:.5;stroke-linecap:round;transform:translate(-.5px,-.3px)}
+.plug-nut{fill:#8d8b83}
+.plug-ferrule{fill:#c7c5bb}
+.plug-body{fill:#151514;stroke:#000;stroke-width:.3}
+.plug-shine{fill:#ffffff1c}
+
+/* Phones: the board slides sideways, starting from the first pedal in the chain, the Centaur. */
+@media(max-width:700px){
+  .pedal-deck{left:0;right:0;top:48.5%;bottom:14.5%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;touch-action:pan-x}
+  .pedal-deck::-webkit-scrollbar{display:none}
+  /* Phones page through the board one pedal at a time: each pedal can sit centred, and the board snaps there after a swipe. */
+  .pedal-rig{--u:calc(100cqh / 146);left:calc(50cqw - var(--u) * 55);transform:none}
+  .pedal-rig>.pedal:last-of-type:after{content:"";position:absolute;left:100%;width:calc(50cqw - var(--u) * 42);height:1px}
+  .pedal-deck[data-paged] .pedal:not([data-current]){filter:brightness(.62) saturate(.8)}
+  .pedal-deck[data-paged] .pedal[data-on=true]:not([data-current]){filter:brightness(.62) saturate(.8) drop-shadow(0 0 calc(var(--u) * 9) var(--spill,#ff4a2a2e))}
+  .dial-readout{font-size:9px}
+}
+/* Pedal tabs: phones only, they replace the long signal label. */
+.board-heading .pedal-pager{display:none}
+@media(max-width:700px){
+  .music .board-heading{gap:8px}
+  .board-heading .board-hint-mobile{display:none}
+  .board-heading .pedal-pager{display:flex;gap:2px;margin-left:auto;padding:2px;border-radius:5px;background:#15120fd9;border:1px solid #f2ebdc24;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);text-shadow:none}
+  .pedal-pager button{min-height:34px;padding:0 8px;border-radius:3px;font:600 8px var(--mono);letter-spacing:.06em;color:#f2ebdc99}
+  .pedal-pager button[aria-current=true]{color:#1b1815;background:#f2ebdc}
+}
+@media(prefers-reduced-motion:reduce){.reel-spin{animation:none}.pedal,.knob-turn,.stomp-cap,.compact-plate{transition:none}}
+body[data-motion=off] .reel-spin{animation:none}
+/* Five starting tones keep to one row so the caption never runs into the looper. */
+.music .tone-presets>div{flex-wrap:nowrap;gap:4px}
+.music .tone-presets button{padding:7px 8px;white-space:nowrap}
+@media(max-width:700px){.music #tone-caption{display:none}.music .tone-presets button{padding:6px 7px}}

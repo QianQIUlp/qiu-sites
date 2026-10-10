@@ -1,0 +1,64 @@
+---
+// One knob on a pedal face. Position and size are percentages of the pedal, so the whole pedal scales as one object.
+// The skirt and pointer turn; the highlight and shadow stay put, because the lamp does not move.
+interface Props {
+  param: string; label: string; aria: string; hint: string;
+  min?: number; max?: number; step?: number; value: number;
+  x: number; y: number; size: number;
+  kind: 'klon' | 'boss' | 'chicken';
+  steps?: number;
+}
+const { param, label, aria, hint, min = 0, max = 100, step = 1, value, x, y, size, kind, steps } = Astro.props;
+const angle = -135 + (value - min) / (max - min) * 270;
+const ring = (count: number, r1: number, r2: number) => Array.from({ length: count }, (_, i) => {
+  const a = (i / count) * Math.PI * 2;
+  return `M${(Math.cos(a) * r1).toFixed(2)} ${(Math.sin(a) * r1).toFixed(2)}L${(Math.cos(a) * r2).toFixed(2)} ${(Math.sin(a) * r2).toFixed(2)}`;
+}).join('');
+// Printed scale around the shaft: 11 marks over 270°, or one per detent on a stepped knob.
+const marks = steps ?? 11;
+const scale = Array.from({ length: marks }, (_, i) => {
+  const a = (-225 + (i / (marks - 1)) * 270) * Math.PI / 180;
+  const long = i === 0 || i === marks - 1 || (!steps && i === 5);
+  return `M${(Math.cos(a) * 21.5).toFixed(2)} ${(Math.sin(a) * 21.5).toFixed(2)}L${(Math.cos(a) * (long ? 25 : 23.6)).toFixed(2)} ${(Math.sin(a) * (long ? 25 : 23.6)).toFixed(2)}`;
+}).join('');
+---
+<label class:list={['dial', `dial-${kind}`]} style={`--x:${x};--y:${y};--s:${size}`} title={hint}>
+  <span class="dial-label">{label}</span>
+  <span class="dial-control" style={`--angle:${angle}deg`}>
+    <svg class="knob" viewBox="-26 -26 52 52" aria-hidden="true">
+      {kind !== 'boss' && <path class="knob-scale" d={scale} />}
+      <ellipse class="knob-cast" cx="-3" cy="5" rx="18" ry="17" />
+      {kind === 'klon' && <>
+        <g class="knob-turn"><circle r="21.6" fill="none" />
+          <circle r="18" fill="#171512" />
+          <path d={ring(48, 15.4, 18)} class="knob-knurl" />
+          <circle r="14.6" fill="url(#pk-black-cap)" />
+          <circle r="11.5" fill="url(#pk-black-face)" />
+          <rect x="-1.1" y="-17.6" width="2.2" height="9" rx=".9" class="knob-line" />
+        </g>
+        <circle r="18" fill="url(#pk-sheen)" class="knob-sheen" />
+      </>}
+      {kind === 'boss' && <>
+        <g class="knob-turn"><circle r="21.6" fill="none" />
+          <circle r="18" fill="#121212" />
+          <path d={ring(36, 14.8, 18)} class="knob-knurl" />
+          <circle r="14.2" fill="url(#pk-boss-skirt)" />
+          <circle r="9.6" fill="url(#pk-boss-cap)" />
+          <rect x="-1" y="-17.8" width="2" height="8.4" rx=".6" class="knob-line" />
+        </g>
+        <circle r="18" fill="url(#pk-sheen)" class="knob-sheen" />
+      </>}
+      {kind === 'chicken' && <>
+        <circle r="15" fill="#0d0c0a" opacity=".55" />
+        <g class="knob-turn"><circle r="21.6" fill="none" />
+          <circle r="13.5" fill="url(#pk-cream)" />
+          <path d="M0-21.5C2.6-21.5 5.6-11 7.4-2.8A7.6 7.6 0 1 1-7.4-2.8C-5.6-11-2.6-21.5 0-21.5Z" fill="url(#pk-cream-head)" class="knob-head" />
+          <path d="M0-20V-8" class="knob-groove" />
+        </g>
+        <circle r="13.5" fill="url(#pk-sheen)" class="knob-sheen" />
+      </>}
+    </svg>
+    <input type="range" data-param={param} aria-label={aria} min={min} max={max} step={step} value={value}>
+  </span>
+  <output class="dial-readout"></output>
+</label>

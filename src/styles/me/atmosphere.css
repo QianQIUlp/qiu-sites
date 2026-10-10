@@ -82,48 +82,15 @@ body[data-motion=off] .day-blinds,body[data-motion=off] .day-leaves g{animation:
 .vu-pivot{position:absolute;left:calc(50% - 6px);bottom:calc(13% - 6px);width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7b7065,#1d1915);box-shadow:0 1px 2px #000a}
 .vu-lamp{position:absolute;right:11px;top:10px;width:5px;height:5px;border-radius:50%;background:#4b2414;box-shadow:inset 0 1px 1px #000}
 .vu-meter[data-on=true] .vu-lamp{background:#ff8a52;box-shadow:0 0 8px #ff7a3faa}
+/* Into the red: the hot arc lights up behind the glass and the PEAK lamp flashes. */
+.vu-hot{transition:stroke .15s,filter .15s}
+.vu-meter[data-hot=true] .vu-hot{stroke:#ff4a24;filter:drop-shadow(0 0 3px #ff3a1c)}
+.vu-meter[data-hot=true] .vu-lamp{background:#ff3a1c;box-shadow:0 0 10px 2px #ff3a1ccc;animation:vu-peak .22s steps(2) infinite}
+.vu-meter[data-hot=true] svg{filter:brightness(1.06) saturate(1.1)}
+.vu-peak-label{position:absolute;right:19px;top:8.5px;font:5px var(--mono);letter-spacing:.12em;color:#f2ebdc55;transition:color .15s}
+.vu-meter[data-hot=true] .vu-peak-label{color:#ff8a66}
+@keyframes vu-peak{50%{opacity:.55}}
 
-/* The pedals: cast metal, screen print and a little wear -------------------- */
-.pedal-deck:before{content:"";position:absolute;left:-3.5%;right:-3.5%;top:6%;bottom:-7%;z-index:-3;border-radius:9px;background:repeating-linear-gradient(0deg,transparent 0 3px,#ffffff05 3px 4px),repeating-linear-gradient(90deg,transparent 0 3px,#00000022 3px 4px),linear-gradient(180deg,#26221e,#171411);box-shadow:inset 0 1px 0 #ffffff14,inset 0 -10px 0 #0006,0 24px 40px #000a}
-.pedal-deck:after{content:"";position:absolute;left:-3.5%;right:-3.5%;bottom:-9%;height:12px;z-index:-3;border-radius:0 0 9px 9px;background:linear-gradient(180deg,#77736b,#3c3a36 40%,#9a958b 55%,#2a2825)}
-.pedal{transition:transform .12s ease,filter .35s ease;background-blend-mode:overlay,normal}
-.pedal-gold{background:linear-gradient(100deg,#ffffff1f,#fff0 30%,#fff0 70%,#ffffff12),repeating-linear-gradient(90deg,#ffffff0e 0 1px,#0000 1px 3px),linear-gradient(118deg,#e7d398 0,#c9af70 22%,#ad935a 64%,#c3a96f);box-shadow:0 6px 0 #6f5b33,1px 8px 0 #3a3226,-14px 26px 22px #000a,-30px 44px 40px #0006;color:#2f281b}
-.pedal-blue{background:linear-gradient(100deg,#ffffff24,#fff0 32%),url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='s'><feTurbulence baseFrequency='1.4' numOctaves='1'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23s)'/></svg>"),linear-gradient(118deg,#4b9bd0 0,#2a7fbb 30%,#1f6299 78%,#174f80);box-shadow:0 6px 0 #133b5c,1px 8px 0 #1c2731,-14px 26px 22px #000a,-30px 44px 40px #0006}
-.pedal-echo{background:linear-gradient(100deg,#ffffff16,#fff0 30%),linear-gradient(118deg,#40605c,#2a4541 42%,#1e3633);box-shadow:0 6px 0 #162925,1px 8px 0 #121d1a,-14px 26px 22px #000a,-30px 44px 40px #0006}
-.pedal>.pedal-dials,.pedal .gold-art,.pedal .blue-name,.pedal .echo-brand{position:relative;z-index:1}
-.pedal .gold-art{position:absolute}
-.pedal .blue-name{position:absolute}
-.gold-art strong{text-shadow:0 1px 0 #f6e6b866,0 -1px 0 #5e4d2666}
-.gold-art svg{filter:drop-shadow(0 1px 0 #f6e6b855)}
-.blue-name>span,.blue-name strong{text-shadow:0 1px 0 #0b2f4f}
-/* Knobs: knurled skirts, a domed cap and a painted line. */
-.knob{background:repeating-conic-gradient(#121512 0deg 5deg,#3a3d36 5deg 8deg,#0f120f 8deg 12deg);box-shadow:-3px 5px 5px #000b,0 1px 0 2px #0c0f0c,inset 0 0 0 1px #ffffff12}
-.knob:before{background:radial-gradient(circle at 34% 24%,#6a6a5f,#2a2c27 52%,#121411);box-shadow:inset 0 1px 1px #ffffff40,0 1px 2px #000}
-.knob:after{content:"";position:absolute;inset:16%;border-radius:50%;background:radial-gradient(circle at 32% 26%,#ffffff2e,transparent 45%);pointer-events:none}
-.pedal-echo .knob:before{background:radial-gradient(circle at 34% 24%,#efe6c4,#b3a985 55%,#706b52)}
-/* Footswitches: a chrome cap on a threaded collar; stepping on it sinks the pedal a little. */
-.pedal:has(.footswitch:active){transform:translateY(2px) rotate(var(--lean,0deg))}
-.pedal-gold{--lean:-3deg}.pedal-blue{--lean:2deg}.pedal-echo{--lean:-1deg}
-.metal-switch{background:radial-gradient(circle at 36% 30%,#ffffff,#c9cbc4 26%,#7b7e77 58%,#dfe0d9 76%,#5c5f59)!important;box-shadow:0 0 0 3px #3a3d38,0 0 0 5px #b9bab2,0 0 0 6px #4a4c47,-2px 5px 6px 5px #0008!important}
-/* LEDs throw real light: across the face, onto the board. */
-[data-on=true] .led{background:#ff7a50;box-shadow:0 0 0 1px #72452c,0 0 6px 1px #ff6b39,0 0 26px 8px #ff5a2a40,inset 0 1px #ffeab5}
-.pedal[data-on=true]{filter:drop-shadow(0 0 26px rgba(255,120,64,.26))}
-.pedal-blue[data-on=true]{filter:drop-shadow(0 0 28px rgba(255,96,64,.22))}
-.pedal-echo[data-on=true]{filter:drop-shadow(0 0 28px rgba(214,206,120,.22))}
-/* BOSS-style tread: ribbed rubber with a cast logo. */
-.rubber-pad{background:repeating-linear-gradient(180deg,#1b1d1c 0 5px,#2c2f2d 5px 6px,#141615 6px 9px)!important;box-shadow:inset 0 1px 0 #ffffff1a,inset 0 -3px 6px #000a,0 2px 0 #0d2c45!important}
-.rubber-pad b{color:#3c403d!important;text-shadow:0 1px 0 #ffffff14,0 -1px 0 #000!important;letter-spacing:.16em}
-/* Jacks become plugged cables. */
-.jack{width:13px;height:24px;border-radius:3px;background:linear-gradient(90deg,#0f0f0e,#2e2e2b 40%,#0e0e0d);border:0;box-shadow:0 0 0 1px #000,-2px 5px 5px #0009}
-.jack:after{content:"";position:absolute;left:2px;right:2px;top:-4px;height:5px;border-radius:2px;background:linear-gradient(90deg,#8d8d84,#f4f2e8 45%,#76766d)}
-.patch-cable{border-color:#141413;border-width:6px;box-shadow:inset 1px 0 1px #ffffff26,-3px 6px 6px #0007}
-/* Tape: two reels turn while the echo is on. */
-.echo-display .tape{position:absolute;left:7px;bottom:5px;transform:scale(.8);transform-origin:0 100%;display:flex;align-items:center;gap:2px;opacity:.55;transition:opacity .3s}
-.echo-display .reel{width:12px;height:12px;border-radius:50%;background:repeating-conic-gradient(#1d2a22 0 40deg,#a6a47a 40deg 60deg);box-shadow:0 0 0 1.5px #0d1612;animation:reel 1.4s linear infinite;animation-play-state:paused}
-.echo-display .tape-run{width:22px;height:2px;background:#463725}
-.pedal-echo[data-on=true] .reel{animation-play-state:running}
-.pedal-echo[data-on=true] .tape{opacity:1}
-@keyframes reel{to{transform:rotate(360deg)}}
 .music .board-caption{color:#a69e8d}
 
 /* Paths untaken: one long diagonal, from a question to its answer -------- */
@@ -184,10 +151,15 @@ body[data-motion=off] .day-blinds,body[data-motion=off] .day-leaves g{animation:
 /* Phones: the close-up keeps the pickups and bridge in view; the neck runs off the left edge. */
 @media(max-width:700px){
   .jam-guitar{left:-56%;width:184%;top:-8%;transform:rotate(-2deg)}
-  .jam-guitar{-webkit-mask:linear-gradient(180deg,transparent 0,#000 40%,#000 66%,transparent 92%);mask:linear-gradient(180deg,transparent 0,#000 40%,#000 66%,transparent 92%)}
+  /* The photo fades in just above the strings, so the preset and chord buttons sit on the dark room, not on red lacquer. */
+  .jam-guitar{-webkit-mask:linear-gradient(180deg,transparent 0,transparent 31%,#000 44%,#000 70%,transparent 90%);mask:linear-gradient(180deg,transparent 0,transparent 31%,#000 44%,#000 70%,transparent 90%)}
+  .music .tone-presets button,.music .chord-picker button{background:#15120fcc;border-color:#f2ebdc38;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  .music .tone-presets button[aria-pressed=true],.music .chord-picker button[aria-pressed=true]{background:#f2ebdc;border-color:#f2ebdc;color:#1b1815}
+  .music .board-heading{text-shadow:0 1px 3px #000,0 0 10px #000c}
   .music .place-heading{z-index:2}
   .music .jam-guitar .string>span{padding-left:34%}
   .jam-label{display:none}
+  /* The oversized photo overhangs the room; clip it so a tap or focus can never scroll the room sideways. */
+  .place.music{overflow:clip}
   .vu-meter{max-width:120px;margin:6px 0 8px}
-  .pedal-deck:before,.pedal-deck:after{display:none}
 }
