@@ -20,9 +20,11 @@ The pedalboard room (琴弦之间, "Between the Strings") is the most crafted pa
 
 Step 3 gives every other room one idea of its own; read the 2026-10-10 "Loose pages and letting go" section of `docs/uiux/ink-and-light-study.md`. A released pan coasts and only settles onto a room when it stops close to one. Loose pages are paper in `.paper-layer` (`papers.js`, `papers.css`): thrown, they glide, land and may slide into another room for the visit; held up into the `.paper-sun` window patch they glow and show their mirrored back and an erased pencil draft in "Me Hand". Keep drafts true to their essays and inside the `hand-font` markers so the handwriting subset covers them.
 
+Discoverability is a quiet tutorial, never instructions up front (round 2, `hints.js`): objects answer attention (hover lift), each room demonstrates its trick once after a calm moment, then a pencil note in "Me Hand" writes itself in beside the object and rubs out once the visitor has done it (`me-found`). New rooms register a lesson there. 不赶时间 ("No hurry", `afternoon.js`) is the time of day: it moves only while the visitor is still, and `--hour`/`--gold`/`--dusk` on `#room` carry the evening into every room (daylight layers, the papers patch, the guitar's lighting); keep new light effects reading those variables rather than fixing an afternoon.
+
 For the 2026-09-30 font consistency fix, homepage text uses the self-hosted Arimo,
 Gelasio, Cousine, Noto Sans SC and Noto Serif SC assets in `src/assets/me/fonts/`, plus the
-Long Cang and Caveat handwriting subsets used only by the loose pages' drafts.
+Long Cang and Caveat handwriting subsets used only by the pencil drafts and notes.
 Preserve the sans/serif/mono roles and the small 900-weight Chinese display subset.
 UI arrows and control symbols use shared inline SVG in `Icon.astro` / `icons.js`,
 including dynamic states. Keep fallback text readable; refresh cached canvas

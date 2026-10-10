@@ -1,5 +1,24 @@
 # 现代房间 · Modern Room
 
+## 2026-10-10 · No hurry, and a quiet tutorial (open-world step 3, round 2, pending Qiu's review)
+
+Qiu's feedback on round 1: the design was right, but at first it looked ordinary because nothing told them the pages could be dragged; finding that out was the delight. The problem is discoverability: a subtle tutorial level, never instructions up front.
+
+- **A quiet tutorial** (`hints.js`, `hints.css`): rooms teach by showing, then by a pencil note, and stop once the visitor has done the thing (`me-found` in `localStorage`, so returning visitors are left alone).
+  - *Objects answer attention*: a loose page under the mouse rises a little (`--lift` .13, longer shadow), so it reads as something you can pick up.
+  - *The object demonstrates once per visit* after the visitor has been in the room for a moment without touching anything (any pointer movement, touch, wheel or key restarts the wait). Papers: the page lying nearest the window light stirs, rises into the light so its draft and back show through, and settles (`hint:stir`). Home, first visit only: the room drifts a breath (≈ 3% of a room) toward the pages and settles back, the same coast as a released drag (`hint:nudge`), so the world shows it moves.
+  - *Then a pencil note* in Qiu's hand ("Me Hand") writes itself in beside the object, stroke by stroke, with a small arrow: papers 「举起来，对着光看看」 ("hold one up to the light") above page 01 pointing at the window; No hurry 「你不动，它才走。」 ("It only moves when you don't.") beside the clock. Doing the thing (holding a page in the light / reaching dusk) rubs the note out with a brief smudge. Notes are `aria-hidden`: the bar hint and keyboard flows already carry the same information. Motion off: no demonstrations, notes appear without the writing animation.
+  - Future rooms add an entry to `lessons` in `hints.js` (dwell, demo event, note, found key) instead of inventing their own onboarding.
+- **不赶时间 ("No hurry"): time only moves when you stop** (`afternoon.js`, `afternoon.css`). After 1.4 s without any pointer movement, touch, key, wheel or scroll in this corner, the afternoon starts to pass, easing in; the slightest movement holds it at once. From mid-afternoon to dusk takes 34 s of stillness (`--hour` 0 → 1, with `--gold` for the low warm sun and `--dusk` for evening, all on `#room`).
+  - The window's light on the floor (`.idle-sun`, four skewed panes) slides left and stretches, warms from cream to coral, and slips under the hollow, which swallows it. Dust motes drift up the beam from the patch towards the window, faint while you move and clear once you are still (`.idle-dust` canvas, drawn only while this corner is in view).
+  - A plain wall clock reads 15:00 → 18:30; its hands only move while nobody does.
+  - At `--hour` .86 a small pendant lamp on a long cord clicks on (a flicker, plus a switch click when sound is on); its warm light sits in the daylight layer (`.day-lamp`) so it shines over the dimmed evening.
+  - At dusk the slips' sentence gives way to the evening line, in the lamp's light: preface 「灯亮了。」 ("The lamp is on."), line 「一个下午过去了。<br><em>你什么也没错过。</em>」 ("A whole afternoon went by. / You didn't miss a thing."). Claude chose it for Qiu: the room's essay is about not owing a resource a use, and "you didn't miss a thing" answers the fear of waste directly.
+  - Nothing resets and nothing scolds you. With motion off (or reduced motion) arriving here is already dusk.
+  - The bar hint reads 「把「应该」放下 · 或者，别动」 ("Let go of a “should” · Or stay still").
+- **The hour carries across the house** for the rest of the visit (`sessionStorage` `me-hour`; reading routes keep their own themes). In every room the daylight's sun drops and reddens (`.day-sun`, `.day-ember`), blinds and leaf shadows stretch and fade, and evening settles as a warm rose-to-lavender multiply (`.day-dusk`). The papers' window patch turns to sunset and lengthens but never goes out, so pages can still be held to the light. The home guitar's render follows (`guitar-model.js` `lighting.room()`: the key light lowers and reddens, the bounce cools towards an evening sky, exposure drops slightly). The jam room keeps its own lamp-lit dark.
+- **Slips crumple**: a slip let go is balled up (lumpy corner radii plus crease shading; its words fold away), tossed along a short arc, ticks off the rim and drops into the hollow, with a paper-crumple sound when sound is on (`rig.crumple()` in `audio-engine.js`).
+
 ## 2026-10-10 · Loose pages and letting go (open-world step 3, round 1, approved by Qiu 2026-10-10)
 
 Step 3 gives each remaining room one idea (proposal approved by Qiu on 2026-10-10; order: letting go + loose pages, no hurry, leave a line, the other side, blind spots). Qiu asked Claude to choose the hidden texts.
