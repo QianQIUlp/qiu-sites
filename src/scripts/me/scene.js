@@ -11,7 +11,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   let tilt={x:0,y:0},pointer={x:0,y:0},guitarInteraction=true;
   const pulses=Array(6).fill(0),frequencies=[329.63,246.94,196,146.83,110,82.41];
   const places={home:{x:0,y:0,z:1,name:t("小屋中央","At home")},papers:{x:-1.12,y:.01,z:1,name:t("几张散页","Loose pages")},music:{x:1.13,y:0,z:1,name:t("琴弦之间","A little jam")},trace:{x:.06,y:-1.11,z:1,name:t("留一笔","Leave a line")},rethink:{x:-1.12,y:1.12,z:1,name:t("另一面", "The other side")},work:{x:1.13,y:1.12,z:1,name:t("拆开看看", "Beneath the surface")},idle:{x:0,y:1.12,z:1,name:t("不赶时间", "No hurry")},paths:{x:-1.12,y:-1.11,z:1,name:t("未走之路", "Paths untaken")},blindspot:{x:1.13,y:-1.11,z:1,name:t("盲点", "Blind spots")},overview:{x:.01,y:.035,z:.24,name:t("整间小屋","The whole room")}};
-  let camera={x:0,y:0,z:1},target={...camera},active='home',paperTop=4;
+  let camera={x:0,y:0,z:1},target={...camera},active='home',paperTop=4,fling=null;
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
   const paperOffsets=[{x:0,y:0},{x:0,y:0},{x:0,y:0}];
   const papers=[...document.querySelectorAll('.loose-paper')];
@@ -116,6 +116,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   function frame(now) {
     frameId=0;const dt=Math.min(2.5,(now-(lastFrame||now-16))/16.667);lastFrame=now;
     const ease=motion?1-Math.pow(.82,dt):1;
+    if(fling)coast(dt);
     ['x','y','z'].forEach(k=>camera[k]+=(target[k]-camera[k])*ease);
     const follow=motion&&guitarInteraction&&active==='home',tx=follow?pointer.x:0,ty=follow?pointer.y:0;
     tilt.x+=(tx-tilt.x)*ease;tilt.y+=(ty-tilt.y)*ease;
@@ -123,7 +124,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     lines.forEach(l=>l.amp*=Math.pow(motion?.95:.65,dt));
     runLoop(now);updateMeter();render(now);
     const moving=['x','y','z'].some(k=>Math.abs(camera[k]-target[k])>.0003)||Math.abs(tilt.x-tx)>.004||Math.abs(tilt.y-ty)>.004;
-    if(recording||looping||moving||vu>-47.5||pulses.some(p=>p>.015)||lines.some(l=>l.amp>.015)||(enabled&&audio&&audio.currentTime<audioTailUntil))schedule();
+    if(fling||recording||looping||moving||vu>-47.5||pulses.some(p=>p>.015)||lines.some(l=>l.amp>.015)||(enabled&&audio&&audio.currentTime<audioTailUntil))schedule();
   }
   function schedule(){if(!frameId&&!document.hidden)frameId=requestAnimationFrame(frame);}
   function resize() {
@@ -145,7 +146,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     if(changed)document.dispatchEvent(new CustomEvent('roomchange',{detail:{place}}));
   }
   function go(place) {
-    const p=places[place];target={x:p.x,y:p.y,z:p.z};
+    fling=null;const p=places[place];target={x:p.x,y:p.y,z:p.z};
     setActive(place);history.replaceState(null,'',`#${place}`);schedule();
   }
   function classify() {
@@ -160,17 +161,39 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   }
   document.querySelectorAll('[data-place]').forEach(button=>button.addEventListener('click',()=>go(button.dataset.place)));
   function zoomAt(factor,x=width/2,y=height/2) {
+    fling=null;
     const old=target.z,next=clamp(old*factor,.2,1.75);
     target.x=clamp(target.x+(x-width/2)/width*(1/old-1/next),-1.65,1.72);
     target.y=clamp(target.y+(y-height/2)/height*(1/old-1/next),-1.5,1.7);target.z=next;classify();schedule();
   }
   document.querySelector('#zoom-in').addEventListener('click',()=>zoomAt(1.2));document.querySelector('#zoom-out').addEventListener('click',()=>zoomAt(1/1.2));
   room.addEventListener('wheel',event=>{if(event.ctrlKey||event.metaKey||event.target.closest('input,.pedal-deck,[data-room-control]'))return;event.preventDefault();const r=room.getBoundingClientRect();zoomAt(Math.exp(-clamp(event.deltaY,-120,120)*.002),event.clientX-r.left,event.clientY-r.top);},{passive:false});
-  const contacts=new Map();let pan=null,pinch=null;
+  const contacts=new Map();let pan=null,pinch=null,trail=[];
+  // Letting go keeps the room moving: the release speed carries on and bleeds away.
+  // Only a camera that drifts to rest beside a corner is drawn the last bit of the way.
+  function throwCamera(now){
+    const recent=trail.filter(p=>now-p.t<90);
+    if(!motion||recent.length<2||now-recent[recent.length-1].t>45)return;
+    const a=recent[0],b=recent[recent.length-1],span=Math.max(16,b.t-a.t);
+    let vx=(b.x-a.x)/span,vy=(b.y-a.y)/span;const speed=Math.hypot(vx,vy),max=.006;
+    if(speed<.00025)return;
+    if(speed>max){vx*=max/speed;vy*=max/speed;}
+    fling={vx,vy};
+  }
+  function coast(dt){
+    const ms=dt*16.667,decay=Math.pow(.945,dt);
+    const nx=target.x+fling.vx*ms,ny=target.y+fling.vy*ms;
+    target.x=clamp(nx,-1.65,1.72);target.y=clamp(ny,-1.5,1.7);
+    if(target.x!==nx)fling.vx*=-.25;if(target.y!==ny)fling.vy*=-.25;
+    fling.vx*=decay;fling.vy*=decay;
+    if(Math.hypot(fling.vx,fling.vy)>.00006)return;
+    fling=null;classify();
+    const p=places[active];if(p&&active!=='overview'&&Math.hypot(target.x-p.x,target.y-p.y)<.14){target.x=p.x;target.y=p.y;}
+  }
   room.addEventListener('pointerdown',event=>{
     if(event.button!==0||event.target.closest('button,a,input,label,.pedal-deck,.loose-paper,.draw-area,[data-room-control]'))return;
-    contacts.set(event.pointerId,{x:event.clientX,y:event.clientY});room.setPointerCapture(event.pointerId);room.classList.add('dragging');
-    if(contacts.size===1)pan={x:event.clientX,y:event.clientY,camera:{...camera}};
+    fling=null;contacts.set(event.pointerId,{x:event.clientX,y:event.clientY});room.setPointerCapture(event.pointerId);room.classList.add('dragging');
+    if(contacts.size===1){target={...camera};pan={x:event.clientX,y:event.clientY,camera:{...camera}};trail=[];}
     else if(contacts.size===2){const [a,b]=[...contacts.values()];pinch={distance:Math.hypot(a.x-b.x,a.y-b.y),z:camera.z};pan=null;}
   });
   room.addEventListener('pointermove',event=>{
@@ -178,12 +201,12 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     if(contacts.has(event.pointerId)) {
       contacts.set(event.pointerId,{x:event.clientX,y:event.clientY});
       if(pinch&&contacts.size===2){const [a,b]=[...contacts.values()];const next=clamp(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.distance,.2,1.75);zoomAt(next/target.z,(a.x+b.x)/2-bounds.left,(a.y+b.y)/2-bounds.top);}
-      else if(pan){target.x=clamp(pan.camera.x-(event.clientX-pan.x)/width/pan.camera.z,-1.65,1.72);target.y=clamp(pan.camera.y-(event.clientY-pan.y)/height/pan.camera.z,-1.5,1.7);}
+      else if(pan){target.x=clamp(pan.camera.x-(event.clientX-pan.x)/width/pan.camera.z,-1.65,1.72);target.y=clamp(pan.camera.y-(event.clientY-pan.y)/height/pan.camera.z,-1.5,1.7);trail.push({t:event.timeStamp,x:target.x,y:target.y});if(trail.length>8)trail.shift();}
       camera={...target};
       schedule();
     }
   });
-  function endPan(event){if(!contacts.has(event.pointerId))return;contacts.delete(event.pointerId);if(room.hasPointerCapture(event.pointerId))room.releasePointerCapture(event.pointerId);if(contacts.size===1){const p=[...contacts.values()][0];pan={x:p.x,y:p.y,camera:{...target}};pinch=null;}else if(!contacts.size){pan=null;pinch=null;room.classList.remove('dragging');classify();}schedule();}
+  function endPan(event){if(!contacts.has(event.pointerId))return;contacts.delete(event.pointerId);if(room.hasPointerCapture(event.pointerId))room.releasePointerCapture(event.pointerId);if(contacts.size===1){const p=[...contacts.values()][0];pan={x:p.x,y:p.y,camera:{...target}};pinch=null;}else if(!contacts.size){if(pan&&event.type==='pointerup')throwCamera(event.timeStamp);pan=null;pinch=null;room.classList.remove('dragging');classify();}schedule();}
   room.addEventListener('pointerup',endPan);room.addEventListener('pointercancel',endPan);
   room.addEventListener('pointerleave',()=>{pointer={x:0,y:0};schedule();});
   document.addEventListener('keydown',event=>{
@@ -194,7 +217,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     const note='asdfgh'.indexOf(event.key.toLowerCase());if(active==='music'&&note>=0&&!event.repeat){event.preventDefault();playGesture(note,.9);return;}
     if(active==='music'&&event.code==='Space'&&!event.repeat&&!event.target.closest('button,a')){event.preventDefault();strum();return;}
     const directions={ArrowLeft:[-.2,0],ArrowRight:[.2,0],ArrowUp:[0,-.2],ArrowDown:[0,.2]};
-    if(directions[event.key]){event.preventDefault();const d=directions[event.key];target.x=clamp(target.x+d[0]/target.z,-1.65,1.72);target.y=clamp(target.y+d[1]/target.z,-1.5,1.7);classify();schedule();}
+    if(directions[event.key]){event.preventDefault();fling=null;const d=directions[event.key];target.x=clamp(target.x+d[0]/target.z,-1.65,1.72);target.y=clamp(target.y+d[1]/target.z,-1.5,1.7);classify();schedule();}
   });
   const motionButton=document.querySelector('#motion');
   function setMotion(value){motion=value;document.body.dataset.motion=value?'on':'off';motionButton.setAttribute('aria-pressed',String(!value));motionButton.textContent=value?t("动态开","Motion on"):t("动态关","Motion off");if(!value)pointer={x:0,y:0};schedule();}
