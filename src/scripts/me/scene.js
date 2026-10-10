@@ -227,19 +227,33 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
 
   const drawArea=document.querySelector('.draw-area');
   function localPoint(event){const b=drawArea.getBoundingClientRect();return{x:clamp((event.clientX-b.left)/b.width,0,1),y:clamp((event.clientY-b.top)/b.height,0,1)};}
-  function commitLine(){if(drawing&&drawing.points.length>3){drawing.amp=1;lines.push(drawing);if(lines.length>18)lines.shift();pluck(drawing.note,.6);drawArea.classList.add('has-lines');}drawing=null;schedule();}
+  function commitLine(){if(drawing&&drawing.points.length>3){drawing.amp=1;lines.push(drawing);if(lines.length>18)lines.shift();pluck(drawing.note,.6);drawArea.classList.add('has-lines');document.dispatchEvent(new CustomEvent('found',{detail:'trace-line'}));}drawing=null;schedule();}
+  const plucked=()=>document.dispatchEvent(new CustomEvent('found',{detail:'trace-pluck'}));
   drawArea.addEventListener('pointerdown',event=>{if(event.button!==0)return;event.stopPropagation();drawArea.setPointerCapture(event.pointerId);drawing={points:[localPoint(event)],amp:0,note:lines.length%6,pointer:event.pointerId};});
   drawArea.addEventListener('pointermove',event=>{
     event.stopPropagation();const p=localPoint(event);
     if(drawing&&drawing.pointer===event.pointerId){const last=drawing.points[drawing.points.length-1];if(Math.hypot(p.x-last.x,p.y-last.y)>.006&&drawing.points.length<300)drawing.points.push(p);schedule();return;}
     let closest=-1,distance=.035;
     lines.forEach((strand,i)=>strand.points.forEach(point=>{const d=Math.hypot(point.x-p.x,point.y-p.y);if(d<distance){distance=d;closest=i;}}));
-    if(closest>=0&&(closest!==lineContact||performance.now()-lastLinePluck>350)){lines[closest].amp=1;pluck(lines[closest].note,.7);lastLinePluck=performance.now();}lineContact=closest;
+    if(closest>=0&&(closest!==lineContact||performance.now()-lastLinePluck>350)){lines[closest].amp=1;pluck(lines[closest].note,.7);lastLinePluck=performance.now();plucked();}lineContact=closest;
   });
-  drawArea.addEventListener('pointerup',event=>{event.stopPropagation();if(drawing&&drawing.pointer===event.pointerId){if(drawing.points.length<=3){const p=localPoint(event);let closest=-1,distance=.055;lines.forEach((strand,i)=>strand.points.forEach(point=>{const d=Math.hypot(point.x-p.x,point.y-p.y);if(d<distance){distance=d;closest=i;}}));if(closest>=0){lines[closest].amp=1;pluck(lines[closest].note,.85);}}commitLine();if(drawArea.hasPointerCapture(event.pointerId))drawArea.releasePointerCapture(event.pointerId);}});
+  drawArea.addEventListener('pointerup',event=>{event.stopPropagation();if(drawing&&drawing.pointer===event.pointerId){if(drawing.points.length<=3){const p=localPoint(event);let closest=-1,distance=.055;lines.forEach((strand,i)=>strand.points.forEach(point=>{const d=Math.hypot(point.x-p.x,point.y-p.y);if(d<distance){distance=d;closest=i;}}));if(closest>=0){lines[closest].amp=1;pluck(lines[closest].note,.85);plucked();}}commitLine();if(drawArea.hasPointerCapture(event.pointerId))drawArea.releasePointerCapture(event.pointerId);}});
   drawArea.addEventListener('pointercancel',()=>{drawing=null;schedule();});drawArea.addEventListener('pointerleave',()=>lineContact=-1);
   document.querySelector('#add-line').addEventListener('click',()=>{const k=lines.length;drawing={points:Array.from({length:65},(_,i)=>{const t=i/64;return{x:.08+.84*t,y:clamp(.5+Math.sin(t*Math.PI*2+k*.9)*(.17+(k%3)*.035)+(k%3-1)*.08,.05,.95)}}),note:k%6,amp:0};commitLine();});
   document.querySelector('#clear-lines').addEventListener('click',()=>{lines=[];drawing=null;drawArea.classList.remove('has-lines');schedule();});
+  // The quiet tutorial (hints.js). A pencil sketches a line by itself and the line hums; later the
+  // visitor's own line shivers once, waiting to be touched. Neither makes a sound.
+  const ghost=drawArea.querySelector('.trace-ghost path');
+  document.addEventListener('hint:sketch',()=>{
+    if(!motion||active!=='trace'||drawing||!ghost)return;
+    const svg=ghost.ownerSVGElement;svg.getAnimations({subtree:true}).forEach(a=>a.cancel());
+    ghost.animate([{clipPath:'inset(-20% 100% -20% 0)'},{clipPath:'inset(-20% -2% -20% 0)'}],{duration:1500,easing:'cubic-bezier(.45,.05,.4,1)',fill:'both'});
+    svg.animate([{opacity:0,offset:0},{opacity:1,offset:.04},{opacity:1,offset:.78},{opacity:0}],{duration:4300,fill:'both'});
+    // Once drawn, it is plucked by an invisible finger: a damped shiver across its length.
+    const ring=[1,1.5,.62,1.3,.82,1.12,.95,1];
+    svg.animate(ring.map((y,i)=>({scale:`1 ${y}`,offset:.4+.6*i/(ring.length-1)})),{duration:2600,easing:'ease-in-out'});
+  });
+  document.addEventListener('hint:quiver',()=>{if(!motion||active!=='trace'||!lines.length)return;lines[lines.length-1].amp=.42;schedule();});
 
   const closeup=document.querySelector('#guitar-closeup'),guitarStage=document.querySelector('.guitar-stage');
   const detailViews={body:[.79,2.12,t("SH-1n / SH-16\n换成了自己的声音。","SH-1n / SH-16\nA little closer to my own sound.")],neck:[.395,2.55,t("枫木指板，二十二品。","Maple fingerboard. Twenty-two frets.")],head:[.084,4.8,t("BanG Dream!\n乐奈的那把。","BanG Dream!\nRāna’s guitar.")],whole:[.5,.94,t("乐奈同款。也是我的这一把。","Rāna’s model. My own guitar.")]};
@@ -297,7 +311,10 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     }
     rig.play(frequency,strength);audioTailUntil=audio.currentTime+(params.echo?12:3.3);
   }
-  async function playGesture(index,strength=1){if(!audio&&!await setSound(true))return;pluck(index,strength);}
+  const strummed=()=>document.dispatchEvent(new CustomEvent('found',{detail:'music-strings'}));
+  async function playGesture(index,strength=1){strummed();if(!audio&&!await setSound(true))return;pluck(index,strength);}
+  // The quiet tutorial (hints.js): the strings shiver one after another, as if brushed, without a sound.
+  document.addEventListener('hint:strings',()=>{if(!motion||active!=='music')return;for(let n=0;n<6;n++)setTimeout(()=>{if(active!=='music')return;pulses[n]=Math.max(pulses[n],.34-n*.02);schedule();},n*95);});
   document.addEventListener('roompluck',async event=>{
     const {index,strength=.5,wake=false}=event.detail||{};
     if(active!=='paths'||!Number.isInteger(index)||index<0||index>5)return;
@@ -316,7 +333,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   }));
   strings.forEach(button=>{
     const note=Number(button.dataset.note);let lastPointer=-Infinity;
-    button.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'&&enabled){lastPointer=performance.now();pluck(note,.67);}});
+    button.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'&&enabled){lastPointer=performance.now();pluck(note,.67);strummed();}});
     button.addEventListener('click',event=>{if(!event.detail||performance.now()-lastPointer>110||!audio)playGesture(note,1);});
   });
   const stringBed=document.querySelector('.string-bed');let touchString=-1;

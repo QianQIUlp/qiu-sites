@@ -31,6 +31,10 @@ const paperDrafts = [
   { struck: t('我学完 GitHub 了。', 'Done learning GitHub.'), kept: t('知道该从哪里开始。', 'I know where to start.'), note: t('git revert，安全', 'git revert = safe') },
 ];
 const papersNote = t('举起来，对着光看看', 'hold one up to the light');
+const wanderNote = t('整间屋子，都能拖着走', 'grab the room and wander');
+const stringsNote = t('点一根弦，再顺着划过去', 'tap a string, then brush across');
+const sketchNote = t('像这样，画一笔', 'like that. your turn');
+const pluckNote = t('碰碰它，它会响', 'touch your line. it rings');
 // hand-font:end
 ---
 <a class="skip-link" href="#room">{t("跳到小屋", "Skip to the room")}</a>
@@ -51,6 +55,7 @@ const papersNote = t('举起来，对着光看看', 'hold one up to the light');
         <button class="door door-left" data-place="papers"><span><Icon name="left" /></span><span>{t("几张散页", "Loose pages")}</span></button>
         <button class="door door-right" data-place="music"><span>{t("琴弦之间", "A little jam")}</span><span><Icon name="right" /></span></button>
         <div class="home-bottom"><p><Fragment set:html={t("不用按顺序。<br>随便逛逛，<br>也可以什么都不做。", "Look around.<br>Take your time.")} /></p><p class="welcome"><Fragment set:html={t("在这里，<br><em>待一会儿。</em>", "Stay<br><em>awhile.</em>")} /></p></div>
+        <p class="pencil-note note-wander" data-note="wander" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{wanderNote}</span></p>
         <button class="deeper-door" data-place="rethink">{t('小屋深处，还有一些东西', 'There’s more, a little further in')} <span><Icon name="down" /></span></button>
       </section>
 
@@ -71,7 +76,7 @@ const papersNote = t('举起来，对着光看看', 'hold one up to the light');
         <div class="playing-strip"><div class="chord-picker" role="group" aria-label={t("选择和弦", "Choose a chord")}><button data-chord="open" aria-pressed="true">{t("空弦", "Open")}</button><button data-chord="Em" aria-pressed="false">Em</button><button data-chord="G" aria-pressed="false">G</button><button data-chord="C" aria-pressed="false">C</button><button data-chord="D" aria-pressed="false">D</button></div><button id="strum" type="button">{t("扫一下", "Strum")} <span><Icon name="southeast" /></span></button></div>
         <div class="jam-guitar" aria-hidden="false"><img class="jam-photo" src={jamStrings.src} width={jamStrings.width} height={jamStrings.height} alt="" aria-hidden="true" loading="lazy" decoding="async" draggable="false"><canvas id="jam-strings" aria-hidden="true"></canvas><div class="string-bed" aria-label={t("六根可弹奏的弦", "Six playable strings")}>{['e', 'B', 'G', 'D', 'A', 'E'].map((note, index) => (
           <button type="button" class="string" data-note={index} aria-label={t(`拨动 ${note} 弦，键盘 ${'ASDFGH'[index]}`, `Pluck the ${note} string, keyboard ${'ASDFGH'[index]}`)}><span>{note}</span><small>{'ASDFGH'[index]}</small></button>
-        ))}</div><span class="jam-label" aria-hidden="true">SH-1n · SH-16 · 24¾″</span></div>
+        ))}</div><span class="jam-label" aria-hidden="true">SH-1n · SH-16 · 24¾″</span></div><p class="pencil-note note-music-strings" data-note="music-strings" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{stringsNote}</span></p>
         <div class="music-footer">
           <div class="loop-controls" data-state="empty">
             <div class="looper-top"><span>LOOP / 6 SEC</span><span id="loop-layer">{t("00 层", "00 LAYERS")}</span></div>
@@ -89,7 +94,8 @@ const papersNote = t('举起来，对着光看看', 'hold one up to the light');
 
       <section class="place trace" data-scene="trace" aria-labelledby="trace-title" inert>
         <div class="place-heading"><span class="eyebrow">{t("你也可以留一笔", "A LITTLE SOMETHING FROM YOU")}</span><h2 id="trace-title"><Fragment set:html={t("把一条线，<br>变成一根弦。", "Draw a line.<br>Give it a voice.")} /></h2><p>{t("在空白处画下去。松手后，再拨动它。", "Draw in the empty space. Let go, then pluck.")}</p></div>
-        <div class="draw-area" tabindex="0" role="group" aria-label={t("临时画布，拖动画线，松手后触碰线条使它振动", "Temporary canvas. Drag to draw a line, then touch it to hear it ring.")}><span class="drawing-hint">{t("从这里，随手划一下。", "A line can start anywhere.")}</span></div>
+        <div class="draw-area" tabindex="0" role="group" aria-label={t("临时画布，拖动画线，松手后触碰线条使它振动", "Temporary canvas. Drag to draw a line, then touch it to hear it ring.")}><span class="drawing-hint">{t("从这里，随手划一下。", "A line can start anywhere.")}</span><svg class="trace-ghost" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M6 27C17 13 27 11 38 19S58 33 70 22 88 9 95 14" /></svg></div>
+        <p class="pencil-note note-trace-line" data-note="trace-line" aria-hidden="true"><span>{sketchNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p><p class="pencil-note note-trace-pluck" data-note="trace-pluck" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{pluckNote}</span></p>
         <div class="trace-footer"><p>{t("没有标准形状。", "There’s no right shape.")}<br><span>{t("这一笔，留在这次停留里。", "Just here, for this visit.")}</span></p><div><button class="small-action" id="add-line" type="button">{t("替我起个头", "Give me a starting point")} <Icon name="northeast" /></button><button class="small-action" id="clear-lines" type="button">{t("重新留白", "Start again")} <Icon name="southwest" /></button></div></div>
       </section>
       <MoreRooms lang={lang} />

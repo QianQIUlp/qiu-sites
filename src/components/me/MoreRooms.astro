@@ -7,6 +7,11 @@ const { lang } = Astro.props;
 const t = (zh: string, en: string) => lang === 'en' ? en : zh;
 // hand-font:start
 const idleNote = t('你不动，它才走。', 'It only moves when you don’t.');
+const letGoNote = t('揉掉一个“应该”', 'crumple up a “should”');
+const ribbonNote = t('拖着它，转到背面去', 'drag it round to the back');
+const cutNote = t('换你来，上下拖', 'your turn: drag up and down');
+const threadsNote = t('拨开它，换条路走', 'part the threads');
+const glanceNote = t('换个角度，再看看', 'look again, from the side');
 // hand-font:end
 const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
 ---
@@ -27,6 +32,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
     <span class="field-axis"><Fragment set:html={t('起点、终点不变。<br>经过的此刻不同。', 'The same two ends.<br>A different moment between.')} /></span>
     <div class="path-listen"><button id="path-play" type="button" aria-label={t('听这条路', 'Listen to this path')}><span class="route-play-icon"><Icon name="play" /></span><span id="path-play-label">{t('听这条路', 'Listen to this path')}</span></button><span id="path-measure">{t('01 / 穿过去', '01 / Through')}</span></div>
   </div>
+  <p class="pencil-note note-paths-bend" data-note="paths-bend" aria-hidden="true"><span>{threadsNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="path-thought" aria-live="polite"><span id="path-status">{t('还没有走过的路，都在这里。', 'The paths you haven’t taken are still here.')}</span><blockquote><Fragment set:html={t('「至少我今天认真地活过一回，<br>这就够了。」', '“At least today, I lived with intention.<br>That’s enough.”')} /></blockquote></div>
   <label class="path-tension" data-room-control><span>{t('拨开一点', 'Bend it')}</span><input id="path-bend" type="range" min="-100" max="100" value="0" step="1" aria-label={t('路径的偏移', 'Bend the path')}><span><Icon name="horizontal" /></span></label>
   <div class="extra-footer"><a href="/blog/posts/2026-05-17-qiyuniao/" target="_blank" rel="noopener noreferrer">{t('从《启喻鸟之章》的一个问题出发', 'From a question about fate · Read in Chinese')} <Icon name="northeast" /></a><button data-place="trace">{t('把走过的，留成一笔', 'Leave a line of your own')} <span><Icon name="right" /></span></button></div>
@@ -44,6 +50,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
     <span class="field-index">09 / AN INCOMPLETE CERTAINTY</span><span class="blind-bearing"><output id="blind-degrees" for="blind-angle">00°</output><span>VIEWPOINT</span></span>
     <span class="blind-guide">{t('文字没有消失。只是终于看见了间隙。', 'The word is still here. Now you can see its gaps.')}</span>
   </div>
+  <p class="pencil-note note-blind-angle" data-note="blind-angle" aria-hidden="true"><span>{glanceNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="blind-controls" data-room-control><button id="blind-turn" class="small-action" type="button">{t('换个角度', 'Another angle')} <span><Icon name="northeast" /></span></button><label><span>{t('正面', 'Front')}</span><input id="blind-angle" type="range" min="0" max="60" value="0" step="1" aria-label={t('观看确定的角度', 'Viewpoint on certainty')}><span>{t('侧面', 'Side')}</span></label></div>
   <div class="extra-footer"><a href="/blog/posts/2026-05-26-llm-metacog-blindspot/#八写到这里给自己泼一盆冷水" target="_blank" rel="noopener noreferrer">{t('看《LLM 元认知盲点》里留下的自我修正', 'Read my correction · In Chinese')} <Icon name="northeast" /></a><button data-place="rethink">{t('也去翻翻另一面', 'Turn a thought over, too')} <span><Icon name="southwest" /></span></button></div>
 </section>
@@ -60,6 +67,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
     <span class="ribbon-side-note">ONE SURFACE. NO FINAL SIDE.</span>
     <span class="ribbon-drag-hint">{t('拖动纸带', 'Turn the ribbon')} <Icon name="horizontal" /></span>
   </div>
+  <p class="pencil-note note-rethink-turn" data-note="rethink-turn" aria-hidden="true"><span>{ribbonNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="thought-caption" aria-live="polite">
     <span id="thought-kicker">{t('起初，我以为', 'At first, I thought')}</span>
     <blockquote id="thought-quote">{t('「有条件的善意不是善意，是定价。」', '“Conditional kindness isn’t kindness. It’s a price.”')}</blockquote>
@@ -94,6 +102,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
     <div class="specimen-notation" aria-hidden="true"><span id="specimen-figure">FIG. 01 — SEPARATE BY DESIGN</span><span id="cut-reading">042</span></div>
     <div class="specimen-caption"><span id="specimen-principle">{t('先有边界，再有各自的空间。', 'Separate spaces begin with boundaries.')}</span><span class="work-drag-hint">{t('上下拖动 · 让光穿过', 'Drag to move the light')} <Icon name="vertical" /></span></div>
   </div>
+  <p class="pencil-note note-work-cut" data-note="work-cut" aria-hidden="true"><span>{cutNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="work-detail" aria-live="polite"><span class="work-detail-label" id="work-detail-label">{t('它从一个问题开始', 'It starts with a question')}</span><p id="work-detail-copy">{t('多个网站身份，为什么要挤在同一个浏览器环境里？', 'Why should different online identities share a single browser environment?')}</p><a id="project-source" href="https://github.com/QianQIUlp/VeriSilo" target="_blank" rel="noopener noreferrer">{t('看真实项目', 'Explore the project')} <Icon name="northeast" /></a></div>
   <div class="work-controls" data-room-control>
     <div class="cut-control"><span class="cut-start">{t('表面', 'Surface')}</span><input id="work-spread" type="range" min="0" max="100" step="0.1" value="42" aria-label={t('光的切入深度', 'Section depth')}><span class="cut-end">{t('深处', 'Inside')}</span></div>
@@ -116,6 +125,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
     <button class="obligation obligation-c" data-slip="2" aria-label={t('放下不能过期的催促', 'Let go of the need to use it before it expires')}><span class="slip-kicker">{t('应该', 'I SHOULD')}</span><strong><Fragment set:html={t('别让它<br>过期。', 'Beat the<br>deadline.')} /></strong><span class="slip-foot">{t('放下', 'Let go')} <Icon name="northeast" /></span></button>
     <button class="obligation obligation-d" data-slip="3" aria-label={t('放下总要做点什么的催促', 'Let go of the need to always do something')}><span class="slip-kicker">{t('应该', 'I SHOULD')}</span><strong><Fragment set:html={t('总得做点<br>什么。', 'Do<br>something.')} /></strong><span class="slip-foot">{t('放下', 'Let go')} <Icon name="northwest" /></span></button>
   </div>
+  <p class="pencil-note note-idle-letgo" data-note="idle-letgo" aria-hidden="true"><span>{letGoNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="idle-sentence" aria-live="polite"><span id="idle-preface">{t('我不欠资源一次使用。', 'I don’t owe a resource a use.')}</span><p id="idle-message"><Fragment set:html={t('留白，<br><em>也可以留下来。</em>', 'Leave room<br><em>for nothing.</em>')} /></p></div>
   <div class="idle-sentence idle-dusk" aria-live="polite"><span></span><p></p></div>
   <button id="restore-slips" class="small-action">{t('把纸片摆回来', 'Bring the slips back')} <Icon name="restore" /></button>

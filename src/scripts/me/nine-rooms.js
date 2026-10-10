@@ -10,6 +10,37 @@ const still = () => document.body.dataset.motion === 'off';
 const ink = '#252825', red = '#e83d27', paper = '#eeede7';
 let active = location.hash.slice(1) || 'home';
 
+// Two motions that belong to the object, not to the visitor's choice (neither changes a value):
+// it leans a little toward a mouse that moves over it, and once, for a newcomer, it shows how it
+// moves by itself and settles back (hints.js). `sway` eases both and asks for a redraw.
+function sway(stage, {reach, demo, room, span = 2600, floor = -Infinity, redraw}) {
+  const state = {lean: 0, target: 0, nudge: 0, start: 0, frame: 0, last: 0, get value() { return Math.max(floor, this.lean + this.nudge); }};
+  const tick = now => {
+    state.frame = 0;
+    const dt = Math.min(64, now - (state.last || now)); state.last = now;
+    state.lean += (state.target - state.lean) * (1 - Math.exp(-dt / 240));
+    if (state.start) {
+      const t = Math.min(1, (now - state.start) / span);
+      state.nudge = demo * Math.sin(Math.PI * t) ** 2 * (1 - .25 * t);
+      if (t === 1) { state.start = 0; state.nudge = 0; }
+    }
+    redraw();
+    if (state.start || Math.abs(state.target - state.lean) > reach * .004) state.frame = requestAnimationFrame(tick);
+    else { state.lean = state.target; state.last = 0; redraw(); }
+  };
+  const cue = () => { if (!state.frame && !still() && active === room) state.frame = requestAnimationFrame(tick); };
+  stage.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' || event.buttons) return;
+    const box = stage.getBoundingClientRect();
+    state.target = ((event.clientX - box.left) / box.width - .5) * reach;
+    cue();
+  });
+  stage.addEventListener('pointerleave', () => { state.target = 0; cue(); });
+  state.play = () => { if (still() || active !== room) return; state.start = performance.now(); cue(); };
+  return state;
+}
+const found = key => document.dispatchEvent(new CustomEvent('found', {detail: key}));
+
 function surface(canvas) {
   const width = canvas.clientWidth, height = canvas.clientHeight;
   const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -62,13 +93,13 @@ function routePoint(t, variant, offset = null) {
   let x = (t - .5) * 2.85;
   let y = Math.sin(t * Math.PI * 2) * [.16, .53, .15][variant];
   let z = Math.sin(t * Math.PI) * [.05, -.27, .3][variant];
-  y += envelope * bend * Math.cos(t * Math.PI * 1.7) * .45;
+  y += envelope * (bend + threads.value) * Math.cos(t * Math.PI * 1.7) * .45;
   if (variant === 2) {
     x += Math.sin(t * Math.PI * 2) * .32;
     y += Math.sin(t * Math.PI * 4) * envelope * .22;
   }
   if (offset !== null) {
-    const angle = offset * Math.PI * 2 + t * [2.7, 4.2, 7.7][variant] + bend * t;
+    const angle = offset * Math.PI * 2 + t * [2.7, 4.2, 7.7][variant] + (bend + threads.value) * t;
     const radius = envelope * [.43, .49, .41][variant];
     y += Math.cos(angle) * radius;
     z += Math.sin(angle) * radius;
@@ -195,8 +226,10 @@ document.querySelectorAll('[data-route]').forEach(button => button.addEventListe
   playPath(false);
 }));
 pathPlay.addEventListener('click', () => playback?.listen ? stopPath() : playPath(true));
-bendInput.addEventListener('input', () => {stopPath();schedulePaths();});
+bendInput.addEventListener('input', () => {stopPath();schedulePaths();if (Math.abs(+bendInput.value) > 25) found('paths-bend');});
 dragInput($('.path-instrument'), bendInput);
+const threads = sway($('.path-instrument'), {reach: .2, demo: .62, room: 'paths', redraw: () => drawPaths()});
+document.addEventListener('hint:threads', () => threads.play());
 
 // An anamorphic word: separate ink fragments line up only from the front.
 // Nothing is swapped when the camera turns; their depth creates the gaps.
@@ -224,14 +257,14 @@ let viewAngle = 0, blindFrame = 0, blindLast = 0, observation = -1;
 
 function drawBlind() {
   const {ctx, width, height} = surface(blindCanvas);
-  const angle = viewAngle / 180 * Math.PI;
+  const seen = viewAngle + glance.value, angle = seen / 180 * Math.PI;
   const scale = Math.min(width / 4.4, height / 3.15);
   const project = (x, y, z) => {
     const rx = x * Math.cos(angle) + z * Math.sin(angle);
     const rz = z * Math.cos(angle) - x * Math.sin(angle);
     return {x: width * .51 + rx * scale, y: height * .43 + (y + rz * Math.sin(angle) * .15) * scale, z: rz};
   };
-  const reveal = clamp((viewAngle - 6) / 34, 0, 1);
+  const reveal = clamp((seen - 6) / 34, 0, 1);
   const cx = width * .51, cy = height * .74, rx = Math.min(width * .36, scale * 1.75), ry = rx * .23;
   ctx.strokeStyle = '#73756b35';ctx.lineWidth = .6;
   ctx.beginPath();ctx.ellipse(cx, cy, rx, ry, -.07, 0, Math.PI * 2);ctx.stroke();
@@ -281,7 +314,7 @@ function drawBlind() {
     ctx.restore();
   }
   ctx.font = `8px ${mono}`;ctx.textAlign = 'center';ctx.fillStyle = '#73756b';
-  ctx.fillText(viewAngle < 8 ? 'ONE VIEW ≠ THE WHOLE' : 'THE GAPS WERE ALWAYS HERE', cx, height * .9);
+  ctx.fillText(seen < 8 ? 'ONE VIEW ≠ THE WHOLE' : 'THE GAPS WERE ALWAYS HERE', cx, height * .9);
   ctx.textAlign = 'left';
 }
 
@@ -306,11 +339,14 @@ function frameBlind(now) {
 function scheduleBlind() {
   if (!blindFrame && !document.hidden && active === 'blindspot') blindFrame = requestAnimationFrame(frameBlind);
 }
-angleInput.addEventListener('input', () => {updateObservation();scheduleBlind();});
+angleInput.addEventListener('input', () => {updateObservation();scheduleBlind();if (+angleInput.value >= 30) found('blind-angle');});
 $('#blind-turn').addEventListener('click', () => {
   angleInput.value = [20, 40, 60, 0][observation];updateObservation();scheduleBlind();
 });
 dragInput($('.blind-instrument'), angleInput);
+// It only ever turns away from the front, so the lean follows a mouse on the right half alone.
+const glance = sway($('.blind-instrument'), {reach: 9, demo: 21, room: 'blindspot', span: 3000, floor: 0, redraw: () => drawBlind()});
+document.addEventListener('hint:glance', () => glance.play());
 
 function stopFrames() {
   cancelAnimationFrame(pathFrame);cancelAnimationFrame(blindFrame);

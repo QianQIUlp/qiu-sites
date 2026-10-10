@@ -19,8 +19,44 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
 .note-papers{left:37%;top:6.5%;--note-angle:-3deg}
 .note-papers svg{transform:translateY(-.25em) rotate(12deg)}
 
+/* One note per room, each beside the thing it is about. The arrow is drawn pointing up and to the
+   right; each note turns it toward its object (and `row-reverse` puts it in front of the words). */
+.note-wander{left:4.5%;top:72.5%;--note-angle:-2deg}
+.note-wander svg{transform:translateY(-.2em) scaleX(-1) rotate(-14deg)}
+.note-music-strings{left:52%;top:4.5%;--note-angle:-3deg;color:rgba(246,236,214,.84);text-shadow:0 0 .6px rgba(246,236,214,.4)}
+.note-music-strings svg{transform:translateY(.55em) rotate(104deg)}
+.note-trace-line{left:48%;top:63%;--note-angle:-4deg}
+.note-trace-line svg{transform:translateY(-.3em) rotate(-8deg)}
+.note-trace-pluck{left:22%;top:71%;--note-angle:-3deg}
+.note-trace-pluck svg{transform:translateY(-.25em) rotate(-4deg)}
+.note-rethink-turn{left:2.8%;top:57%;--note-angle:-5deg}
+.note-rethink-turn svg{transform:translateY(-.3em) rotate(-10deg)}
+.note-work-cut{left:37%;top:33%;--note-angle:-3deg}
+.note-work-cut svg{transform:translateY(-.1em) rotate(18deg)}
+.note-idle-letgo{left:36.5%;top:47%;--note-angle:-4deg}
+.note-idle-letgo svg{transform:translateY(.15em) rotate(38deg)}
+.note-paths-bend{left:40%;top:73.5%;--note-angle:-3deg}
+.note-paths-bend svg{transform:translateY(-.35em) rotate(-6deg)}
+.note-blind-angle{left:18%;top:39%;--note-angle:-4deg}
+.note-blind-angle svg{transform:translateY(.1em) rotate(30deg)}
+
 @media(max-width:600px){
   .pencil-note,html[lang=en] .pencil-note{font-size:14px}
   .note-papers{left:7%;top:29.5%}
   .note-papers svg{transform:translateY(-.45em) rotate(-6deg)}
+  .note-wander{left:6%;top:83.5%}
+  .note-music-strings{left:27%;top:23.2%}
+  .note-trace-line{left:30%;top:66%}
+  .note-trace-pluck{left:8%;top:78%}
+  .note-rethink-turn{left:6%;top:62%}
+  .note-work-cut{left:50%;top:22%;flex-direction:row-reverse}
+  .note-work-cut svg{transform:translateY(-.5em) scaleX(-1) rotate(-8deg)}
+  .note-idle-letgo{left:5%;top:52%}
+  .note-paths-bend{left:30%;top:56.5%}
+  .note-blind-angle{left:30%;top:31.5%}
+  .note-blind-angle svg{transform:translateY(.5em) rotate(100deg)}
 }
+
+/* The pencil's own demonstration in 留一笔: drawn by itself, shivered by an invisible finger. */
+.trace-ghost{position:absolute;left:12%;top:30%;width:70%;height:34%;overflow:visible;pointer-events:none;opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+.trace-ghost path{fill:none;stroke:rgba(58,60,54,.55);stroke-width:1.6;stroke-linecap:round;vector-effect:non-scaling-stroke;clip-path:inset(-20% 100% -20% 0)}

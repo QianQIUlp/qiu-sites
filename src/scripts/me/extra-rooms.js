@@ -48,6 +48,10 @@ const thoughts = [
 ];
 let ribbonFrame = 0;
 let thoughtIndex = -1;
+// Two small motions that are not the visitor's choice and never change the thought: the ribbon
+// leans a few degrees after a mouse that moves over it, and once, for a newcomer, it turns a
+// little by itself and settles back (hints.js). Both are added to the drawn angle only.
+let lean = 0, leanTarget = 0, nudge = 0, nudgeStart = 0, motionFrame = 0, motionLast = 0;
 function drawRibbon() {
   ribbonFrame = 0;
   const width = ribbonStage.clientWidth, height = ribbonStage.clientHeight;
@@ -59,7 +63,7 @@ function drawRibbon() {
   const ctx = ribbonContext;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, width, height);
-  const yaw = +angle.value / 180 * Math.PI - .28;
+  const yaw = (+angle.value + lean + nudge) / 180 * Math.PI - .28;
   const pitch = .9, roll = -.32;
   const scale = Math.min(width / 3.45, height / 2.65);
   function project(u, v) {
@@ -130,9 +134,36 @@ function drawRibbon() {
     ctx.textAlign = 'center';ctx.textBaseline = 'middle';ctx.fillText(label.word, 0, 0);ctx.restore();
   }
 }
+function moveRibbon(now) {
+  motionFrame = 0;
+  const dt = Math.min(64, now - (motionLast || now)); motionLast = now;
+  lean += (leanTarget - lean) * (1 - Math.exp(-dt / 260));
+  if (nudgeStart) {
+    // One slow breath out and back, like a hand testing whether it turns.
+    const t = Math.min(1, (now - nudgeStart) / 2600);
+    nudge = 46 * Math.sin(Math.PI * t) ** 2 * (1 - .25 * t);
+    if (t === 1) { nudgeStart = 0; nudge = 0; }
+  }
+  if (!ribbonFrame) ribbonFrame = requestAnimationFrame(drawRibbon);
+  if (nudgeStart || Math.abs(leanTarget - lean) > .05) motionFrame = requestAnimationFrame(moveRibbon);
+  else { lean = leanTarget; motionLast = 0; }
+}
+const cueRibbon = () => { if (!motionFrame && !still()) motionFrame = requestAnimationFrame(moveRibbon); };
+ribbonStage.addEventListener('pointermove', event => {
+  if (event.pointerType !== 'mouse' || event.buttons) return;
+  const box = ribbonStage.getBoundingClientRect();
+  leanTarget = ((event.clientX - box.left) / box.width - .5) * 16;
+  cueRibbon();
+});
+ribbonStage.addEventListener('pointerleave', () => { leanTarget = 0; cueRibbon(); });
+document.addEventListener('hint:ribbon', () => {
+  if (still() || document.querySelector('#room').dataset.place !== 'rethink') return;
+  nudgeStart = performance.now(); cueRibbon();
+});
 function updateRibbon() {
   const next = Math.min(2, Math.floor(+angle.value / 120));
   if (next !== thoughtIndex) {
+    if (thoughtIndex >= 0 && next !== 0) document.dispatchEvent(new CustomEvent('found', {detail: 'rethink-turn'}));
     thoughtIndex = next;
     ['#thought-kicker', '#thought-quote', '#thought-after'].forEach((id, i) => $(id).textContent = thoughts[next][i]);
   }
@@ -284,11 +315,12 @@ playButton.addEventListener('click', () => {
 document.querySelectorAll('[data-project]').forEach(button => button.addEventListener('click', () => {
   chooseProject(button.dataset.project);startShow();
 }));
+const cut = () => document.dispatchEvent(new CustomEvent('found', {detail: 'work-cut'}));
 document.querySelectorAll('[data-depth]').forEach(button => button.addEventListener('click', () => {
-  takeOver();spread.value = button.dataset.depth;updateWork();
+  takeOver();spread.value = button.dataset.depth;updateWork();cut();
 }));
 spread.addEventListener('pointerdown', takeOver);
-spread.addEventListener('input', () => {takeOver();updateWork();});
+spread.addEventListener('input', () => {takeOver();updateWork();cut();});
 sculpture.addEventListener('pointerdown', event => {if (event.button === 0 && !event.target.closest('button,a,input')) takeOver();});
 sculpture.addEventListener('keydown', event => {if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key) && !event.target.closest('button,a,input')) takeOver();});
 document.addEventListener('roomchange', event => {
@@ -322,6 +354,7 @@ function crumpled() {
 }
 function letGo(slip) {
   if (released.has(slip)) return;
+  document.dispatchEvent(new CustomEvent('found', {detail: 'idle-letgo'}));
   const version = resetVersion, a = slip.getBoundingClientRect(), b = hole.getBoundingClientRect();
   const scale = idle.getBoundingClientRect().width / idle.clientWidth;
   const dx = (b.x + b.width / 2 - a.x - a.width / 2) / scale;
@@ -381,6 +414,25 @@ slips.forEach(slip => {
   slip.addEventListener('pointerup', event => release(event));
   slip.addEventListener('pointercancel', event => release(event, true));
   slip.addEventListener('click', event => { if (!suppressClick || event.detail === 0) letGo(slip); });
+});
+// The quiet tutorial (hints.js): a draft from the window catches the slip nearest the hollow; it
+// lifts, slides a finger's width toward it and settles back, as if it wanted to go.
+document.addEventListener('hint:breeze', () => {
+  if (still() || $('#room').dataset.place !== 'idle') return;
+  const b = hole.getBoundingClientRect(), centre = r => [r.x + r.width / 2, r.y + r.height / 2];
+  const [hx, hy] = centre(b);
+  const slip = slips.filter(s => !released.has(s) && !s.hidden).map(s => [s, Math.hypot(...centre(s.getBoundingClientRect()).map((v, i) => v - [hx, hy][i]))]).sort((a, c) => a[1] - c[1])[0]?.[0];
+  if (!slip || slip.getAnimations().length) return;
+  const [sx, sy] = centre(slip.getBoundingClientRect()), d = Math.hypot(hx - sx, hy - sy) || 1;
+  const scale = idle.getBoundingClientRect().width / idle.clientWidth;
+  const ux = (hx - sx) / d / scale, uy = (hy - sy) / d / scale, at = (k, lift = 0) => `${(ux * k).toFixed(1)}px ${(uy * k - lift).toFixed(1)}px`;
+  slip.animate([
+    {translate: '0px 0px', rotate: '0deg', filter: 'drop-shadow(0 0 0 rgba(58,40,20,0))'},
+    {translate: at(4, 5), rotate: '-1.6deg', filter: 'drop-shadow(-6px 10px 9px rgba(58,40,20,.14))', offset: .22},
+    {translate: at(15, 7), rotate: '2.4deg', filter: 'drop-shadow(-8px 13px 11px rgba(58,40,20,.16))', offset: .48},
+    {translate: at(9, 2), rotate: '.6deg', filter: 'drop-shadow(-4px 7px 7px rgba(58,40,20,.1))', offset: .72},
+    {translate: '0px 0px', rotate: '0deg', filter: 'drop-shadow(0 0 0 rgba(58,40,20,0))'}
+  ], {duration: 2100, easing: 'cubic-bezier(.4,0,.3,1)', composite: 'add'});
 });
 $('#restore-slips').addEventListener('click', () => {
   resetVersion++;released.clear();
