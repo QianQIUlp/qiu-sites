@@ -8,7 +8,8 @@ const t = (zh: string, en: string) => lang === 'en' ? en : zh;
 // hand-font:start
 const idleNote = t('你不动，它才走。', 'It only moves when you don’t.');
 const letGoNote = t('揉掉一个“应该”', 'crumple up a “should”');
-const ribbonNote = t('拖着它，转到背面去', 'drag it round to the back');
+const walkNote = t('推着红点，沿纸带走', 'push the red dot along');
+const snipNote = t('沿着线，剪一刀', 'now cut along the line');
 const cutNote = t('换你来，上下拖', 'your turn: drag up and down');
 const threadsNote = t('拨开它，换条路走', 'part the threads');
 const glanceNote = t('换个角度，再看看', 'look again, from the side');
@@ -61,13 +62,13 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
     <h2 id="rethink-title"><Fragment set:html={t('翻过来，<br><em>还是我。</em>', 'Turn it over.<br><em>Still me.</em>')} /></h2>
     <p><Fragment set:html={t('有些判断，走到背面，<br>才发现它和自己连在一起。', 'Follow a thought to its other side.<br>You might find yourself there.')} /></p>
   </div>
-  <div class="mobius-stage" data-room-control tabindex="0" role="group" aria-label={t('拖动纸带或使用下方滑杆，翻看判断的另一面', 'Drag the ribbon, use the arrow keys or the slider to turn a thought over')}>
+  <div class="mobius-stage" data-room-control tabindex="0" role="group" aria-label={t('拖动红点或用方向键，沿纸带推动这个想法；拖动别处转动纸带', 'Drag the red dot or use the arrow keys to move the thought along the ribbon; drag elsewhere to turn it')}>
     <canvas id="mobius" aria-hidden="true"></canvas>
     <span class="ribbon-registration registration-a"><Icon name="plus" /></span><span class="ribbon-registration registration-b"><Icon name="plus" /></span>
     <span class="ribbon-side-note">ONE SURFACE. NO FINAL SIDE.</span>
     <span class="ribbon-drag-hint">{t('拖动纸带', 'Turn the ribbon')} <Icon name="horizontal" /></span>
   </div>
-  <p class="pencil-note note-rethink-turn" data-note="rethink-turn" aria-hidden="true"><span>{ribbonNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
+  <p class="pencil-note note-rethink" data-note="rethink-walk" aria-hidden="true"><span>{walkNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p><p class="pencil-note note-rethink" data-note="rethink-cut" aria-hidden="true"><span>{snipNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="thought-caption" aria-live="polite">
     <span id="thought-kicker">{t('起初，我以为', 'At first, I thought')}</span>
     <blockquote id="thought-quote">{t('「有条件的善意不是善意，是定价。」', '“Conditional kindness isn’t kindness. It’s a price.”')}</blockquote>
@@ -75,7 +76,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
   </div>
   <div class="ribbon-controls" data-room-control>
     <button id="turn-thought" class="small-action">{t('再翻一面', 'Turn it again')} <Icon name="replay" /></button>
-    <label><span>{t('看见别人', 'Look out')}</span><input id="thought-angle" type="range" min="0" max="360" value="0" aria-label={t('翻转观点纸带', 'Turn the ribbon')}><span>{t('看回自己', 'Look in')}</span></label>
+    <label><span>{t('看见别人', 'Look out')}</span><input id="thought-angle" type="range" min="0" max="720" value="0" aria-label={t('沿纸带推动想法', 'Move the thought along the ribbon')}><span>{t('看回自己', 'Look in')}</span></label>
   </div>
   <div class="extra-footer"><a href="/blog/posts/2026-05-29-liar-game-role-game/" target="_blank" rel="noopener noreferrer">{t('从《世界不是 liar game，是 role game》里长出来', 'From my essay on roles · Read in Chinese')} <Icon name="northeast" /></a><button data-place="work">{t('去看看，想法怎么变成东西', 'See a thought become a thing')} <span><Icon name="right" /></span></button></div>
 </section>

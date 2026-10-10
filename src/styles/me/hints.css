@@ -33,8 +33,9 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
 .note-trace-loop svg{transform:translateY(.2em) rotate(28deg)}
 .note-trace-cross{left:9%;top:24%;--note-angle:-4deg}
 .note-trace-cross svg{transform:translateY(.9em) rotate(72deg)}
-.note-rethink-turn{left:2.8%;top:57%;--note-angle:-5deg}
-.note-rethink-turn svg{transform:translateY(-.3em) rotate(-10deg)}
+/* The ribbon's notes follow its red dot (extra-rooms.js sets left and top). */
+.note-rethink{--note-angle:-4deg}
+.note-rethink svg{transform:translateY(.55em) rotate(52deg)}
 .note-work-cut{left:54%;top:75.5%;--note-angle:-3deg}
 .note-work-cut svg{transform:translateY(-.5em) rotate(-38deg)}
 .note-idle-letgo{left:36.5%;top:47%;--note-angle:-4deg}
@@ -55,7 +56,6 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
   .note-trace-pluck{left:8%;top:78%}
   .note-trace-loop{left:44%;top:27%}
   .note-trace-cross{left:7%;top:27%}
-  .note-rethink-turn{left:6%;top:62%}
   .note-work-cut{left:50%;top:22%;flex-direction:row-reverse}
   .note-work-cut svg{transform:translateY(-.5em) scaleX(-1) rotate(-8deg)}
   .note-idle-letgo{left:5%;top:52%}

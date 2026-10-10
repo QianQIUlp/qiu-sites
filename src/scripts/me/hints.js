@@ -47,7 +47,10 @@ const lessons = {
     {key: 'trace-loop', after: 2600, demo: 'hint:ring', note: 'trace-loop', write: 2200, when: () => document.querySelector('.draw-area.has-lines')},
     {key: 'trace-cross', after: 3200, note: 'trace-cross', write: 0, when: () => +document.querySelector('.draw-area')?.dataset.lines >= 2},
   ],
-  rethink: [{key: 'rethink-turn', after: 2200, demo: 'hint:ribbon', note: 'rethink-turn', write: 1700}],
+  rethink: [
+    {key: 'rethink-walk', after: 2200, demo: 'hint:ribbon', note: 'rethink-walk', write: 2000},
+    {key: 'rethink-cut', after: 1800, demo: 'hint:snip', note: 'rethink-cut', write: 900, when: () => document.querySelector('.mobius-stage[data-complete="true"]')},
+  ],
   // The sculpture already gives its own guided tour on arrival; the note waits for it to finish.
   work: [{key: 'work-cut', after: 14800, note: 'work-cut', write: 0}],
   idle: [
