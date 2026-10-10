@@ -29,6 +29,10 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
 .note-trace-line svg{transform:translateY(-.3em) rotate(-8deg)}
 .note-trace-pluck{left:22%;top:71%;--note-angle:-3deg}
 .note-trace-pluck svg{transform:translateY(-.25em) rotate(-4deg)}
+.note-trace-loop{left:43%;top:19%;--note-angle:-3deg}
+.note-trace-loop svg{transform:translateY(.2em) rotate(28deg)}
+.note-trace-cross{left:9%;top:24%;--note-angle:-4deg}
+.note-trace-cross svg{transform:translateY(.9em) rotate(72deg)}
 .note-rethink-turn{left:2.8%;top:57%;--note-angle:-5deg}
 .note-rethink-turn svg{transform:translateY(-.3em) rotate(-10deg)}
 .note-work-cut{left:54%;top:75.5%;--note-angle:-3deg}
@@ -49,6 +53,8 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
   .note-music-strings svg{transform:translateY(-.35em) rotate(-12deg)}
   .note-trace-line{left:30%;top:66%}
   .note-trace-pluck{left:8%;top:78%}
+  .note-trace-loop{left:44%;top:27%}
+  .note-trace-cross{left:7%;top:27%}
   .note-rethink-turn{left:6%;top:62%}
   .note-work-cut{left:50%;top:22%;flex-direction:row-reverse}
   .note-work-cut svg{transform:translateY(-.5em) scaleX(-1) rotate(-8deg)}
@@ -61,3 +67,8 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
 /* The pencil's own demonstration in 留一笔: drawn by itself, shivered by an invisible finger. */
 .trace-ghost{position:absolute;left:12%;top:30%;width:70%;height:34%;overflow:visible;pointer-events:none;opacity:0;transform-box:fill-box;transform-origin:50% 50%}
 .trace-ghost path{fill:none;stroke:rgba(58,60,54,.55);stroke-width:1.6;stroke-linecap:round;vector-effect:non-scaling-stroke;clip-path:inset(-20% 100% -20% 0)}
+.trace-ghost-ring{position:absolute;left:70%;top:8%;width:15%;height:30%;overflow:visible;pointer-events:none;opacity:0}
+/* Drawn with a dash, so its strokes scale with it (a non-scaling stroke would break the dash). */
+.trace-ghost-ring path,.trace-ghost-ring circle{fill:none;stroke:rgba(58,60,54,.55);stroke-width:.5;stroke-linecap:round}
+.trace-ghost-ring path{stroke-dasharray:1;stroke-dashoffset:1}
+.trace-ghost-ring circle{stroke-width:.3;opacity:0}

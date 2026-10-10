@@ -35,6 +35,8 @@ const wanderNote = t('整间屋子，都能拖着走', 'grab the room and wander
 const stringsNote = t('点一根弦，再顺着划过去', 'tap a string, then brush across');
 const sketchNote = t('像这样，画一笔', 'like that. your turn');
 const pluckNote = t('碰碰它，它会响', 'touch your line. it rings');
+const loopNote = t('首尾连上，听听看', 'join the ends, then listen');
+const crossNote = t('让两根线交叉试试', 'let two lines cross');
 // hand-font:end
 ---
 <a class="skip-link" href="#room">{t("跳到小屋", "Skip to the room")}</a>
@@ -94,8 +96,8 @@ const pluckNote = t('碰碰它，它会响', 'touch your line. it rings');
 
       <section class="place trace" data-scene="trace" aria-labelledby="trace-title" inert>
         <div class="place-heading"><span class="eyebrow">{t("你也可以留一笔", "A LITTLE SOMETHING FROM YOU")}</span><h2 id="trace-title"><Fragment set:html={t("把一条线，<br>变成一根弦。", "Draw a line.<br>Give it a voice.")} /></h2><p>{t("在空白处画下去。松手后，再拨动它。", "Draw in the empty space. Let go, then pluck.")}</p></div>
-        <div class="draw-area" tabindex="0" role="group" aria-label={t("临时画布，拖动画线，松手后触碰线条使它振动", "Temporary canvas. Drag to draw a line, then touch it to hear it ring.")}><span class="drawing-hint">{t("从这里，随手划一下。", "A line can start anywhere.")}</span><svg class="trace-ghost" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M6 27C17 13 27 11 38 19S58 33 70 22 88 9 95 14" /></svg></div>
-        <p class="pencil-note note-trace-line" data-note="trace-line" aria-hidden="true"><span>{sketchNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p><p class="pencil-note note-trace-pluck" data-note="trace-pluck" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{pluckNote}</span></p>
+        <div class="draw-area" tabindex="0" role="group" aria-label={t("临时画布，拖动画线，松手后触碰线条使它振动", "Temporary canvas. Drag to draw a line, then touch it to hear it ring.")}><span class="drawing-hint">{t("从这里，随手划一下。", "A line can start anywhere.")}</span><svg class="trace-ghost" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M6 27C17 13 27 11 38 19S58 33 70 22 88 9 95 14" /></svg><svg class="trace-ghost-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="11" /><circle cx="20" cy="20" r="11" /><path pathLength="1" d="M21 9.5C28 9 31.5 15 30.6 21.5S22.5 31.4 16.4 29.8 8.6 21 10.4 15.6 17 9.2 22.6 10.6" /></svg></div>
+        <p class="pencil-note note-trace-line" data-note="trace-line" aria-hidden="true"><span>{sketchNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p><p class="pencil-note note-trace-pluck" data-note="trace-pluck" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{pluckNote}</span></p><p class="pencil-note note-trace-loop" data-note="trace-loop" aria-hidden="true"><span>{loopNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p><p class="pencil-note note-trace-cross" data-note="trace-cross" aria-hidden="true"><span>{crossNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
         <div class="trace-footer"><p>{t("没有标准形状。", "There’s no right shape.")}<br><span>{t("这一笔，留在这次停留里。", "Just here, for this visit.")}</span></p><div><button class="small-action" id="add-line" type="button">{t("替我起个头", "Give me a starting point")} <Icon name="northeast" /></button><button class="small-action" id="clear-lines" type="button">{t("重新留白", "Start again")} <Icon name="southwest" /></button></div></div>
       </section>
       <MoreRooms lang={lang} />
