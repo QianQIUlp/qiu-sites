@@ -31,8 +31,8 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
 .note-trace-pluck svg{transform:translateY(-.25em) rotate(-4deg)}
 .note-rethink-turn{left:2.8%;top:57%;--note-angle:-5deg}
 .note-rethink-turn svg{transform:translateY(-.3em) rotate(-10deg)}
-.note-work-cut{left:37%;top:33%;--note-angle:-3deg}
-.note-work-cut svg{transform:translateY(-.1em) rotate(18deg)}
+.note-work-cut{left:54%;top:75.5%;--note-angle:-3deg}
+.note-work-cut svg{transform:translateY(-.5em) rotate(-38deg)}
 .note-idle-letgo{left:36.5%;top:47%;--note-angle:-4deg}
 .note-idle-letgo svg{transform:translateY(.15em) rotate(38deg)}
 .note-paths-bend{left:40%;top:73.5%;--note-angle:-3deg}
@@ -45,7 +45,8 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
   .note-papers{left:7%;top:29.5%}
   .note-papers svg{transform:translateY(-.45em) rotate(-6deg)}
   .note-wander{left:6%;top:83.5%}
-  .note-music-strings{left:27%;top:23.2%}
+  .note-music-strings{left:5%;top:50.2%}
+  .note-music-strings svg{transform:translateY(-.35em) rotate(-12deg)}
   .note-trace-line{left:30%;top:66%}
   .note-trace-pluck{left:8%;top:78%}
   .note-rethink-turn{left:6%;top:62%}
