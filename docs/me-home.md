@@ -15,7 +15,8 @@
 - `src/styles/me/fonts.css`, `icons.css`: homepage-only fonts and shared SVG sizing; `Icon.astro` and `icons.js` let initial markup and dynamic state share the same graphics.
 - `src/scripts/me/scene.js`: space (including the coast after a released pan), line drawing, tone controls and loop recording.
 - `src/scripts/me/papers.js`: loose pages as paper: throwing, landing in other rooms, and the window light that shows each page's back and pencil draft.
-- `src/scripts/me/hints.js`: the quiet tutorial: each room's one-time demonstration, the pencil note that follows, and the `me-found` record that retires both.
+- `src/scripts/me/hints.js`: the quiet tutorial: every room's ordered lessons (one-time demonstration, then the pencil note), and the `me-found` record that retires both.
+- `src/styles/me/paper-stock.css`: the loose pages as real paper (manuscript grid, typewritten index card, engineering pad) and their four subset faces.
 - `src/scripts/me/afternoon.js`: 不赶时间 ("No hurry"): time that passes only while the visitor is still, the clock, dust, lamp and evening line, and the hour (`--hour`, `--gold`, `--dusk`) shared with every room.
 - `src/scripts/me/boot.js`: starts the space and controls first, then dynamically loads 3D and the added areas.
 - `src/scripts/me/extra-rooms.js`, `nine-rooms.js`: Möbius paper strip, putting down paper slips, path playing and offset text; state stays only within the current visit.
