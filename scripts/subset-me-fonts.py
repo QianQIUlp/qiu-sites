@@ -62,7 +62,24 @@ hand_cjk = {c for c in hand if 0x3000 <= ord(c) <= 0x9FFF or 0xFF00 <= ord(c) <=
 hand_cjk_font = save("long-cang.ttf", "long-cang-hand.woff2", hand_cjk)
 save("caveat.ttf", "caveat-hand.woff2", hand - hand_cjk, 450)
 assert {ord(c) for c in hand_cjk} <= hand_cjk_font.getBestCmap().keys(), "Missing handwriting glyphs"
-for family in ("arimo", "gelasio", "cousine", "noto-sans-sc", "noto-serif-sc", "long-cang", "caveat"):
+# Paper stock (the three loose pages): every character between the `paper-font:start` /
+# `paper-font:end` markers of Room.astro, in both languages. Each page is set in the face of the
+# real paper it imitates: manuscript grid paper (LXGW WenKai, CJK and Latin), a typewritten index
+# card (Courier Prime, Latin; its Chinese uses the Song serif above) and an engineering pad (Zhuque
+# Fangsong for CJK, Architects Daughter for Latin).
+room = (root / "src/components/me/Room.astro").read_text(encoding="utf-8")
+paper = room.split("paper-font:start", 1)[1].split("paper-font:end", 1)[0]
+paper = set(re.sub(r"<[^>]+>", " ", paper))
+paper_cjk = {c for c in paper if 0x3000 <= ord(c) <= 0x9FFF or 0xFF00 <= ord(c) <= 0xFFEF}
+paper_latin = {c for c in paper if 0x20 <= ord(c) < 0x3000} | {chr(n) for n in range(0x20, 0x7F)}
+kai = save("lxgw-wenkai.ttf", "lxgw-wenkai-paper.woff2", paper_cjk | paper_latin)
+fangsong = save("zhuque-fangsong.ttf", "zhuque-fangsong-paper.woff2", paper_cjk)
+save("courier-prime.ttf", "courier-prime-paper.woff2", paper_latin)
+save("architects-daughter.ttf", "architects-daughter-paper.woff2", paper_latin)
+assert {ord(c) for c in paper_cjk} <= kai.getBestCmap().keys(), "Missing manuscript-paper glyphs"
+assert {ord(c) for c in paper_cjk} <= fangsong.getBestCmap().keys(), "Missing engineering-pad glyphs"
+for family in ("arimo", "gelasio", "cousine", "noto-sans-sc", "noto-serif-sc", "long-cang", "caveat",
+               "lxgw-wenkai", "zhuque-fangsong", "courier-prime", "architects-daughter"):
     (output / f"{family}-OFL.txt").write_bytes((sources / f"{family}-OFL.txt").read_bytes())
 for path in output.glob("*.woff2"):
     print(f"{path.name}: {path.stat().st_size:,} bytes")

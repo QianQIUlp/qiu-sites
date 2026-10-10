@@ -18,6 +18,10 @@ Official sources are pinned to Google Fonts commit
 | Noto Serif SC | `notoserifsc/NotoSerifSC[wght].ttf` | `noto-serif-sc.ttf` | Source-used CJK serif, 400 |
 | Long Cang | `longcang/LongCang-Regular.ttf` | `long-cang.ttf` | Pencil handwriting for drafts and notes, CJK only |
 | Caveat | `caveat/Caveat[wght].ttf` | `caveat.ttf` | Pencil handwriting for drafts and notes, Latin only, 450 |
+| Courier Prime | `courierprime/CourierPrime-Regular.ttf` | `courier-prime.ttf` | Typewriter on loose page 02, Latin |
+| Architects Daughter | `architectsdaughter/ArchitectsDaughter-Regular.ttf` | `architects-daughter.ttf` | Drafting hand on loose page 03, Latin |
+| LXGW WenKai | [lxgw/LxgwWenKai v1.522](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.522) `LXGWWenKai-Regular.ttf` | `lxgw-wenkai.ttf` | Fountain-pen kai on loose page 01, CJK and Latin (web subset, as its licence allows) |
+| Zhuque Fangsong | [TrionesType/zhuque v0.212](https://github.com/TrionesType/zhuque/releases/tag/v0.212) `ZhuqueFangsong-Regular.ttf` | `zhuque-fangsong.ttf` | Long Fangsong lettering on loose page 03, CJK |
 
 Arimo and Gelasio retain the prior Latin metrics. Cousine is Courier New
 compatible, so its small labels are checked for fit. Chinese display glyphs stay
@@ -28,10 +32,13 @@ The handwriting faces ("Me Hand") cover only the strings between the
 The small display subset is inlined into the homepage stylesheet by Vite. The
 primary Latin sans, and serif on English pages, have explicit font preloads.
 
-To regenerate after adding homepage text, download these pinned TTFs and the seven
+To regenerate after adding homepage text, download these TTFs and the eleven
 families' `OFL.txt` files into a temporary directory, renaming licenses to
 `arimo-OFL.txt`, `gelasio-OFL.txt`, `cousine-OFL.txt`, `noto-sans-sc-OFL.txt`,
-`noto-serif-sc-OFL.txt`, `long-cang-OFL.txt`, `caveat-OFL.txt`.
+`noto-serif-sc-OFL.txt`, `long-cang-OFL.txt`, `caveat-OFL.txt`, `courier-prime-OFL.txt`,
+`architects-daughter-OFL.txt`, `lxgw-wenkai-OFL.txt` and `zhuque-fangsong-OFL.txt` (that repository's `LICENSE.txt`).
+The two GitHub-released families are outside the Google Fonts pin.
+The paper faces cover only the characters between the `paper-font` markers in `Room.astro`.
 Run `python scripts/subset-me-fonts.py <source-directory>` in a Python environment
 with `fonttools` and `brotli`. The script derives character coverage from homepage
 components, layout and interaction modules, preserving all ASCII for live values.
