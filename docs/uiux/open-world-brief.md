@@ -45,6 +45,8 @@ One thing at a time, with Qiu reviewing each step before the next:
 
 Check each step yourself in the browser, show Qiu screenshots, and only commit, push and open a PR (per `AGENTS.md`) after Qiu approves.
 
+**Update 2026-10-10 (Qiu):** step 3 goes into one PR (#86) for all rooms. Keep moving without stopping for approval after each room; push as work lands, send screenshots, and ask Qiu only when a decision is genuinely theirs.
+
 ## Branch state (`feat/me-living-rooms`, commit ec12233, not pushed)
 
 | Change | Disposition |
