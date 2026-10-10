@@ -36,8 +36,12 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     const follow=motion?1:.3;
     ctx.save();ctx.translate(width*.505+tilt.x*7*follow,height*.475+tilt.y*4*follow);
     ctx.rotate(.32+tilt.x*.025*follow);
-    ctx.shadowColor='#2b241936';ctx.shadowBlur=18;ctx.shadowOffsetX=9;ctx.shadowOffsetY=16;
-    window.qiuGuitar.drawHome(tilt.x*follow,tilt.y*follow);ctx.drawImage(window.qiuGuitar.canvas,-size/2,-size/2,size,size);
+    window.qiuGuitar.drawHome(tilt.x*follow,tilt.y*follow);
+    // Like everything else in the room, it casts away from the window: a long soft shadow, then a close one.
+    ctx.shadowColor='rgba(74,50,26,.24)';ctx.shadowBlur=size*.032;ctx.shadowOffsetX=-size*.03;ctx.shadowOffsetY=size*.04;
+    ctx.drawImage(window.qiuGuitar.canvas,-size/2,-size/2,size,size);
+    ctx.shadowColor='rgba(46,28,12,.26)';ctx.shadowBlur=size*.006;ctx.shadowOffsetX=-size*.006;ctx.shadowOffsetY=size*.009;
+    ctx.drawImage(window.qiuGuitar.canvas,-size/2,-size/2,size,size);
     document.body.classList.add('guitar-home-ready');
     ctx.restore();
   }
@@ -50,19 +54,29 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     const x1=from[0]*width,y1=from[1]*height,x2=to[0]*width,y2=to[1]*height;
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(x1+(x2-x1)*.3,y1+height*.12,x2-(x2-x1)*.25,y2+height*.19,x2,y2);ctx.strokeStyle=color;ctx.lineWidth=.65;ctx.stroke();
   }
-  function stringBounds() {return width<=700?{x:.07,y:.24,w:.86,h:.19}:{x:.34,y:.13,w:.605,h:.21};}
-  function drawStrings(now) {
-    const b=stringBounds(),x0=(1.13+b.x)*width,x1=x0+b.w*width;
-    for(let i=0;i<6;i++) {
-      const y=(b.y+b.h*(i+.5)/6)*height;
-      const amp=motion?pulses[i]*Math.min(42,height*.055)*Math.sin(now*(.032+i*.003)):0;
-      const points=[];
-      for(let n=0;n<=64;n++) {const t=n/64;points.push({x:x0+22+(x1-x0-44)*t,y:y+Math.sin(t*Math.PI)*amp*Math.cos(t*Math.PI*(2+i))});}
-      line(points,pulses[i]>.03?'#e83d27':`rgba(69,83,54,${.37+i*.07})`,.65+i*.13);
-      [points[0],points[64]].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,2.1,0,Math.PI*2);ctx.fillStyle='#878d76';ctx.fill();});
-    }
+  // The strings room is a close-up of the real Rāna. The photograph keeps its strings;
+  // a plucked one blurs into the lens-shaped envelope a ringing string makes.
+  const jamCanvas=document.querySelector('#jam-strings'),jamCtx=jamCanvas.getContext('2d');
+  const jamLines=[[297,293],[322,320],[348,345],[374,373],[399,401],[425,429]],jamGauge=[.7,.85,1.05,1.3,1.6,1.9];
+  function drawJam(now) {
+    const w=jamCanvas.clientWidth,h=jamCanvas.clientHeight;if(!w||!h)return;
+    const scale=Math.min(2.5,dpr*Math.max(1,camera.z));
+    if(jamCanvas.width!==Math.round(w*scale)||jamCanvas.height!==Math.round(h*scale)){jamCanvas.width=Math.round(w*scale);jamCanvas.height=Math.round(h*scale);}
+    jamCtx.setTransform(scale,0,0,scale,0,0);jamCtx.clearRect(0,0,w,h);
+    const sx=w/860,sy=h/620,start=-40,end=690;
+    jamLines.forEach(([a,b],i)=>{
+      const p=pulses[i];if(p<.012)return;
+      const y=u=>(a+(b-a)*(u-320)/350)*sy,amp=motion?p*Math.min(11,4+i*1.4)*sy:0,phase=Math.cos(now*(.06-i*.0055)+i);
+      jamCtx.beginPath();
+      for(let n=0;n<=48;n++){const u=start+(end-start)*n/48,e=Math.sin(Math.PI*n/48);jamCtx.lineTo(u*sx,y(u)-amp*e);}
+      for(let n=48;n>=0;n--){const u=start+(end-start)*n/48,e=Math.sin(Math.PI*n/48);jamCtx.lineTo(u*sx,y(u)+amp*e);}
+      jamCtx.fillStyle=`rgba(236,228,210,${Math.min(.2,p*.22)})`;jamCtx.fill();
+      jamCtx.beginPath();
+      for(let n=0;n<=48;n++){const u=start+(end-start)*n/48,e=Math.sin(Math.PI*n/48);jamCtx.lineTo(u*sx,y(u)+amp*e*phase);}
+      jamCtx.strokeStyle=`rgba(255,247,232,${.35+p*.55})`;jamCtx.lineWidth=jamGauge[i]*Math.max(.7,sx);jamCtx.shadowColor='rgba(255,196,140,.55)';jamCtx.shadowBlur=6*p;jamCtx.stroke();jamCtx.shadowBlur=0;
+    });
   }
-  function drawBounds() {return width<=600?{x:.07,y:.32,w:.86,h:.47}:{x:.33,y:.15,w:.62,h:.68};}
+  function drawBounds() {return width<=600?{x:.07,y:.32,w:.86,h:.47}:width<=700?{x:.33,y:.15,w:.62,h:.68}:{x:.05,y:.07,w:.74,h:.76};}
   function drawTrace(now) {
     const b=drawBounds(),startX=(.06+b.x)*width,startY=(-1.11+b.y)*height;
     ctx.strokeStyle='#878e7130';ctx.lineWidth=.6;
@@ -87,7 +101,7 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     thread([-.62,-.16],[-.62,.3]);thread([1.67,-.16],[1.65,.3]);
     thread([-.3,-.56],[.33,-.5]);thread([.91,-.51],[1.38,-.54]);
     if(inView(places.home))drawGuitar();
-    if(inView(places.music))drawStrings(now);
+    if(inView(places.music))drawJam(now);
     if(inView(places.trace))drawTrace(now);
     if(camera.z<.65){
       ctx.globalAlpha=clamp((.65-camera.z)/.18,0,1);ctx.fillStyle='#626b55';ctx.font=`${11/camera.z}px ${sans}`;ctx.textAlign='center';
@@ -109,7 +123,7 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     lines.forEach(l=>l.amp*=Math.pow(motion?.95:.65,dt));
     runLoop(now);updateMeter();render(now);
     const moving=['x','y','z'].some(k=>Math.abs(camera[k]-target[k])>.0003)||Math.abs(tilt.x-tx)>.004||Math.abs(tilt.y-ty)>.004;
-    if(recording||looping||moving||pulses.some(p=>p>.015)||lines.some(l=>l.amp>.015)||(enabled&&audio&&audio.currentTime<audioTailUntil))schedule();
+    if(recording||looping||moving||vu>-47.5||pulses.some(p=>p>.015)||lines.some(l=>l.amp>.015)||(enabled&&audio&&audio.currentTime<audioTailUntil))schedule();
   }
   function schedule(){if(!frameId&&!document.hidden)frameId=requestAnimationFrame(frame);}
   function resize() {
@@ -119,7 +133,7 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
   }
   function setActive(place) {
     const changed=active!==place;
-    active=place;if(place!=='home')pointer={x:0,y:0};room.classList.toggle('overviewing',place==='overview');
+    active=place;room.dataset.place=place;if(place!=='home')pointer={x:0,y:0};room.classList.toggle('overviewing',place==='overview');
     document.querySelectorAll('.language-switch a').forEach(link=>link.hash=place);
     document.querySelector('#where-name').textContent=places[place].name;
     document.querySelector('#where-hint').textContent=place==='papers'?t("拖动纸张 · 点一下翻面","Drag a page · Click to turn"):place==='music'?t("划过琴弦 · A S D F G H","Pluck a string · A S D F G H"):place==='trace'?t("画一根弦 · 松手再拨动","Draw a line · Let go, then pluck"):width<=600?t("拖动画面 · 双指缩放","Drag to wander · Pinch to zoom"):t("拖动画面漫游 · 滚轮缩放","Drag to wander · Scroll to zoom");
@@ -243,7 +257,7 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
   const overdubButton=document.querySelector('#loop-overdub'),loopPanel=document.querySelector('.loop-controls');
   const loopBeats=[...document.querySelectorAll('.loop-beats i')],strings=[...document.querySelectorAll('.string')];
   const loopProgress=document.querySelector('.loop-progress i'),layerLabel=document.querySelector('#loop-layer');
-  const meterFill=document.querySelector('.output-meter i'),meterLabel=document.querySelector('#output-level');
+  const meterFill=document.querySelector('.output-meter i'),meterLabel=document.querySelector('#output-level'),vuMeter=document.querySelector('.vu-meter');let vu=-48;
   const descriptions={clean:t("干净的弦，留一点空气。","Clean strings. A little room to breathe."),gold:t("温热一点，保留拨弦的棱角。","A little warmth. Keep the edge."),blue:t("多一点沙砾，多一点冲动。","A little grit. Follow the impulse."),night:t("弹完的音，也舍不得走。","Let the last note linger.")};
   async function ensureAudio(){
     if(!audio){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error('Audio unavailable');audio=new Audio();rig=createAudioRig(audio);rig.set({...params,volume:0});}
@@ -364,6 +378,9 @@ import {createAudioRig,defaultRig,tones} from './audio-engine.js';
     const rms=enabled&&rig?rig.meter():0,db=rms>0?20*Math.log10(rms):-Infinity;
     const level=clamp((db+60)/60,0,1);
     meterFill.style.setProperty('--level',`${level*100}%`);
+    // A VU needle has weight: it rises quickly and settles back slowly.
+    const needle=Number.isFinite(db)?clamp((db+34)/23,0,1.08)*96-48:-48;vu+=(needle-vu)*(needle>vu?.32:.08);
+    vuMeter.style.setProperty('--vu',`${vu.toFixed(2)}deg`);vuMeter.dataset.on=String(enabled);vuMeter.dataset.hot=String(vu>18);
     const number=Number.isFinite(db)&&db>-70?Math.round(db):null;
     if(lastMeter!==number){meterLabel.textContent=number===null?'−∞ dB':`${number} dB`;lastMeter=number;}
     strings.forEach((button,i)=>button.dataset.playing=String(pulses[i]>.15));
