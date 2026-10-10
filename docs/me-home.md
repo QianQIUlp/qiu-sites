@@ -13,7 +13,8 @@
 - `src/components/me/Room.astro`, `MoreRooms.astro`, `Pedalboard.astro`: shared bilingual page and pedal markup, with initial copy emitted at build time; interactive copy continues to use `language.js`, with no translation library.
 - `src/styles/me/`: the approved space, guitar, music and English typography; `site.css` holds site-navigation integration details.
 - `src/styles/me/fonts.css`, `icons.css`: homepage-only fonts and shared SVG sizing; `Icon.astro` and `icons.js` let initial markup and dynamic state share the same graphics.
-- `src/scripts/me/scene.js`: space, papers, line drawing, tone controls and loop recording.
+- `src/scripts/me/scene.js`: space (including the coast after a released pan), line drawing, tone controls and loop recording.
+- `src/scripts/me/papers.js`: loose pages as paper: throwing, landing in other rooms, and the window light that shows each page's back and pencil draft.
 - `src/scripts/me/boot.js`: starts the space and controls first, then dynamically loads 3D and the added areas.
 - `src/scripts/me/extra-rooms.js`, `nine-rooms.js`: Möbius paper strip, putting down paper slips, path playing and offset text; state stays only within the current visit.
 - `src/scripts/me/work-specimen.js`: four on-demand project sculptures whose cross-sections show origin, approach and boundaries.

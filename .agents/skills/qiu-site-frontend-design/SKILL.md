@@ -18,8 +18,11 @@ As of 2026-10-09 the agreed homepage vision is `docs/uiux/open-world-brief.md`; 
 
 The pedalboard room (琴弦之间, "Between the Strings") is the most crafted part of the site; see the 2026-10-10 section of `docs/uiux/ink-and-light-study.md`. The board reads left to right: guitar → Centaur → BOSS BD-2 → BOSS PS-6 Harmonist → After Hours tape echo → out; never mirror it. Pedals are inline SVG objects scaled by one `--u` unit, knobs (`PedalKnob.astro`) turn around their shaft while their lighting stays still, stomps press and click, LEDs spill light, and the Harmonist plays a real diatonic harmony. The VU meter reads before the limiter so its red zone and PEAK lamp are reachable by pushing levels. On phones the board pages one centred pedal at a time with snapping swipes and CENTAUR / BD-2 / PS-6 / ECHO tabs. Pedal styles live in `src/styles/me/pedals.css`.
 
+Step 3 gives every other room one idea of its own; read the 2026-10-10 "Loose pages and letting go" section of `docs/uiux/ink-and-light-study.md`. A released pan coasts and only settles onto a room when it stops close to one. Loose pages are paper in `.paper-layer` (`papers.js`, `papers.css`): thrown, they glide, land and may slide into another room for the visit; held up into the `.paper-sun` window patch they glow and show their mirrored back and an erased pencil draft in "Me Hand". Keep drafts true to their essays and inside the `hand-font` markers so the handwriting subset covers them.
+
 For the 2026-09-30 font consistency fix, homepage text uses the self-hosted Arimo,
-Gelasio, Cousine, Noto Sans SC and Noto Serif SC assets in `src/assets/me/fonts/`.
+Gelasio, Cousine, Noto Sans SC and Noto Serif SC assets in `src/assets/me/fonts/`, plus the
+Long Cang and Caveat handwriting subsets used only by the loose pages' drafts.
 Preserve the sans/serif/mono roles and the small 900-weight Chinese display subset.
 UI arrows and control symbols use shared inline SVG in `Icon.astro` / `icons.js`,
 including dynamic states. Keep fallback text readable; refresh cached canvas
