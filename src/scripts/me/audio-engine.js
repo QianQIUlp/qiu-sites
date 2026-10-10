@@ -74,6 +74,14 @@ function makeClick(context){
   }
   return buffer;
 }
+
+function makeCrackle(context){
+  // One crease giving way in a sheet of paper: a dry, bright snap that dies almost at once.
+  const rate=context.sampleRate,length=Math.ceil(rate*.05),buffer=context.createBuffer(1,length,rate),data=buffer.getChannelData(0);
+  let seed=17;
+  for(let i=0;i<length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const t=i/rate;data[i]=(seed/4294967296*2-1)*Math.exp(-t*140)*(t<.0015?t/.0015:1);}
+  return buffer;
+}
 export function createAudioRig(context,destination=context.destination){
   const input=context.createGain(),master=context.createGain(),analyser=context.createAnalyser();
   // Plucked notes and their harmony voices meet at the input; the harmonist's BALANCE sets the blend.
@@ -164,8 +172,19 @@ export function createAudioRig(context,destination=context.destination){
     const source=context.createBufferSource(),amount=gain(level);source.buffer=clickBuffer;source.playbackRate.value=rate;
     source.connect(amount).connect(clickLevel);source.start();source.onended=()=>{source.disconnect();amount.disconnect();};
   }
+  const crackleBuffer=makeCrackle(context);
+  function crumple(){
+    // A slip balled up in a fist: a dozen creases collapse over a third of a second.
+    const start=context.currentTime;
+    for(let i=0;i<13;i++){
+      const when=start+Math.pow(Math.random(),1.6)*.34,source=context.createBufferSource(),band=context.createBiquadFilter(),amount=gain(.1+Math.random()*.22);
+      source.buffer=crackleBuffer;source.playbackRate.value=.55+Math.random()*1.1;
+      band.type='bandpass';band.frequency.value=1400+Math.random()*4200;band.Q.value=.7+Math.random()*1.4;
+      source.connect(band).connect(amount).connect(clickLevel);source.start(when);source.onended=()=>{source.disconnect();band.disconnect();amount.disconnect();};
+    }
+  }
   function stopLoop(){for(const v of voices)if(v.kind==='loop'){v.source.stop();voices.delete(v);}}
   function meter(){analyser.getFloatTimeDomainData(meterData);let sum=0;for(const n of meterData)sum+=n*n;return Math.sqrt(sum/meterData.length);}
   apply();
-  return{input,set,play,click,stopLoop,meter,get active(){return voices.size>0;}};
+  return{input,set,play,click,crumple,stopLoop,meter,get active(){return voices.size>0;}};
 }

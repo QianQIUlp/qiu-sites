@@ -1,0 +1,118 @@
+/* Paper stock: three real kinds of paper, each with its own hand. Page 01 is Chinese manuscript
+   grid paper (原稿纸) written in blue-black fountain-pen ink, a teacher's red circles under the
+   line that matters. Page 02 is a red index card fed through a typewriter: Song type for Chinese,
+   Courier for English, a struck phrase typed over with x's, the catalogue punch hole. Page 03 is
+   a green engineering computation pad: its grid printed on the back so it only shows through,
+   lettered in long Fangsong (the Chinese drafting standard) or an architect's hand, the answer
+   boxed. `.paper-stock` carries each sheet's printing; text sits on its rows. */
+@font-face{font-family:"Me Kai";src:url("../../assets/me/fonts/lxgw-wenkai-paper.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Me Fangsong";src:url("../../assets/me/fonts/zhuque-fangsong-paper.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+3000-9FFF,U+FF00-FFEF}
+@font-face{font-family:"Me Typewriter";src:url("../../assets/me/fonts/courier-prime-paper.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0020-02FF,U+2000-206F}
+@font-face{font-family:"Me Drafting";src:url("../../assets/me/fonts/architects-daughter-paper.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0020-02FF,U+2000-206F}
+
+.loose-paper{container-type:size}
+.paper-face>.paper-stock{position:absolute;z-index:0;pointer-events:none}
+.loose-paper .turn-hint,.loose-paper .paper-index{position:relative;z-index:1}
+
+/* ── 01 · Manuscript grid paper ───────────────────────────────────────────────────────────── */
+.loose-paper.paper-a .paper-face{
+  --pad:9cqw;--cell:calc((100cqw - 2 * var(--pad)) / 12);--row:calc(var(--cell) * 1.25);
+  --grid:rgba(196,92,64,.42);--ink:#25324a;
+  padding:var(--pad);background-color:#f3eee0;border-color:rgba(160,120,90,.22)
+}
+.loose-paper.paper-a .paper-back{background-color:#efe9da}
+/* Square cells with a narrow blank strip under every row, inside a heavier frame. */
+.paper-a .paper-stock{
+  left:var(--pad);top:calc(var(--pad) + var(--row));width:calc(var(--cell) * 12);
+  height:calc(var(--row) * 9);height:round(down,calc(100% - 2 * var(--pad) - 2.4 * var(--row)),var(--row));
+  box-shadow:0 0 0 1px var(--grid),0 0 0 2.5px rgba(243,238,224,.9),0 0 0 3.5px var(--grid);
+  background:linear-gradient(to bottom,var(--grid) 0 1px,transparent 1px calc(var(--cell) - 1px),var(--grid) calc(var(--cell) - 1px) var(--cell),transparent var(--cell)) 0 0/100% var(--row)
+}
+.paper-a .paper-stock::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(to right,var(--grid) 0 1px,transparent 1px) 0 0/var(--cell) 100%;
+  -webkit-mask:linear-gradient(to bottom,#000 var(--cell),transparent var(--cell)) 0 0/100% var(--row);
+  mask:linear-gradient(to bottom,#000 var(--cell),transparent var(--cell)) 0 0/100% var(--row)
+}
+.paper-a .paper-stock::after{content:"12 × 16 = 192";position:absolute;right:0;top:calc(100% + .9cqw);font:2.6cqw/1 var(--mono);letter-spacing:.06em;color:var(--grid)}
+.paper-a .paper-back .paper-stock{opacity:.32;transform:scaleX(-1)}
+.paper-a .paper-back .paper-stock::after{content:none}
+.loose-paper.paper-a .paper-front .paper-index{position:absolute;left:var(--pad);top:calc(var(--pad) * .9);color:var(--grid);opacity:1}
+.loose-paper.paper-a .paper-front p{
+  margin:calc(var(--row) * 2 - var(--cell) * .125) 0 0;font:400 calc(var(--cell) * .74)/var(--row) "Me Kai","Me CJK Serif",var(--serif);
+  letter-spacing:calc(var(--cell) - 1em);text-indent:calc((var(--cell) - 1em) / 2);
+  color:var(--ink);text-shadow:0 0 .6px rgba(37,50,74,.45)
+}
+/* A teacher's red circles under a good line, as on any school essay. */
+.loose-paper.paper-a .paper-front p em{border:0;font-style:normal;-webkit-text-emphasis:open circle #d2402a;text-emphasis:open circle #d2402a;-webkit-text-emphasis-position:under;text-emphasis-position:under right}
+html[lang=en] .loose-paper.paper-a .paper-front p{font-size:calc(var(--cell) * .82);letter-spacing:0;text-indent:0;padding-left:calc(var(--cell) * .25);position:relative;top:calc(var(--cell) * .1)}
+html[lang=en] .loose-paper.paper-a .paper-front p em{-webkit-text-emphasis:none;text-emphasis:none;text-decoration:underline wavy #d2402a;text-decoration-thickness:1px;text-underline-offset:.28em}
+.loose-paper.paper-a .turn-hint{position:absolute;right:var(--pad);bottom:calc(var(--pad) * .55);color:var(--grid)}
+.loose-paper.paper-a .paper-back h3,html[lang=en] .loose-paper.paper-a .paper-back h3{font-family:"Me Kai","Me CJK Serif",var(--serif);color:var(--ink);letter-spacing:.02em}
+.loose-paper.paper-a .paper-back p{font-family:"Me Kai","Me CJK Serif",var(--serif);color:#4f5b6b}
+/* The date as a round red rubber stamp, pressed slightly crooked. */
+.loose-paper.paper-a .paper-back .paper-index{align-self:flex-end;display:grid;place-items:center;width:17cqw;height:17cqw;border:1.5px solid rgba(210,64,42,.72);border-radius:50%;box-shadow:inset 0 0 0 2.5px rgba(239,233,218,.9),inset 0 0 0 3.5px rgba(210,64,42,.55);color:rgba(210,64,42,.85);font-size:2.4cqw;letter-spacing:0;opacity:1;transform:rotate(-12deg);text-align:center;mix-blend-mode:multiply}
+
+/* ── 02 · Typewritten index card ──────────────────────────────────────────────────────────── */
+.loose-paper.paper-b .paper-face{
+  --pad:8cqw;--rule:10.6cqw;--top:calc(var(--pad) + 13cqw);--line:rgba(96,14,6,.3);--type:#26120e;
+  padding:var(--pad);border-radius:1.6cqw;background-color:#df4429;color:var(--type);border-color:rgba(120,24,10,.35);
+  -webkit-mask:radial-gradient(circle at 50% calc(100% - 7cqw),transparent 2.3cqw,#000 calc(2.3cqw + .6px));
+  mask:radial-gradient(circle at 50% calc(100% - 7cqw),transparent 2.3cqw,#000 calc(2.3cqw + .6px))
+}
+.loose-paper.paper-b .paper-back{background-color:#e04a30}
+/* A heavier head rule (doubled), then evenly ruled lines to the foot. */
+.paper-b .paper-front .paper-stock{
+  --head:calc(var(--pad) + 6cqw);left:0;right:0;top:var(--head);bottom:15cqw;
+  border-top:1.5px solid rgba(96,14,6,.48);
+  /* Each rule falls just under a typed baseline: 8.1cqw below the top of its line of type. */
+  background:linear-gradient(to bottom,rgba(96,14,6,.42) 0 1px,transparent 1px) 0 2.2cqw/100% 100% no-repeat,
+    linear-gradient(to bottom,transparent calc(var(--rule) - 1px),var(--line) calc(var(--rule) - 1px)) 0 calc(var(--top) + 8.1cqw - var(--rule) - var(--head))/100% var(--rule) repeat-y
+}
+.paper-b .paper-back .paper-stock{display:none}
+
+.loose-paper.paper-b .paper-front .paper-index{position:absolute;left:var(--pad);top:var(--pad);font-family:"Me Typewriter",var(--mono);font-size:3.2cqw;opacity:.82;letter-spacing:.02em}
+.loose-paper.paper-b .paper-front p{
+  margin:calc(var(--top) - var(--pad)) 0 0;font:400 6.4cqw/var(--rule) "Me Typewriter","Me CJK Serif",var(--mono);letter-spacing:.04em;
+  color:var(--type);text-shadow:.25px 0 0 rgba(38,18,14,.5),0 0 .8px rgba(38,18,14,.35)
+}
+/* Typed over: the same struck phrase, x'd out key by key. */
+.loose-paper.paper-b .paper-front s{font-size:1em;color:rgba(38,18,14,.5);text-decoration:none;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 12'><path d='M2 3.2 8 9.4M8 3.2 2 9.4' stroke='rgb(38,18,14)' stroke-width='1.15' stroke-linecap='round' opacity='.92'/></svg>") repeat-x 0 55%/.5em .95em}
+html[lang=en] .loose-paper.paper-b .paper-front p{font-size:5.9cqw;letter-spacing:0}
+html[lang=en] .loose-paper.paper-b .paper-front s{font:inherit;background-size:.6em .95em}
+.loose-paper.paper-b .turn-hint{position:absolute;right:var(--pad);bottom:calc(var(--pad) * .6);font-family:"Me Typewriter",var(--mono);color:var(--type);opacity:.8}
+.loose-paper.paper-b .paper-back h3,html[lang=en] .loose-paper.paper-b .paper-back h3{font-family:"Me Typewriter","Me CJK Serif",var(--mono);color:var(--type);letter-spacing:0}
+.loose-paper.paper-b .paper-back p{font-family:"Me Typewriter","Me CJK Serif",var(--mono);color:rgba(38,18,14,.78)}
+.loose-paper.paper-b .paper-back a{color:#fff3e4}
+.loose-paper.paper-b .paper-back .turn-back{color:rgba(38,18,14,.7)}
+.loose-paper.paper-b .paper-back .paper-index{font-family:"Me Typewriter",var(--mono);opacity:.8}
+
+/* ── 03 · Engineering computation pad ─────────────────────────────────────────────────────── */
+.loose-paper.paper-c .paper-face{
+  --pad:7cqw;--sq:calc(100cqw / 18);--grid:rgba(64,118,82,.2);--lead:#3a3f3b;
+  padding:var(--pad) var(--pad) var(--pad) 15cqw;background-color:#e6eedb;border-color:rgba(70,110,80,.25)
+}
+/* The grid is on the back of the sheet: the front only sees it through the paper. */
+.paper-c .paper-stock{inset:0;background:
+    linear-gradient(to right,transparent calc(12.5cqw - 1px),rgba(64,118,82,.5) calc(12.5cqw - 1px) 12.5cqw,transparent 12.5cqw) 0 0/100% 100% no-repeat,
+    linear-gradient(to bottom,transparent 15cqh,rgba(64,118,82,.55) 15cqh calc(15cqh + 1.5px),transparent calc(15cqh + 1.5px)) 0 0/100% 100% no-repeat,
+    linear-gradient(to right,var(--grid) 0 1px,transparent 1px) 0 0/var(--sq) var(--sq),
+    linear-gradient(to bottom,var(--grid) 0 1px,transparent 1px) 0 0/var(--sq) var(--sq)}
+.paper-c .paper-front .paper-stock{opacity:.55;filter:blur(.35px)}
+.paper-c .paper-stock::after{content:"DATE ______  SHEET 3 OF 3";position:absolute;right:var(--pad);top:4.5cqh;font:2.5cqw/1 var(--mono);letter-spacing:.08em;color:rgba(50,96,66,.75)}
+.paper-c .paper-back .paper-stock::after{content:none}
+.loose-paper.paper-c .paper-back{--grid:rgba(64,118,82,.32);background-color:#e3ebd7;padding-left:var(--pad)}
+.paper-c .paper-back .paper-stock{background:linear-gradient(to right,var(--grid) 0 1px,transparent 1px) 0 0/var(--sq) var(--sq),linear-gradient(to bottom,var(--grid) 0 1px,transparent 1px) 0 0/var(--sq) var(--sq),linear-gradient(to right,rgba(64,118,82,.2) 0 1px,transparent 1px) 0 0/calc(var(--sq) * 5) calc(var(--sq) * 5),linear-gradient(to bottom,rgba(64,118,82,.2) 0 1px,transparent 1px) 0 0/calc(var(--sq) * 5) calc(var(--sq) * 5)}
+.loose-paper.paper-c .paper-front .paper-index{position:absolute;left:15cqw;top:3.6cqh;font:400 3.6cqw/1 "Me Fangsong","Me Drafting",var(--serif);letter-spacing:.06em;color:var(--lead);opacity:.9}
+.loose-paper.paper-c .paper-front p{margin:auto 0;font:400 11cqw/1.5 "Me Fangsong","Me CJK Serif",var(--serif);letter-spacing:.08em;color:var(--lead);transform:scaleX(.86);transform-origin:0 50%;width:116%;text-shadow:0 0 .5px rgba(58,63,59,.5)}
+/* The result, boxed, as on any page of working. */
+.loose-paper.paper-c .paper-front p em{border:1.5px solid rgba(58,63,59,.78);border-radius:2px;padding:0 .12em .04em;margin-left:-.12em;box-shadow:.12em .12em 0 -.06em rgba(58,63,59,.18)}
+html[lang=en] .loose-paper.paper-c .paper-front p{font:400 7.6cqw/1.4 "Me Drafting",var(--sans);text-transform:uppercase;letter-spacing:.02em;transform:none;width:auto}
+html[lang=en] .loose-paper.paper-c .paper-front .paper-index{font-family:"Me Drafting",var(--sans);font-size:3.3cqw;text-transform:uppercase}
+.loose-paper.paper-c .turn-hint{position:absolute;right:var(--pad);bottom:calc(var(--pad) * .7);font-family:"Me Fangsong","Me Drafting",var(--serif);color:var(--lead)}
+.loose-paper.paper-c .paper-back h3{font-family:"Me Fangsong","Me CJK Serif",var(--serif);color:var(--lead);letter-spacing:.06em}
+html[lang=en] .loose-paper.paper-c .paper-back h3{font-family:"Me Drafting",var(--sans);color:var(--lead);text-transform:uppercase;letter-spacing:.02em}
+.loose-paper.paper-c .paper-back p{font-family:"Me Fangsong","Me CJK Serif",var(--serif);color:#4b544c}
+html[lang=en] .loose-paper.paper-c .paper-back p{font-family:"Me Drafting",var(--sans)}
+.loose-paper.paper-c .paper-back .paper-index{font-family:"Me Drafting",var(--mono);opacity:.75}
+@media(max-width:600px){.paper-c .paper-stock::after{content:"SHEET 3 OF 3"}}

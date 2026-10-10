@@ -5,6 +5,19 @@ import workPreview from '../../assets/me/work-home.webp';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const t = (zh: string, en: string) => lang === 'en' ? en : zh;
+// hand-font:start
+const idleNote = t('你不动，它才走。', 'It only moves when you don’t.');
+const letGoNote = t('揉掉一个“应该”', 'crumple up a “should”');
+const walkNote = t('推着红点，沿纸带走', 'push the red dot along');
+const snipNote = t('沿着线，剪一刀', 'now cut along the line');
+const cutNote = t('换你来，上下拖', 'your turn: drag up and down');
+const threadsNote = t('拨开它，换条路走', 'part the threads');
+const pickNote = t('每一根都是一条路，点一根', 'every thread is a way. pick one');
+const glanceNote = t('换个角度，再看看', 'look again, from the side');
+const brushNote = t('用手拂过去', 'brush a hand across it');
+const eyeNote = t('闭上左眼，盯住十字，慢慢凑近', 'shut your left eye, stare at the +, lean in');
+// hand-font:end
+const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
 ---
 <section class="place paths" data-scene="paths" aria-labelledby="paths-title" inert>
   <div class="place-heading">
@@ -23,6 +36,7 @@ const t = (zh: string, en: string) => lang === 'en' ? en : zh;
     <span class="field-axis"><Fragment set:html={t('起点、终点不变。<br>经过的此刻不同。', 'The same two ends.<br>A different moment between.')} /></span>
     <div class="path-listen"><button id="path-play" type="button" aria-label={t('听这条路', 'Listen to this path')}><span class="route-play-icon"><Icon name="play" /></span><span id="path-play-label">{t('听这条路', 'Listen to this path')}</span></button><span id="path-measure">{t('01 / 穿过去', '01 / Through')}</span></div>
   </div>
+  <p class="pencil-note note-paths-pick" data-note="paths-pick" aria-hidden="true"><span>{pickNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p><p class="pencil-note note-paths-bend" data-note="paths-bend" aria-hidden="true"><span>{threadsNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="path-thought" aria-live="polite"><span id="path-status">{t('还没有走过的路，都在这里。', 'The paths you haven’t taken are still here.')}</span><blockquote><Fragment set:html={t('「至少我今天认真地活过一回，<br>这就够了。」', '“At least today, I lived with intention.<br>That’s enough.”')} /></blockquote></div>
   <label class="path-tension" data-room-control><span>{t('拨开一点', 'Bend it')}</span><input id="path-bend" type="range" min="-100" max="100" value="0" step="1" aria-label={t('路径的偏移', 'Bend the path')}><span><Icon name="horizontal" /></span></label>
   <div class="extra-footer"><a href="/blog/posts/2026-05-17-qiyuniao/" target="_blank" rel="noopener noreferrer">{t('从《启喻鸟之章》的一个问题出发', 'From a question about fate · Read in Chinese')} <Icon name="northeast" /></a><button data-place="trace">{t('把走过的，留成一笔', 'Leave a line of your own')} <span><Icon name="right" /></span></button></div>
@@ -40,6 +54,7 @@ const t = (zh: string, en: string) => lang === 'en' ? en : zh;
     <span class="field-index">09 / AN INCOMPLETE CERTAINTY</span><span class="blind-bearing"><output id="blind-degrees" for="blind-angle">00°</output><span>VIEWPOINT</span></span>
     <span class="blind-guide">{t('文字没有消失。只是终于看见了间隙。', 'The word is still here. Now you can see its gaps.')}</span>
   </div>
+  <button class="eye-card" type="button" aria-pressed="false" aria-label={t('一张盲点测试卡，点一下翻面', 'A blind-spot test card. Click to turn it over')}><span class="eye-face eye-front"><span class="eye-marks"><b>+</b><i class="eye-dot"></i></span><small>FIG. 9 · VISUAL FIELD</small></span><span class="eye-face eye-back"><b>{t('每只眼睛都有一个盲点。', 'Every eye has a blind spot.')}</b><small>{t('你从没察觉，因为大脑悄悄把那一块补上了。确定感，有时也是这样补出来的。', 'You never notice, because your brain quietly fills it in. Certainty is sometimes filled in the same way.')}</small></span></button><p class="pencil-note note-blind-brush" data-note="blind-brush" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{brushNote}</span></p><p class="pencil-note note-blind-eye" data-note="blind-eye" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{eyeNote}</span></p><p class="pencil-note note-blind-angle" data-note="blind-angle" aria-hidden="true"><span>{glanceNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="blind-controls" data-room-control><button id="blind-turn" class="small-action" type="button">{t('换个角度', 'Another angle')} <span><Icon name="northeast" /></span></button><label><span>{t('正面', 'Front')}</span><input id="blind-angle" type="range" min="0" max="60" value="0" step="1" aria-label={t('观看确定的角度', 'Viewpoint on certainty')}><span>{t('侧面', 'Side')}</span></label></div>
   <div class="extra-footer"><a href="/blog/posts/2026-05-26-llm-metacog-blindspot/#八写到这里给自己泼一盆冷水" target="_blank" rel="noopener noreferrer">{t('看《LLM 元认知盲点》里留下的自我修正', 'Read my correction · In Chinese')} <Icon name="northeast" /></a><button data-place="rethink">{t('也去翻翻另一面', 'Turn a thought over, too')} <span><Icon name="southwest" /></span></button></div>
 </section>
@@ -50,12 +65,13 @@ const t = (zh: string, en: string) => lang === 'en' ? en : zh;
     <h2 id="rethink-title"><Fragment set:html={t('翻过来，<br><em>还是我。</em>', 'Turn it over.<br><em>Still me.</em>')} /></h2>
     <p><Fragment set:html={t('有些判断，走到背面，<br>才发现它和自己连在一起。', 'Follow a thought to its other side.<br>You might find yourself there.')} /></p>
   </div>
-  <div class="mobius-stage" data-room-control tabindex="0" role="group" aria-label={t('拖动纸带或使用下方滑杆，翻看判断的另一面', 'Drag the ribbon, use the arrow keys or the slider to turn a thought over')}>
+  <div class="mobius-stage" data-room-control tabindex="0" role="group" aria-label={t('拖动红点或用方向键，沿纸带推动这个想法；拖动别处转动纸带', 'Drag the red dot or use the arrow keys to move the thought along the ribbon; drag elsewhere to turn it')}>
     <canvas id="mobius" aria-hidden="true"></canvas>
     <span class="ribbon-registration registration-a"><Icon name="plus" /></span><span class="ribbon-registration registration-b"><Icon name="plus" /></span>
     <span class="ribbon-side-note">ONE SURFACE. NO FINAL SIDE.</span>
     <span class="ribbon-drag-hint">{t('拖动纸带', 'Turn the ribbon')} <Icon name="horizontal" /></span>
   </div>
+  <p class="pencil-note note-rethink" data-note="rethink-walk" aria-hidden="true"><span>{walkNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p><p class="pencil-note note-rethink" data-note="rethink-cut" aria-hidden="true"><span>{snipNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="thought-caption" aria-live="polite">
     <span id="thought-kicker">{t('起初，我以为', 'At first, I thought')}</span>
     <blockquote id="thought-quote">{t('「有条件的善意不是善意，是定价。」', '“Conditional kindness isn’t kindness. It’s a price.”')}</blockquote>
@@ -63,7 +79,7 @@ const t = (zh: string, en: string) => lang === 'en' ? en : zh;
   </div>
   <div class="ribbon-controls" data-room-control>
     <button id="turn-thought" class="small-action">{t('再翻一面', 'Turn it again')} <Icon name="replay" /></button>
-    <label><span>{t('看见别人', 'Look out')}</span><input id="thought-angle" type="range" min="0" max="360" value="0" aria-label={t('翻转观点纸带', 'Turn the ribbon')}><span>{t('看回自己', 'Look in')}</span></label>
+    <label><span>{t('看见别人', 'Look out')}</span><input id="thought-angle" type="range" min="0" max="720" value="0" aria-label={t('沿纸带推动想法', 'Move the thought along the ribbon')}><span>{t('看回自己', 'Look in')}</span></label>
   </div>
   <div class="extra-footer"><a href="/blog/posts/2026-05-29-liar-game-role-game/" target="_blank" rel="noopener noreferrer">{t('从《世界不是 liar game，是 role game》里长出来', 'From my essay on roles · Read in Chinese')} <Icon name="northeast" /></a><button data-place="work">{t('去看看，想法怎么变成东西', 'See a thought become a thing')} <span><Icon name="right" /></span></button></div>
 </section>
@@ -90,6 +106,7 @@ const t = (zh: string, en: string) => lang === 'en' ? en : zh;
     <div class="specimen-notation" aria-hidden="true"><span id="specimen-figure">FIG. 01 — SEPARATE BY DESIGN</span><span id="cut-reading">042</span></div>
     <div class="specimen-caption"><span id="specimen-principle">{t('先有边界，再有各自的空间。', 'Separate spaces begin with boundaries.')}</span><span class="work-drag-hint">{t('上下拖动 · 让光穿过', 'Drag to move the light')} <Icon name="vertical" /></span></div>
   </div>
+  <p class="pencil-note note-work-cut" data-note="work-cut" aria-hidden="true"><span>{cutNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="work-detail" aria-live="polite"><span class="work-detail-label" id="work-detail-label">{t('它从一个问题开始', 'It starts with a question')}</span><p id="work-detail-copy">{t('多个网站身份，为什么要挤在同一个浏览器环境里？', 'Why should different online identities share a single browser environment?')}</p><a id="project-source" href="https://github.com/QianQIUlp/VeriSilo" target="_blank" rel="noopener noreferrer">{t('看真实项目', 'Explore the project')} <Icon name="northeast" /></a></div>
   <div class="work-controls" data-room-control>
     <div class="cut-control"><span class="cut-start">{t('表面', 'Surface')}</span><input id="work-spread" type="range" min="0" max="100" step="0.1" value="42" aria-label={t('光的切入深度', 'Section depth')}><span class="cut-end">{t('深处', 'Inside')}</span></div>
@@ -99,15 +116,22 @@ const t = (zh: string, en: string) => lang === 'en' ? en : zh;
 </section>
 
 <section class="place idle" data-scene="idle" aria-labelledby="idle-title" inert>
+  <div class="idle-sun" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="place-heading"><span class="eyebrow">{t('不赶时间 / AN UNPRODUCTIVE CORNER', 'AN UNPRODUCTIVE CORNER')}</span><h2 id="idle-title"><Fragment set:html={t('这里，<br><em>不用有用。</em>', 'Here,<br><em>nothing is due.</em>')} /></h2><p><Fragment set:html={t('把几个「应该」放进去。<br>拖过去，或者点一下纸片。', 'Let go of a few “shoulds”.<br>Drag a slip into the hollow. Or tap it.')} /></p></div>
   <div class="idle-void" aria-hidden="true"><span class="idle-outline" lang="zh-Hans">空</span><div class="paper-hole"><div class="hole-rim"></div><div class="hole-bottom"><span>{t('也没关系。', 'That’s okay.')}</span></div></div><span class="hole-cross"><Icon name="plus" /></span></div>
+  <canvas class="idle-dust" aria-hidden="true"></canvas>
+  <div class="idle-clock" aria-hidden="true"><svg viewBox="-50 -50 100 100"><circle class="clock-face" r="46" />{clockTicks.map(angle => <line class="clock-tick" class:list={{ major: angle % 90 === 0 }} x1="0" y1={angle % 90 === 0 ? -40 : -42} x2="0" y2="-45" transform={`rotate(${angle})`} />)}<line class="clock-hour" x1="0" y1="5" x2="0" y2="-24" /><line class="clock-minute" x1="0" y1="7" x2="0" y2="-36" /><circle class="clock-pin" r="2.2" /></svg></div>
+  <p class="pencil-note note-idle" data-note="idle-still" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{idleNote}</span></p>
+  <div class="idle-lamp" aria-hidden="true"><i class="lamp-cord"></i><svg class="lamp-shade" viewBox="0 0 80 64"><path class="lamp-cap" d="M36 0h8v9h-8Z" /><path class="lamp-body" d="M13 50C13 27 25 9 40 9s27 18 27 41Z" /><path class="lamp-inside" d="M13 50C22 57 58 57 67 50C58 46 22 46 13 50Z" /><circle class="lamp-bulb" cx="40" cy="53" r="6.5" /></svg><i class="lamp-pool"></i></div>
   <div class="obligation-slips" data-room-control>
     <button class="obligation obligation-a" data-slip="0" aria-label={t('放下用完额度的催促', 'Let go of the need to use up your quota')}><span class="slip-kicker">{t('应该', 'I SHOULD')}</span><strong><Fragment set:html={t('把额度<br>用完。', 'Use it<br>all up.')} /></strong><span class="slip-foot">{t('放下', 'Let go')} <Icon name="southeast" /></span></button>
     <button class="obligation obligation-b" data-slip="1" aria-label={t('放下让订阅回本的催促', 'Let go of the need to earn back your subscription')}><span class="slip-kicker">{t('应该', 'I SHOULD')}</span><strong><Fragment set:html={t('把订阅<br>补回来。', 'Make it<br>pay off.')} /></strong><span class="slip-foot">{t('放下', 'Let go')} <Icon name="southwest" /></span></button>
     <button class="obligation obligation-c" data-slip="2" aria-label={t('放下不能过期的催促', 'Let go of the need to use it before it expires')}><span class="slip-kicker">{t('应该', 'I SHOULD')}</span><strong><Fragment set:html={t('别让它<br>过期。', 'Beat the<br>deadline.')} /></strong><span class="slip-foot">{t('放下', 'Let go')} <Icon name="northeast" /></span></button>
     <button class="obligation obligation-d" data-slip="3" aria-label={t('放下总要做点什么的催促', 'Let go of the need to always do something')}><span class="slip-kicker">{t('应该', 'I SHOULD')}</span><strong><Fragment set:html={t('总得做点<br>什么。', 'Do<br>something.')} /></strong><span class="slip-foot">{t('放下', 'Let go')} <Icon name="northwest" /></span></button>
   </div>
+  <p class="pencil-note note-idle-letgo" data-note="idle-letgo" aria-hidden="true"><span>{letGoNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="idle-sentence" aria-live="polite"><span id="idle-preface">{t('我不欠资源一次使用。', 'I don’t owe a resource a use.')}</span><p id="idle-message"><Fragment set:html={t('留白，<br><em>也可以留下来。</em>', 'Leave room<br><em>for nothing.</em>')} /></p></div>
+  <div class="idle-sentence idle-dusk" aria-live="polite"><span></span><p></p></div>
   <button id="restore-slips" class="small-action">{t('把纸片摆回来', 'Bring the slips back')} <Icon name="restore" /></button>
   <div class="extra-footer"><a href="/blog/posts/2026-06-18-resource-usage-rule/" target="_blank" rel="noopener noreferrer">{t('这处留白，来自《我不欠资源一次使用》', 'On leaving things unused · Read in Chinese')} <Icon name="northeast" /></a><button data-place="home">{t('回到吉他旁边', 'Back to the guitar')} <span><Icon name="northeast" /></span></button></div>
 </section>

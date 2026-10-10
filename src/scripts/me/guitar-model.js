@@ -74,10 +74,19 @@ async function init() {
   const key=new THREE.DirectionalLight('#fff4dd',1.35);key.position.set(-2,3,4);scene.add(key);
   const fill=new THREE.DirectionalLight('#dce9f3',.55);fill.position.set(2,.4,1);scene.add(fill);
   let studioKeyX=-2;
+  const evening={sun:new THREE.Color('#ff9a5c'),sky:new THREE.Color('#aeb4d6')};
   const lighting={
     studio(){scene.environment=studioEnvironment;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.88;hemisphere.color.set('#f5eee0');hemisphere.groundColor.set('#42493f');hemisphere.intensity=.85;key.color.set('#fff4dd');key.intensity=1.35;key.position.set(studioKeyX,3,4);fill.color.set('#dce9f3');fill.intensity=.55;fill.position.set(2,.4,1);},
     // Afternoon sun through the window behind the visitor's right shoulder; paper bounces it back.
-    room(){scene.environment=roomEnvironment;renderer.toneMapping=THREE.NeutralToneMapping;renderer.toneMappingExposure=1.0;hemisphere.color.set('#fff3e0');hemisphere.groundColor.set('#7a6650');hemisphere.intensity=.95;key.color.set('#ffe6c6');key.intensity=1.9;key.position.set(2.6,2.8,3.2);fill.color.set('#f1ece4');fill.intensity=.5;fill.position.set(-2.4,.2,1.6);}
+    // Late in the visit (afternoon.js) the same sun drops and reddens, and the room's bounce fades
+    // towards a cool evening sky; the guitar keeps the hour the visitor brought back from 不赶时间.
+    room(){
+      const {gold=0,dusk=0}=window.qiuHour||{};
+      scene.environment=roomEnvironment;renderer.toneMapping=THREE.NeutralToneMapping;renderer.toneMappingExposure=1-dusk*.14;
+      hemisphere.color.set('#fff3e0').lerp(evening.sky,dusk*.7);hemisphere.groundColor.set('#7a6650');hemisphere.intensity=.95-dusk*.3;
+      key.color.set('#ffe6c6').lerp(evening.sun,gold*.85);key.intensity=1.9-dusk*.55;key.position.set(2.6+gold*.8,2.8-gold*1.6,3.2);
+      fill.color.set('#f1ece4').lerp(evening.sky,dusk);fill.intensity=.5+dusk*.12;fill.position.set(-2.4,.2,1.6);
+    }
   };
   lighting.studio();
 
@@ -642,6 +651,7 @@ async function init() {
     };
     glide=requestAnimationFrame(step);
   }
+  document.addEventListener('timeofday',()=>{lastHome='';});
   window.qiuGuitar={
     canvas,
     drawHome(x,y){

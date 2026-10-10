@@ -1,0 +1,82 @@
+/* 不赶时间 ("No hurry"): the afternoon that only passes while you are still (afternoon.js).
+   --hour runs 0 → 1 from mid-afternoon to dusk; --gold is the low warm sun, --dusk the evening.
+   All three live on #room, so the hour you leave this corner at stays with the whole house. */
+
+/* The window's light on the floor slides left and stretches as the sun goes down. The hollow
+   lies above it in the stacking order: light that reaches it falls in and is gone. */
+.idle-sun{position:absolute;left:60%;top:6%;width:29%;height:40%;display:grid;grid-template:1fr 1fr/1fr 1fr;gap:6% 6.5%;pointer-events:none;transform-origin:100% 0;
+  transform:translate(calc(var(--hour,0) * -104%),calc(var(--hour,0) * 50%)) rotate(-6deg) skewX(calc(-17deg - var(--gold,0) * 22deg)) scale(calc(1 + var(--gold,0) * .34),calc(1 - var(--gold,0) * .16));
+  opacity:calc(1 - var(--dusk,0) * .9)}
+.idle-sun i{display:block;border-radius:2px;animation:sun-breathe 19s ease-in-out infinite alternate;filter:blur(calc(2.5px + var(--gold,0) * 2px));
+  background:linear-gradient(162deg,color-mix(in oklab,rgba(255,246,222,.95),rgba(255,184,118,.93) calc(var(--gold,0) * var(--gold,0) * 100%)),color-mix(in oklab,rgba(255,228,184,.8),rgba(240,126,96,.84) calc(var(--gold,0) * var(--gold,0) * 100%)));
+  box-shadow:0 0 0 2px rgba(255,192,122,.24),0 0 44px 8px rgba(255,196,128,calc(.22 + var(--gold,0) * .14))}
+.idle-sun::before{content:"";position:absolute;inset:-70% -60%;background:radial-gradient(closest-side,rgba(66,48,28,0) 30%,rgba(66,48,28,.05) 56%,rgba(66,48,28,0) 100%)}
+.idle-dust{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+
+/* A plain wall clock. Its hands only move while nobody does. */
+.idle-clock{position:absolute;right:6%;top:6%;width:clamp(56px,5.2vw,84px);aspect-ratio:1;pointer-events:none;filter:drop-shadow(-5px 8px 6px rgba(58,40,20,.16))}
+.idle-clock svg{display:block;width:100%;height:100%;overflow:visible}
+.clock-face{fill:rgba(250,248,240,.62);stroke:rgba(37,40,37,.48);stroke-width:1.1}
+.clock-tick{stroke:rgba(37,40,37,.42);stroke-width:1}
+.clock-tick.major{stroke:rgba(37,40,37,.62);stroke-width:1.7}
+.clock-hour,.clock-minute{stroke:var(--ink);stroke-linecap:round}
+.clock-hour{stroke-width:2.8;transform:rotate(90deg)}
+.clock-minute{stroke-width:1.5}
+.clock-pin{fill:var(--red)}
+
+/* A small lamp on a long cord. At dusk it clicks on and the evening line appears in its light. */
+.idle-lamp{position:absolute;left:21%;top:0;height:46%;width:clamp(44px,4.4vw,70px);display:flex;flex-direction:column;align-items:center;pointer-events:none;z-index:3}
+.lamp-cord{width:1px;flex:1;background:linear-gradient(rgba(37,40,37,0),rgba(37,40,37,.58) 22%)}
+.lamp-shade{display:block;width:100%;height:auto;flex:none;margin-top:-1px;overflow:visible;filter:drop-shadow(-6px 10px 8px rgba(58,40,20,.18))}
+.lamp-cap{fill:rgba(37,40,37,.86)}
+.lamp-body{fill:#f3eee1;stroke:rgba(37,40,37,.7);stroke-width:1}
+.lamp-inside{fill:rgba(42,38,32,.42);stroke:rgba(37,40,37,.6);stroke-width:.8}
+.lamp-bulb{fill:rgba(236,232,220,.95);stroke:rgba(37,40,37,.5);stroke-width:.7}
+.lamp-pool{position:absolute;left:50%;top:100%;width:640%;aspect-ratio:1.45;translate:-56% -16%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,214,156,.4),rgba(255,196,130,.14) 52%,rgba(255,180,110,0));opacity:0;transition:opacity 1.6s ease}
+.idle-lamp.lit .lamp-body{fill:#f8e7c6}
+.idle-lamp.lit .lamp-inside{fill:#ffd99a;stroke:rgba(120,80,30,.4)}
+.idle-lamp.lit .lamp-bulb{fill:#fff7e0;stroke:rgba(150,100,40,.3);filter:drop-shadow(0 0 5px rgba(255,206,130,.95))}
+.idle-lamp.lit .lamp-pool{opacity:1}
+.idle-lamp.lit:not(.steady) .lamp-shade,.idle-lamp.lit:not(.steady) .lamp-pool{animation:lamp-strike .7s linear}
+@keyframes lamp-strike{0%{opacity:.2}9%{opacity:1}16%{opacity:.35}27%{opacity:.95}36%{opacity:.7}100%{opacity:1}}
+
+/* Where the lamp's light falls, in room-viewport terms (the idle corner fills the view). */
+#room{--lamp-x:23%;--lamp-y:50%}
+
+/* The evening line takes the slips' sentence place, lit by the lamp. */
+.idle-sentence{transition:opacity 1.2s ease}
+.idle-dusk{opacity:0;pointer-events:none}
+.idle.dusk .idle-sentence:not(.idle-dusk){opacity:0}
+.idle.dusk .idle-dusk{opacity:1;transition:opacity 2.6s ease .7s}
+.idle-dusk p{text-shadow:0 0 18px rgba(255,214,150,.45)}
+
+.note-idle{right:calc(6% + clamp(56px,5.2vw,84px) + 10px);top:10.5%;--note-angle:-3deg}
+.note-idle svg{transform:translateY(-.5em) rotate(-8deg)}
+
+body[data-motion=off] .idle-sun i{animation:none}
+@media(prefers-reduced-motion:reduce){.idle-sun i{animation:none}}
+
+@media(max-width:700px){
+  .idle-sun{left:50%;top:22%;width:40%;height:22%}
+  .idle-clock{right:7%;top:4.5%;width:46px}
+  .idle-lamp{left:58%;top:0;height:27%;width:40px}
+  .lamp-pool{width:760%}
+  #room{--lamp-x:56%;--lamp-y:38%}
+  .idle-dusk{top:76.5%}
+  .idle-dusk p br{display:inline}
+  .idle-dusk p em{margin-left:0}
+  .note-idle{right:7%;top:13.5%;flex-direction:row-reverse}
+  .note-idle svg{transform:translateY(-.9em) scaleX(-1) rotate(-30deg)}
+}
+
+/* A slip balled up on its way into the hollow (extra-rooms.js): the words fold away into creases. */
+.obligation::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .2s ease .06s;background:
+  linear-gradient(118deg,transparent 28%,rgba(40,30,20,.16) 30%,transparent 34%),
+  linear-gradient(32deg,transparent 50%,rgba(255,255,255,.4) 52%,transparent 56%),
+  linear-gradient(162deg,transparent 58%,rgba(40,30,20,.18) 60%,transparent 65%),
+  linear-gradient(74deg,transparent 18%,rgba(40,30,20,.12) 20%,transparent 25%),
+  linear-gradient(-20deg,transparent 70%,rgba(255,255,255,.3) 72%,transparent 76%),
+  radial-gradient(circle at 34% 28%,rgba(255,255,255,.4),transparent 50%),
+  radial-gradient(circle at 72% 80%,rgba(30,22,14,.42),transparent 66%)}
+.obligation.crumpling::after{opacity:1}
+.obligation.crumpling>*{opacity:0;transition:opacity .22s ease}

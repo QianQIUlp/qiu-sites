@@ -10,6 +10,37 @@ const still = () => document.body.dataset.motion === 'off';
 const ink = '#252825', red = '#e83d27', paper = '#eeede7';
 let active = location.hash.slice(1) || 'home';
 
+// Two motions that belong to the object, not to the visitor's choice (neither changes a value):
+// it leans a little toward a mouse that moves over it, and once, for a newcomer, it shows how it
+// moves by itself and settles back (hints.js). `sway` eases both and asks for a redraw.
+function sway(stage, {reach, demo, room, span = 2600, floor = -Infinity, redraw}) {
+  const state = {lean: 0, target: 0, nudge: 0, start: 0, frame: 0, last: 0, get value() { return Math.max(floor, this.lean + this.nudge); }};
+  const tick = now => {
+    state.frame = 0;
+    const dt = Math.min(64, now - (state.last || now)); state.last = now;
+    state.lean += (state.target - state.lean) * (1 - Math.exp(-dt / 240));
+    if (state.start) {
+      const t = Math.min(1, (now - state.start) / span);
+      state.nudge = demo * Math.sin(Math.PI * t) ** 2 * (1 - .25 * t);
+      if (t === 1) { state.start = 0; state.nudge = 0; }
+    }
+    redraw();
+    if (state.start || Math.abs(state.target - state.lean) > reach * .004) state.frame = requestAnimationFrame(tick);
+    else { state.lean = state.target; state.last = 0; redraw(); }
+  };
+  const cue = () => { if (!state.frame && !still() && active === room) state.frame = requestAnimationFrame(tick); };
+  stage.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' || event.buttons) return;
+    const box = stage.getBoundingClientRect();
+    state.target = ((event.clientX - box.left) / box.width - .5) * reach;
+    cue();
+  });
+  stage.addEventListener('pointerleave', () => { state.target = 0; cue(); });
+  state.play = () => { if (still() || active !== room) return; state.start = performance.now(); cue(); };
+  return state;
+}
+const found = key => document.dispatchEvent(new CustomEvent('found', {detail: key}));
+
 function surface(canvas) {
   const width = canvas.clientWidth, height = canvas.clientHeight;
   const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -56,19 +87,23 @@ const pathCanvas = $('#path-field'), bendInput = $('#path-bend'), pathPlay = $('
 const routes = [localize("穿过去", "Through"), localize("绕一段", "Around"), localize("停一下", "A pause")];
 const routeNotes = [[5, 4, 3, 2, 1, 0], [5, 2, 4, 1, 3, 0], [5, 3, 3, 2, 1, 0]];
 let route = 0, shape = 0, bend = 0, pathFrame = 0, pathLast = 0, playback = null;
+// Every thread is a way through. Brushed, they ring like harp strings (when sound is on); clicked,
+// one becomes your path, and the red route and the listening follow it. `chosen` is its offset.
+const STRANDS = 76, glow = new Float32Array(STRANDS);
+let chosen = null, strandLines = [];
 
 function routePoint(t, variant, offset = null) {
   const envelope = Math.pow(Math.sin(Math.PI * t), .85);
   let x = (t - .5) * 2.85;
   let y = Math.sin(t * Math.PI * 2) * [.16, .53, .15][variant];
   let z = Math.sin(t * Math.PI) * [.05, -.27, .3][variant];
-  y += envelope * bend * Math.cos(t * Math.PI * 1.7) * .45;
+  y += envelope * (bend + threads.value) * Math.cos(t * Math.PI * 1.7) * .45;
   if (variant === 2) {
     x += Math.sin(t * Math.PI * 2) * .32;
     y += Math.sin(t * Math.PI * 4) * envelope * .22;
   }
   if (offset !== null) {
-    const angle = offset * Math.PI * 2 + t * [2.7, 4.2, 7.7][variant] + bend * t;
+    const angle = offset * Math.PI * 2 + t * [2.7, 4.2, 7.7][variant] + (bend + threads.value) * t;
     const radius = envelope * [.43, .49, .41][variant];
     y += Math.cos(angle) * radius;
     z += Math.sin(angle) * radius;
@@ -100,26 +135,31 @@ function drawPaths() {
   ctx.restore();
 
   // Order the hairlines by depth; the front strands catch more light.
-  const strands = Array.from({length: 76}, (_, i) => ({i, z: pathPoint(.5, i / 76).z})).sort((a, b) => a.z - b.z);
+  const strands = Array.from({length: STRANDS}, (_, i) => ({i, z: pathPoint(.5, i / STRANDS).z})).sort((a, b) => a.z - b.z);
+  strandLines = [];
   for (const {i, z} of strands) {
     ctx.beginPath();
+    const line = [];
     for (let j = 0; j <= 100; j++) {
-      const p = project(pathPoint(j / 100, i / 76));
+      const p = project(pathPoint(j / 100, i / STRANDS));
+      line.push(p);
       if (!j) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
     }
+    strandLines[i] = line;
     ctx.strokeStyle = i % 13 === 0 ? '#a28c646b' : `rgba(61,68,52,${.2 + (z + .7) * .19})`;
     ctx.lineWidth = i % 13 === 0 ? .95 : .6;ctx.stroke();
+    if (glow[i] > .02) { ctx.strokeStyle = `rgba(232,61,39,${.25 + glow[i] * .7})`;ctx.lineWidth = .7 + glow[i] * 1.3;ctx.stroke(); }
   }
   const progress = playback ? playback.progress : 1;
   ctx.beginPath();
   for (let i = 0; i <= 130; i++) {
-    const p = project(pathPoint(i / 130));
+    const p = project(pathPoint(i / 130, chosen));
     if (!i) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
   }
   ctx.strokeStyle = '#e83d2745';ctx.lineWidth = 1.2;ctx.stroke();
   ctx.beginPath();
   for (let i = 0; i <= 130; i++) {
-    const p = project(pathPoint(i / 130 * progress));
+    const p = project(pathPoint(i / 130 * progress, chosen));
     if (!i) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
   }
   ctx.strokeStyle = red;ctx.lineWidth = 1.65;ctx.stroke();
@@ -133,7 +173,7 @@ function drawPaths() {
   }
   ctx.textAlign = 'left';
   if (playback) {
-    const p = project(pathPoint(progress));
+    const p = project(pathPoint(progress, chosen));
     ctx.beginPath();ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);ctx.fillStyle = '#e83d2719';ctx.fill();
     ctx.beginPath();ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);ctx.fillStyle = red;ctx.fill();
     ctx.strokeStyle = paper;ctx.lineWidth = 1.5;ctx.stroke();
@@ -181,22 +221,62 @@ function framePaths(now) {
       stopPath();$('#path-status').textContent = localize("终点相同。这一段路，是刚才的你选的。", "The same ending. You chose the way here.");
     }
   }
+  let ringing = false;
+  glow.forEach((value, i) => { glow[i] = value > .02 ? value * Math.pow(.965, dt / 16) : 0; ringing ||= glow[i] > 0; });
   drawPaths();
-  if (playback || Math.abs(route - shape) > .001 || Math.abs(+bendInput.value / 100 - bend) > .001) schedulePaths();
+  if (playback || ringing || Math.abs(route - shape) > .001 || Math.abs(+bendInput.value / 100 - bend) > .001) schedulePaths();
 }
 function schedulePaths() {
   if (!pathFrame && !document.hidden && active === 'paths') pathFrame = requestAnimationFrame(framePaths);
 }
 document.querySelectorAll('[data-route]').forEach(button => button.addEventListener('click', () => {
-  route = +button.dataset.route;
+  route = +button.dataset.route;chosen = null;
   document.querySelectorAll('[data-route]').forEach(node => node.setAttribute('aria-pressed', String(node === button)));
   $('#path-measure').textContent = `0${route + 1} / ${routes[route]}`;
   $('#path-status').textContent = [localize("向前，也可以是一种选择。", "Straight ahead can be a choice, too."), localize("多经过一点，不急着抵达。", "Take the longer way. No hurry to arrive."), localize("停顿，也在这条路里面。", "A pause belongs to the path, too.")][route];
   playPath(false);
 }));
 pathPlay.addEventListener('click', () => playback?.listen ? stopPath() : playPath(true));
-bendInput.addEventListener('input', () => {stopPath();schedulePaths();});
+bendInput.addEventListener('input', () => {stopPath();schedulePaths();if (Math.abs(+bendInput.value) > 25) found('paths-bend');});
 dragInput($('.path-instrument'), bendInput);
+const pathStage = $('.path-instrument');
+function strandAt(event, reach = 9) {
+  const box = pathCanvas.getBoundingClientRect(), x = event.clientX - box.left, y = event.clientY - box.top;
+  let hit = -1, best = reach;
+  strandLines.forEach((line, i) => {
+    for (let j = 4; j < line.length - 4; j++) { const d = Math.hypot(line[j].x - x, line[j].y - y); if (d < best) { best = d; hit = i; } }
+  });
+  return hit;
+}
+// Lower threads sound lower: six strings' worth of pitch spread across the bundle.
+const ring = (i, wake = false) => { glow[i] = 1;document.dispatchEvent(new CustomEvent('roompluck', {detail: {index: 5 - Math.min(5, Math.floor(i / STRANDS * 6)), strength: .34, wake}}));schedulePaths(); };
+let lastStrand = -1, pathPress = null;
+pathStage.addEventListener('pointermove', event => {
+  if (event.pointerType !== 'mouse' || event.buttons) return;
+  const i = strandAt(event);
+  if (i >= 0 && i !== lastStrand) ring(i);
+  lastStrand = i;
+});
+pathStage.addEventListener('pointerleave', () => { lastStrand = -1; });
+pathStage.addEventListener('pointerdown', event => { pathPress = {x: event.clientX, y: event.clientY}; });
+pathStage.addEventListener('pointerup', event => {
+  if (!pathPress || Math.hypot(event.clientX - pathPress.x, event.clientY - pathPress.y) > 6) return;
+  pathPress = null;
+  const i = strandAt(event, 14);
+  if (i < 0) return;
+  // The chosen thread becomes the red route; choosing it again lets it go.
+  chosen = chosen === i / STRANDS ? null : i / STRANDS;
+  ring(i, true);stopPath();
+  $('#path-status').textContent = chosen === null ? localize("还没有走过的路，都在这里。", "The paths you haven’t taken are still here.") : localize(`第 ${i + 1} 条路，共 ${STRANDS} 条。终点一样。`, `Way ${i + 1} of ${STRANDS}. The same ending.`);
+  found('paths-pick');
+  schedulePaths();
+});
+document.addEventListener('hint:shimmer', () => {
+  if (still() || active !== 'paths') return;
+  for (let i = 0; i < STRANDS; i += 2) setTimeout(() => { glow[i] = Math.max(glow[i], .55);schedulePaths(); }, i * 16);
+});
+const threads = sway($('.path-instrument'), {reach: .2, demo: .62, room: 'paths', redraw: () => drawPaths()});
+document.addEventListener('hint:threads', () => threads.play());
 
 // An anamorphic word: separate ink fragments line up only from the front.
 // Nothing is swapped when the camera turns; their depth creates the gaps.
@@ -220,18 +300,47 @@ const observations = [
   [localize("03 / 论证的裂缝", "03 / THE CRACK"), localize("连反驳，也被写进了赞美。", "Even disagreement became praise."), localize("点头，印证了作者；没点头，又成了作者赞美的人。这样“两端通吃”的结尾，并不能证明论点。", "Agree, and the author is right. Disagree, and you become someone the author admires. A conclusion that wins either way proves nothing.")],
   [localize("04 / 保留修正", "04 / KEEP THE CORRECTION"), localize("不把裂缝偷偷抹掉。", "Leave the cracks visible."), localize("原表留着，问题也标出来。让人看见判断怎样被修正，比只留下一个整洁的结论更诚实。", "Keep the original table and mark its problems. Showing a judgment being revised is more honest than a tidy conclusion.")]
 ];
-let viewAngle = 0, blindFrame = 0, blindLast = 0, observation = -1;
+let viewAngle = 0, blindFrame = 0, blindLast = 0, observation = -1, blindView = null;
+// Brushed like a window blind, the slices knock against each other and swing back: even from the
+// front, the word turns out to be fragments. A mouse brushing across does it, and so does a tap.
+const slats = Array.from({length: 20}, () => ({y: 0, v: 0}));
+let lastTick = 0, brushCount = 0;
+function knock(index, force, quiet = false) {
+  const slat = slats[index];
+  if (!slat || still()) return;
+  slat.v += force;
+  if (!quiet && performance.now() - lastTick > 34) { lastTick = performance.now(); document.dispatchEvent(new CustomEvent('roomsound', {detail: 'tick'})); }
+  scheduleBlind();
+}
+function swing(dt) {
+  let busy = false;
+  for (const slat of slats) {
+    slat.v += (-slat.y * .02 - slat.v * .085) * dt / 16;
+    slat.y = clamp(slat.y + slat.v * dt / 16, -.22, .22);
+    if (Math.abs(slat.y) > .0015 || Math.abs(slat.v) > .0015) busy = true; else slat.y = slat.v = 0;
+  }
+  return busy;
+}
+function slatAt(event) {
+  if (!blindView) return -1;
+  const box = blindCanvas.getBoundingClientRect(), {width, height, scale, angle} = blindView;
+  const x = event.clientX - box.left, y = event.clientY - box.top;
+  if (Math.abs(y - height * .43) > scale * .8) return -1;
+  const index = Math.floor(((x - width * .51) / (scale * Math.cos(angle)) / 3.65 + .5) * 20);
+  return index >= 0 && index < 20 ? index : -1;
+}
 
 function drawBlind() {
   const {ctx, width, height} = surface(blindCanvas);
-  const angle = viewAngle / 180 * Math.PI;
+  const seen = viewAngle + glance.value, angle = seen / 180 * Math.PI;
   const scale = Math.min(width / 4.4, height / 3.15);
+  blindView = {width, height, scale, angle};
   const project = (x, y, z) => {
     const rx = x * Math.cos(angle) + z * Math.sin(angle);
     const rz = z * Math.cos(angle) - x * Math.sin(angle);
     return {x: width * .51 + rx * scale, y: height * .43 + (y + rz * Math.sin(angle) * .15) * scale, z: rz};
   };
-  const reveal = clamp((viewAngle - 6) / 34, 0, 1);
+  const reveal = clamp((seen - 6) / 34, 0, 1);
   const cx = width * .51, cy = height * .74, rx = Math.min(width * .36, scale * 1.75), ry = rx * .23;
   ctx.strokeStyle = '#73756b35';ctx.lineWidth = .6;
   ctx.beginPath();ctx.ellipse(cx, cy, rx, ry, -.07, 0, Math.PI * 2);ctx.stroke();
@@ -253,7 +362,7 @@ function drawBlind() {
     return {i, x, z, depth: project(x, 0, z).z};
   }).sort((a, b) => a.depth - b.depth);
   function fragment(piece, depth, image, opacity = 1) {
-    const a = project(piece.x, -.76, depth), b = project(piece.x + 3.65 / count, -.76, depth), c = project(piece.x, .76, depth);
+    const drop = slats[piece.i].y, a = project(piece.x, -.76 + drop, depth), b = project(piece.x + 3.65 / count, -.76 + drop, depth), c = project(piece.x, .76 + drop, depth);
     ctx.save();ctx.globalAlpha = opacity;
     ctx.transform((b.x - a.x) / sw, (b.y - a.y) / sw, (c.x - a.x) / sh, (c.y - a.y) / sh, a.x, a.y);
     ctx.drawImage(image, piece.i * sw, 0, sw, sh, 0, 0, sw + .35, sh);
@@ -281,7 +390,7 @@ function drawBlind() {
     ctx.restore();
   }
   ctx.font = `8px ${mono}`;ctx.textAlign = 'center';ctx.fillStyle = '#73756b';
-  ctx.fillText(viewAngle < 8 ? 'ONE VIEW ≠ THE WHOLE' : 'THE GAPS WERE ALWAYS HERE', cx, height * .9);
+  ctx.fillText(seen < 8 ? 'ONE VIEW ≠ THE WHOLE' : 'THE GAPS WERE ALWAYS HERE', cx, height * .9);
   ctx.textAlign = 'left';
 }
 
@@ -300,17 +409,62 @@ function frameBlind(now) {
   const dt = Math.min(64, now - (blindLast || now));blindLast = now;
   viewAngle += (+angleInput.value - viewAngle) * (still() ? 1 : 1 - Math.exp(-dt / 145));
   if (Math.abs(+angleInput.value - viewAngle) < .03) viewAngle = +angleInput.value;
+  const swinging = swing(dt || 16);
   drawBlind();
-  if (viewAngle !== +angleInput.value) scheduleBlind();
+  if (viewAngle !== +angleInput.value || swinging) scheduleBlind();
 }
 function scheduleBlind() {
   if (!blindFrame && !document.hidden && active === 'blindspot') blindFrame = requestAnimationFrame(frameBlind);
 }
-angleInput.addEventListener('input', () => {updateObservation();scheduleBlind();});
+angleInput.addEventListener('input', () => {updateObservation();scheduleBlind();if (+angleInput.value >= 30) found('blind-angle');});
 $('#blind-turn').addEventListener('click', () => {
   angleInput.value = [20, 40, 60, 0][observation];updateObservation();scheduleBlind();
 });
 dragInput($('.blind-instrument'), angleInput);
+// It only ever turns away from the front, so the lean follows a mouse on the right half alone.
+const glance = sway($('.blind-instrument'), {reach: 9, demo: 21, room: 'blindspot', span: 3000, floor: 0, redraw: () => drawBlind()});
+document.addEventListener('hint:glance', () => glance.play());
+const blindStage = $('.blind-instrument');
+let brushFrom = -1, pressed = null;
+blindStage.addEventListener('pointermove', event => {
+  if (event.pointerType !== 'mouse' || event.buttons) return;
+  const index = slatAt(event);
+  if (index < 0) { brushFrom = -1; brushCount = 0; return; }
+  if (brushFrom >= 0 && index !== brushFrom) {
+    // Every slat the hand passed over, even in a quick sweep, gets its knock.
+    const step = index > brushFrom ? 1 : -1, force = clamp(Math.abs(event.movementX) * .004, .02, .07) * (event.movementY < 0 ? -1 : 1);
+    for (let i = brushFrom + step; i !== index + step; i += step) knock(i, force);
+    if ((brushCount += Math.abs(index - brushFrom)) >= 4) found('blind-brush');
+  }
+  brushFrom = index;
+});
+blindStage.addEventListener('pointerleave', () => { brushFrom = -1; brushCount = 0; });
+blindStage.addEventListener('pointerdown', event => { pressed = {x: event.clientX, y: event.clientY}; });
+blindStage.addEventListener('pointerup', event => {
+  // A tap knocks one slat; the knock runs outward to its neighbours.
+  if (!pressed || Math.hypot(event.clientX - pressed.x, event.clientY - pressed.y) > 6) return;
+  pressed = null;
+  const index = slatAt(event);
+  if (index < 0) return;
+  for (let k = 0; k < 6; k++) setTimeout(() => { knock(index + k, .075 * (1 - k / 6), k > 0); if (k) knock(index - k, .075 * (1 - k / 6), true); }, k * 38);
+  found('blind-brush');
+});
+document.addEventListener('hint:brush', () => {
+  if (still() || active !== 'blindspot') return;
+  slats.forEach((_, i) => setTimeout(() => knock(i, .034, true), i * 42));
+});
+// A real blind spot: a test card. With the left eye shut, staring at the cross from close enough,
+// the dot falls into the right eye's blind spot and disappears. The back says why.
+const eyeCard = $('.eye-card');
+eyeCard.addEventListener('click', () => {
+  eyeCard.classList.toggle('turned');
+  eyeCard.setAttribute('aria-pressed', eyeCard.classList.contains('turned'));
+  found('blind-eye');
+});
+document.addEventListener('hint:blink', () => {
+  if (still() || active !== 'blindspot') return;
+  eyeCard.querySelector('.eye-dot').animate([{opacity: 1}, {opacity: 1, offset: .2}, {opacity: 0, offset: .38}, {opacity: 0, offset: .66}, {opacity: 1, offset: .84}, {opacity: 1}], {duration: 2600, easing: 'ease-in-out'});
+});
 
 function stopFrames() {
   cancelAnimationFrame(pathFrame);cancelAnimationFrame(blindFrame);

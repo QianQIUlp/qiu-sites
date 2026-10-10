@@ -1,0 +1,85 @@
+/* Pencil notes: Qiu's own hand, left beside what a newcomer would miss (hints.js). Written in
+   stroke by stroke when the room has shown its trick; rubbed out once the visitor has done it. */
+@font-face{font-family:"Me Hand";src:url("../../assets/me/fonts/caveat-hand.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0020-02FF,U+2000-206F}
+@font-face{font-family:"Me Hand";src:url("../../assets/me/fonts/long-cang-hand.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+3000-9FFF,U+FF00-FFEF}
+.pencil-note{position:absolute;z-index:4;margin:0;display:flex;align-items:flex-end;gap:.25em;font-family:"Me Hand","Me CJK Serif",var(--serif);font-size:clamp(15px,1.3vw,21px);font-weight:400;line-height:1;letter-spacing:0;color:rgba(58,60,54,.76);text-shadow:0 0 .5px rgba(58,60,54,.4);white-space:nowrap;pointer-events:none;opacity:0;transform:rotate(var(--note-angle,-4deg));transform-origin:0 100%;transition:opacity .3s}
+html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
+.pencil-note span{display:block;padding:.15em 0;clip-path:inset(-40% 100% -40% -6%)}
+.pencil-note svg{width:2.3em;height:1.45em;flex:none;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+.pencil-note path{stroke-dasharray:1;stroke-dashoffset:1}
+.pencil-note.written{opacity:1}
+.pencil-note.written span{clip-path:inset(-40% -6% -40% -6%);transition:clip-path 1.6s cubic-bezier(.42,.08,.58,.94) .1s}
+.pencil-note.written path{stroke-dashoffset:0;transition:stroke-dashoffset .75s cubic-bezier(.3,.1,.4,1) 1.6s}
+.pencil-note.instant span,.pencil-note.instant path{transition:none}
+.pencil-note::after{content:"";position:absolute;inset:-25% -8%;border-radius:45%;background:radial-gradient(closest-side,rgba(96,94,86,.2),rgba(96,94,86,0));opacity:0}
+.pencil-note.erased{opacity:0;filter:blur(1.8px);translate:4px 1px;transition:opacity 1.3s ease .15s,filter 1.3s ease .15s,translate 1.3s ease .15s}
+.pencil-note.erased::after{animation:pencil-smudge 1.4s ease-out}
+@keyframes pencil-smudge{18%{opacity:1}100%{opacity:0}}
+
+.note-papers{left:37%;top:6.5%;--note-angle:-3deg}
+.note-papers svg{transform:translateY(-.25em) rotate(12deg)}
+
+/* One note per room, each beside the thing it is about. The arrow is drawn pointing up and to the
+   right; each note turns it toward its object (and `row-reverse` puts it in front of the words). */
+.note-wander{left:4.5%;top:72.5%;--note-angle:-2deg}
+.note-wander svg{transform:translateY(-.2em) scaleX(-1) rotate(-14deg)}
+.note-music-strings{left:52%;top:4.5%;--note-angle:-3deg;color:rgba(246,236,214,.84);text-shadow:0 0 .6px rgba(246,236,214,.4)}
+.note-music-strings svg{transform:translateY(.55em) rotate(104deg)}
+.note-trace-line{left:48%;top:63%;--note-angle:-4deg}
+.note-trace-line svg{transform:translateY(-.3em) rotate(-8deg)}
+.note-trace-pluck{left:22%;top:71%;--note-angle:-3deg}
+.note-trace-pluck svg{transform:translateY(-.25em) rotate(-4deg)}
+.note-trace-loop{left:43%;top:19%;--note-angle:-3deg}
+.note-trace-loop svg{transform:translateY(.2em) rotate(28deg)}
+.note-trace-cross{left:9%;top:24%;--note-angle:-4deg}
+.note-trace-cross svg{transform:translateY(.9em) rotate(72deg)}
+/* The ribbon's notes follow its red dot (extra-rooms.js sets left and top). */
+.note-rethink{--note-angle:-4deg}
+.note-rethink svg{transform:translateY(.55em) rotate(52deg)}
+.note-work-cut{left:54%;top:75.5%;--note-angle:-3deg}
+.note-work-cut svg{transform:translateY(-.5em) rotate(-38deg)}
+.note-idle-letgo{left:36.5%;top:47%;--note-angle:-4deg}
+.note-idle-letgo svg{transform:translateY(.15em) rotate(38deg)}
+.note-paths-pick{left:40%;top:17%;--note-angle:-3deg}
+.note-paths-pick svg{transform:translateY(.75em) rotate(110deg)}
+.note-paths-bend{left:40%;top:73.5%;--note-angle:-3deg}
+.note-paths-bend svg{transform:translateY(-.35em) rotate(-6deg)}
+.note-blind-angle{left:72%;top:47%;--note-angle:-4deg;flex-direction:row-reverse}
+.note-blind-angle svg{transform:translateY(.1em) scaleX(-1) rotate(30deg)}
+.note-blind-brush{left:66%;top:24%;--note-angle:-3deg}
+.note-blind-brush svg{transform:translateY(.7em) scaleX(-1) rotate(-50deg)}
+.note-blind-eye{left:7%;top:45.5%;--note-angle:-3deg}
+.note-blind-eye svg{transform:translateY(-.2em) rotate(-75deg)}
+
+@media(max-width:600px){
+  .pencil-note,html[lang=en] .pencil-note{font-size:14px}
+  .note-papers{left:7%;top:29.5%}
+  .note-papers svg{transform:translateY(-.45em) rotate(-6deg)}
+  .note-wander{left:6%;top:83.5%}
+  .note-music-strings{left:5%;top:50.2%}
+  .note-music-strings svg{transform:translateY(-.35em) rotate(-12deg)}
+  .note-trace-line{left:30%;top:66%}
+  .note-trace-pluck{left:8%;top:78%}
+  .note-trace-loop{left:44%;top:27%}
+  .note-trace-cross{left:7%;top:27%}
+  .note-work-cut{left:50%;top:22%;flex-direction:row-reverse}
+  .note-work-cut svg{transform:translateY(-.5em) scaleX(-1) rotate(-8deg)}
+  .note-idle-letgo{left:5%;top:52%}
+  .note-paths-bend{left:30%;top:56.5%}
+  .note-paths-pick{left:34%;top:31%}
+  .note-blind-angle{left:30%;top:31.5%;flex-direction:row}
+  .note-blind-angle svg{transform:translateY(.5em) rotate(100deg)}
+  .note-blind-brush{left:52%;top:57%;flex-direction:row-reverse}
+  .note-blind-brush svg{transform:translateY(-.4em) scaleX(-1) rotate(-20deg)}
+  .note-blind-eye{left:4%;top:75.2%;font-size:13px;flex-direction:row-reverse}
+  .note-blind-eye svg{transform:translateY(.45em) rotate(48deg)}
+}
+
+/* The pencil's own demonstration in 留一笔: drawn by itself, shivered by an invisible finger. */
+.trace-ghost{position:absolute;left:12%;top:30%;width:70%;height:34%;overflow:visible;pointer-events:none;opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+.trace-ghost path{fill:none;stroke:rgba(58,60,54,.55);stroke-width:1.6;stroke-linecap:round;vector-effect:non-scaling-stroke;clip-path:inset(-20% 100% -20% 0)}
+.trace-ghost-ring{position:absolute;left:70%;top:8%;width:15%;height:30%;overflow:visible;pointer-events:none;opacity:0}
+/* Drawn with a dash, so its strokes scale with it (a non-scaling stroke would break the dash). */
+.trace-ghost-ring path,.trace-ghost-ring circle{fill:none;stroke:rgba(58,60,54,.55);stroke-width:.5;stroke-linecap:round}
+.trace-ghost-ring path{stroke-dasharray:1;stroke-dashoffset:1}
+.trace-ghost-ring circle{stroke-width:.3;opacity:0}

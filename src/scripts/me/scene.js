@@ -11,11 +11,9 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   let tilt={x:0,y:0},pointer={x:0,y:0},guitarInteraction=true;
   const pulses=Array(6).fill(0),frequencies=[329.63,246.94,196,146.83,110,82.41];
   const places={home:{x:0,y:0,z:1,name:t("小屋中央","At home")},papers:{x:-1.12,y:.01,z:1,name:t("几张散页","Loose pages")},music:{x:1.13,y:0,z:1,name:t("琴弦之间","A little jam")},trace:{x:.06,y:-1.11,z:1,name:t("留一笔","Leave a line")},rethink:{x:-1.12,y:1.12,z:1,name:t("另一面", "The other side")},work:{x:1.13,y:1.12,z:1,name:t("拆开看看", "Beneath the surface")},idle:{x:0,y:1.12,z:1,name:t("不赶时间", "No hurry")},paths:{x:-1.12,y:-1.11,z:1,name:t("未走之路", "Paths untaken")},blindspot:{x:1.13,y:-1.11,z:1,name:t("盲点", "Blind spots")},overview:{x:.01,y:.035,z:.24,name:t("整间小屋","The whole room")}};
-  let camera={x:0,y:0,z:1},target={...camera},active='home',paperTop=4;
+  let camera={x:0,y:0,z:1},target={...camera},active='home',fling=null;
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-  const paperOffsets=[{x:0,y:0},{x:0,y:0},{x:0,y:0}];
-  const papers=[...document.querySelectorAll('.loose-paper')];
-  let lines=[],drawing=null,lineContact=-1,lastLinePluck=0;
+  let lines=[],drawing=null,lineContact=null,lastLinePluck=0;
   let loopNotes=[],recording=false,looping=false,recordStart=0,loopStart=0,lastLoopPosition=-1;
   const loopButton=document.querySelector('#loop'),loopClear=document.querySelector('#loop-clear'),loopCaption=document.querySelector('#loop-caption');
 
@@ -76,22 +74,66 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
       jamCtx.strokeStyle=`rgba(255,247,232,${.35+p*.55})`;jamCtx.lineWidth=jamGauge[i]*Math.max(.7,sx);jamCtx.shadowColor='rgba(255,196,140,.55)';jamCtx.shadowBlur=6*p;jamCtx.stroke();jamCtx.shadowBlur=0;
     });
   }
+  // 留一笔: a pencil line becomes a string. Its length tunes it (a monochord's rule, written on the
+  // ruler along the bottom edge); where it is touched shapes the shiver; a line that closes on itself
+  // rings like a bowl and sends out ripples; lines that cross answer each other.
+  const scale=[98,110,123.47,146.83,164.81,196,220,246.94,293.66,329.63,392,440,493.88,587.33,659.25,783.99];
+  const noteNames=['G2','A2','B2','D3','E3','G3','A3','B3','D4','E4','G4','A4','B4','D5','E5','G5'];
+  const SPAN=117.5,graphite='rgba(46,48,44,.84)';
+  const tuneTo=length=>{const raw=SPAN/Math.max(length,.04);let best=0;scale.forEach((f,i)=>{if(Math.abs(Math.log(f/raw))<Math.abs(Math.log(scale[best]/raw)))best=i;});return best;};
+  let crossings=[],ruler={note:-1,amp:0};
   function drawBounds() {return width<=600?{x:.07,y:.32,w:.86,h:.47}:width<=700?{x:.33,y:.15,w:.62,h:.68}:{x:.05,y:.07,w:.74,h:.76};}
-  function drawTrace(now) {
-    const b=drawBounds(),startX=(.06+b.x)*width,startY=(-1.11+b.y)*height;
-    ctx.strokeStyle='#878e7130';ctx.lineWidth=.6;
-    [[0,0],[1,0],[0,1],[1,1]].forEach(([u,v])=>{const x=startX+u*b.w*width,y=startY+v*b.h*height;ctx.beginPath();ctx.moveTo(x-4,y);ctx.lineTo(x+4,y);ctx.moveTo(x,y-4);ctx.lineTo(x,y+4);ctx.stroke();});
-    [...lines,...(drawing?[drawing]:[])].forEach((strand,k)=>{
-      if(strand.points.length<2)return;
-      const points=strand.points.map((p,i)=>{
-        const prev=strand.points[Math.max(0,i-1)],next=strand.points[Math.min(strand.points.length-1,i+1)];
-        const dx=(next.x-prev.x)*b.w*width,dy=(next.y-prev.y)*b.h*height,len=Math.hypot(dx,dy)||1;
-        const wave=motion?Math.sin(i/(strand.points.length-1)*Math.PI)*Math.sin(now*.034+k)*strand.amp*height*.025:0;
-        return{x:startX+p.x*b.w*width-dy/len*wave,y:startY+p.y*b.h*height+dx/len*wave};
-      });
-      line(points,strand.amp>.04||k%3===0?'#e83d27':'#66744f',1.05);
-      [points[0],points[points.length-1]].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,2.4,0,Math.PI*2);ctx.fillStyle='#eeede7';ctx.fill();ctx.strokeStyle='#e83d27';ctx.lineWidth=.8;ctx.stroke();});
+  function traceFrame(){const b=drawBounds();return{b,x0:(.06+b.x)*width,y0:(-1.11+b.y)*height,bw:b.w*width,bh:b.h*height};}
+  function shapeAt(strand,u){
+    if(strand.loop)return Math.sin(u*Math.PI*4);
+    // A fresh pluck is a bent string, peaked where the finger was; it relaxes into the round mode.
+    const a=clamp(strand.at,.08,.92),bent=u<a?u/a:(1-u)/(1-a),fresh=clamp(strand.amp*1.5-.45,0,1);
+    return bent*fresh+Math.sin(u*Math.PI)*(1-fresh);
+  }
+  function drawRuler(f){
+    const y=f.y0+f.bh+(width<=600?18:12),sparse=width<=600;
+    ctx.save();ctx.strokeStyle='rgba(46,48,44,.26)';ctx.fillStyle='rgba(46,48,44,.42)';ctx.lineWidth=.6;ctx.font=`${sparse?7:8}px ${getComputedStyle(document.body).getPropertyValue('--mono')||'monospace'}`;ctx.textAlign='center';
+    ctx.beginPath();ctx.moveTo(f.x0,y);ctx.lineTo(f.x0+f.bw,y);ctx.moveTo(f.x0,y-4);ctx.lineTo(f.x0,y+4);ctx.stroke();
+    scale.forEach((hz,i)=>{
+      const length=SPAN/hz;if(length>1)return;
+      const x=f.x0+length*f.bw,g=noteNames[i][0]==='G',lit=ruler.note===i?ruler.amp:0,named=!sparse||g||noteNames[i][0]==='D';
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+(g?7:4));ctx.strokeStyle=lit>.02?`rgba(232,61,39,${.3+lit*.7})`:'rgba(46,48,44,.3)';ctx.stroke();
+      if(named){ctx.fillStyle=lit>.02?`rgba(232,61,39,${.45+lit*.55})`:'rgba(46,48,44,.4)';ctx.fillText(noteNames[i],x,y-(i%2?12:5));}
+      if(lit>.02){ctx.beginPath();ctx.moveTo(x,y+9);ctx.lineTo(x-3,y+14);ctx.lineTo(x+3,y+14);ctx.closePath();ctx.fillStyle=`rgba(232,61,39,${lit})`;ctx.fill();}
     });
+    ctx.restore();
+  }
+  function drawTrace(now) {
+    const f=traceFrame(),{b}=f;
+    ctx.strokeStyle='#878e7130';ctx.lineWidth=.6;
+    [[0,0],[1,0],[0,1],[1,1]].forEach(([u,v])=>{const x=f.x0+u*f.bw,y=f.y0+v*f.bh;ctx.beginPath();ctx.moveTo(x-4,y);ctx.lineTo(x+4,y);ctx.moveTo(x,y-4);ctx.lineTo(x,y+4);ctx.stroke();});
+    drawRuler(f);
+    [...lines,...(drawing?[drawing]:[])].forEach((strand,k)=>{
+      const n=strand.points.length;if(n<2)return;
+      const speed=.018+.05*(strand.note??6)/15,swing=motion?Math.sin(now*speed+k*1.7):0,reach=strand.amp*height*(strand.loop?.012:.024);
+      const at=(i,s)=>{
+        const p=strand.points[i],prev=strand.points[Math.max(0,i-1)],next=strand.points[Math.min(n-1,i+1)];
+        const dx=(next.x-prev.x)*f.bw,dy=(next.y-prev.y)*f.bh,len=Math.hypot(dx,dy)||1,d=motion?shapeAt(strand,i/(n-1))*reach*s:0;
+        return{x:f.x0+p.x*f.bw-dy/len*d,y:f.y0+p.y*f.bh+dx/len*d,w:p.w||1.2};
+      };
+      // A ringing string blurs into the lens-shaped envelope; the pencil line itself swings inside it.
+      if(strand.amp>.04&&motion){[1,-1].forEach(s=>line(strand.points.map((_,i)=>at(i,s)),`rgba(232,61,39,${strand.amp*.22})`,.7));}
+      const points=strand.points.map((_,i)=>at(i,swing)),ink=strand.amp>.06?`rgba(${Math.round(46+186*strand.amp)},${Math.round(48+13*strand.amp)},${Math.round(44-5*strand.amp)},.88)`:graphite;
+      ctx.lineCap='round';
+      for(let i=1;i<points.length;i++){ctx.beginPath();ctx.moveTo(points[i-1].x,points[i-1].y);ctx.lineTo(points[i].x,points[i].y);ctx.strokeStyle=ink;ctx.lineWidth=(points[i-1].w+points[i].w)*.5;ctx.stroke();}
+      // Graphite grain: a lighter second pass, a hair off the first.
+      line(points.map(p=>({x:p.x+.45,y:p.y-.35})),'rgba(46,48,44,.16)',.5);
+      ctx.lineCap='butt';
+      if(strand.loop){
+        const c=points.reduce((s,p)=>({x:s.x+p.x/n,y:s.y+p.y/n}),{x:0,y:0}),r=points.reduce((s,p)=>s+Math.hypot(p.x-c.x,p.y-c.y),0)/n;
+        if(strand.amp>.03&&motion)for(let j=0;j<3;j++){const grow=(1-strand.amp)*.75+j*.16;ctx.beginPath();ctx.arc(c.x,c.y,r*(1.06+grow),0,Math.PI*2);ctx.strokeStyle=`rgba(46,48,44,${strand.amp*(.34-j*.1)})`;ctx.lineWidth=.7;ctx.stroke();}
+        if(strand.amp>.05&&strand.note!=null){ctx.font=`9px ${getComputedStyle(document.body).getPropertyValue('--mono')}`;ctx.textAlign='center';ctx.fillStyle=`rgba(232,61,39,${strand.amp})`;ctx.fillText(noteNames[strand.note],c.x,c.y+3);ctx.textAlign='start';}
+      }else if(strand!==drawing||n>3){
+        [points[0],points[points.length-1]].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,2.4,0,Math.PI*2);ctx.fillStyle='#eeede7';ctx.fill();ctx.strokeStyle='#e83d27';ctx.lineWidth=.8;ctx.stroke();});
+        if(strand.amp>.05&&strand.note!=null){const e=points[points.length-1];ctx.font=`9px ${getComputedStyle(document.body).getPropertyValue('--mono')}`;ctx.fillStyle=`rgba(232,61,39,${strand.amp})`;ctx.fillText(noteNames[strand.note],e.x+7,e.y-6);}
+      }
+    });
+    crossings.forEach(c=>{const x=f.x0+c.x*f.bw,y=f.y0+c.y*f.bh,lit=Math.max(c.a.amp,c.b.amp);ctx.beginPath();ctx.arc(x,y,1.7,0,Math.PI*2);ctx.fillStyle=lit>.05?`rgba(232,61,39,${.4+lit*.6})`:graphite;ctx.fill();if(lit>.05){ctx.beginPath();ctx.arc(x,y,4+lit*5,0,Math.PI*2);ctx.strokeStyle=`rgba(232,61,39,${lit*.35})`;ctx.lineWidth=.6;ctx.stroke();}});
   }
   function render(now) {
     ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
@@ -116,6 +158,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   function frame(now) {
     frameId=0;const dt=Math.min(2.5,(now-(lastFrame||now-16))/16.667);lastFrame=now;
     const ease=motion?1-Math.pow(.82,dt):1;
+    if(fling)coast(dt);
     ['x','y','z'].forEach(k=>camera[k]+=(target[k]-camera[k])*ease);
     const follow=motion&&guitarInteraction&&active==='home',tx=follow?pointer.x:0,ty=follow?pointer.y:0;
     tilt.x+=(tx-tilt.x)*ease;tilt.y+=(ty-tilt.y)*ease;
@@ -123,21 +166,21 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     lines.forEach(l=>l.amp*=Math.pow(motion?.95:.65,dt));
     runLoop(now);updateMeter();render(now);
     const moving=['x','y','z'].some(k=>Math.abs(camera[k]-target[k])>.0003)||Math.abs(tilt.x-tx)>.004||Math.abs(tilt.y-ty)>.004;
-    if(recording||looping||moving||vu>-47.5||pulses.some(p=>p>.015)||lines.some(l=>l.amp>.015)||(enabled&&audio&&audio.currentTime<audioTailUntil))schedule();
+    if(fling||recording||looping||moving||vu>-47.5||pulses.some(p=>p>.015)||lines.some(l=>l.amp>.015)||(enabled&&audio&&audio.currentTime<audioTailUntil))schedule();
   }
   function schedule(){if(!frameId&&!document.hidden)frameId=requestAnimationFrame(frame);}
   function resize() {
     const rect=room.getBoundingClientRect();width=rect.width;height=rect.height;dpr=Math.min(devicePixelRatio||1,2);
     canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
-    papers.forEach((paper,i)=>{paper.style.setProperty('--dx',`${paperOffsets[i].x*width}px`);paper.style.setProperty('--dy',`${paperOffsets[i].y*height}px`);});setActive(active);schedule();
+    setActive(active);schedule();
   }
   function setActive(place) {
     const changed=active!==place;
     active=place;room.dataset.place=place;if(place!=='home')pointer={x:0,y:0};room.classList.toggle('overviewing',place==='overview');
     document.querySelectorAll('.language-switch a').forEach(link=>link.hash=place);
     document.querySelector('#where-name').textContent=places[place].name;
-    document.querySelector('#where-hint').textContent=place==='papers'?t("拖动纸张 · 点一下翻面","Drag a page · Click to turn"):place==='music'?t("划过琴弦 · A S D F G H","Pluck a string · A S D F G H"):place==='trace'?t("画一根弦 · 松手再拨动","Draw a line · Let go, then pluck"):width<=600?t("拖动画面 · 双指缩放","Drag to wander · Pinch to zoom"):t("拖动画面漫游 · 滚轮缩放","Drag to wander · Scroll to zoom");
-    const roomHints={rethink:t("拖动纸带 · 换一面想想", "Turn the ribbon · Think again"),work:t("移动切面 · 看见做法与边界", "Move the section · Reveal decisions"),idle:t("把「应该」放下 · 留一会儿白", "Let go of a “should” · Take a moment"),paths:t("拨开线束 · 听一条自己的路", "Bend the threads · Hear your path"),blindspot:t("转动「确定」 · 看见藏住的间隙", "Turn certainty · Find its gaps")};
+    document.querySelector('#where-hint').textContent=place==='papers'?t("举到光里看看 · 点一下翻面","Hold a page to the light · Click to turn"):place==='music'?t("划过琴弦 · A S D F G H","Pluck a string · A S D F G H"):place==='trace'?t("画一根弦 · 松手再拨动","Draw a line · Let go, then pluck"):width<=600?t("拖动画面 · 双指缩放","Drag to wander · Pinch to zoom"):t("拖动画面漫游 · 滚轮缩放","Drag to wander · Scroll to zoom");
+    const roomHints={rethink:t("拖动纸带 · 换一面想想", "Turn the ribbon · Think again"),work:t("移动切面 · 看见做法与边界", "Move the section · Reveal decisions"),idle:t("把「应该」放下 · 或者，别动", "Let go of a “should” · Or stay still"),paths:t("拨开线束 · 听一条自己的路", "Bend the threads · Hear your path"),blindspot:t("转动「确定」 · 看见藏住的间隙", "Turn certainty · Find its gaps")};
     if(roomHints[place])document.querySelector('#where-hint').textContent=roomHints[place];
     document.querySelectorAll('[data-scene]').forEach(node=>node.inert=node.dataset.scene!==place);
     document.querySelectorAll('.room-map button').forEach(node=>{const current=node.dataset.place===place;node.classList.toggle('active',current);if(current)node.setAttribute('aria-current','location');else node.removeAttribute('aria-current');});
@@ -145,7 +188,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     if(changed)document.dispatchEvent(new CustomEvent('roomchange',{detail:{place}}));
   }
   function go(place) {
-    const p=places[place];target={x:p.x,y:p.y,z:p.z};
+    fling=null;const p=places[place];target={x:p.x,y:p.y,z:p.z};
     setActive(place);history.replaceState(null,'',`#${place}`);schedule();
   }
   function classify() {
@@ -160,17 +203,39 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   }
   document.querySelectorAll('[data-place]').forEach(button=>button.addEventListener('click',()=>go(button.dataset.place)));
   function zoomAt(factor,x=width/2,y=height/2) {
+    fling=null;
     const old=target.z,next=clamp(old*factor,.2,1.75);
     target.x=clamp(target.x+(x-width/2)/width*(1/old-1/next),-1.65,1.72);
     target.y=clamp(target.y+(y-height/2)/height*(1/old-1/next),-1.5,1.7);target.z=next;classify();schedule();
   }
   document.querySelector('#zoom-in').addEventListener('click',()=>zoomAt(1.2));document.querySelector('#zoom-out').addEventListener('click',()=>zoomAt(1/1.2));
   room.addEventListener('wheel',event=>{if(event.ctrlKey||event.metaKey||event.target.closest('input,.pedal-deck,[data-room-control]'))return;event.preventDefault();const r=room.getBoundingClientRect();zoomAt(Math.exp(-clamp(event.deltaY,-120,120)*.002),event.clientX-r.left,event.clientY-r.top);},{passive:false});
-  const contacts=new Map();let pan=null,pinch=null;
+  const contacts=new Map();let pan=null,pinch=null,trail=[];
+  // Letting go keeps the room moving: the release speed carries on and bleeds away.
+  // Only a camera that drifts to rest beside a corner is drawn the last bit of the way.
+  function throwCamera(now){
+    const recent=trail.filter(p=>now-p.t<90);
+    if(!motion||recent.length<2||now-recent[recent.length-1].t>45)return;
+    const a=recent[0],b=recent[recent.length-1],span=Math.max(16,b.t-a.t);
+    let vx=(b.x-a.x)/span,vy=(b.y-a.y)/span;const speed=Math.hypot(vx,vy),max=.006;
+    if(speed<.00025)return;
+    if(speed>max){vx*=max/speed;vy*=max/speed;}
+    fling={vx,vy};
+  }
+  function coast(dt){
+    const ms=dt*16.667,decay=Math.pow(.945,dt);
+    const nx=target.x+fling.vx*ms,ny=target.y+fling.vy*ms;
+    target.x=clamp(nx,-1.65,1.72);target.y=clamp(ny,-1.5,1.7);
+    if(target.x!==nx)fling.vx*=-.25;if(target.y!==ny)fling.vy*=-.25;
+    fling.vx*=decay;fling.vy*=decay;
+    if(Math.hypot(fling.vx,fling.vy)>.00006)return;
+    fling=null;classify();
+    const p=places[active];if(p&&active!=='overview'&&Math.hypot(target.x-p.x,target.y-p.y)<.14){target.x=p.x;target.y=p.y;}
+  }
   room.addEventListener('pointerdown',event=>{
     if(event.button!==0||event.target.closest('button,a,input,label,.pedal-deck,.loose-paper,.draw-area,[data-room-control]'))return;
-    contacts.set(event.pointerId,{x:event.clientX,y:event.clientY});room.setPointerCapture(event.pointerId);room.classList.add('dragging');
-    if(contacts.size===1)pan={x:event.clientX,y:event.clientY,camera:{...camera}};
+    fling=null;contacts.set(event.pointerId,{x:event.clientX,y:event.clientY});room.setPointerCapture(event.pointerId);room.classList.add('dragging');
+    if(contacts.size===1){target={...camera};pan={x:event.clientX,y:event.clientY,camera:{...camera}};trail=[];}
     else if(contacts.size===2){const [a,b]=[...contacts.values()];pinch={distance:Math.hypot(a.x-b.x,a.y-b.y),z:camera.z};pan=null;}
   });
   room.addEventListener('pointermove',event=>{
@@ -178,12 +243,15 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     if(contacts.has(event.pointerId)) {
       contacts.set(event.pointerId,{x:event.clientX,y:event.clientY});
       if(pinch&&contacts.size===2){const [a,b]=[...contacts.values()];const next=clamp(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.distance,.2,1.75);zoomAt(next/target.z,(a.x+b.x)/2-bounds.left,(a.y+b.y)/2-bounds.top);}
-      else if(pan){target.x=clamp(pan.camera.x-(event.clientX-pan.x)/width/pan.camera.z,-1.65,1.72);target.y=clamp(pan.camera.y-(event.clientY-pan.y)/height/pan.camera.z,-1.5,1.7);}
+      else if(pan){target.x=clamp(pan.camera.x-(event.clientX-pan.x)/width/pan.camera.z,-1.65,1.72);target.y=clamp(pan.camera.y-(event.clientY-pan.y)/height/pan.camera.z,-1.5,1.7);trail.push({t:event.timeStamp,x:target.x,y:target.y});if(trail.length>8)trail.shift();}
       camera={...target};
       schedule();
     }
   });
-  function endPan(event){if(!contacts.has(event.pointerId))return;contacts.delete(event.pointerId);if(room.hasPointerCapture(event.pointerId))room.releasePointerCapture(event.pointerId);if(contacts.size===1){const p=[...contacts.values()][0];pan={x:p.x,y:p.y,camera:{...target}};pinch=null;}else if(!contacts.size){pan=null;pinch=null;room.classList.remove('dragging');classify();}schedule();}
+  function endPan(event){if(!contacts.has(event.pointerId))return;contacts.delete(event.pointerId);if(room.hasPointerCapture(event.pointerId))room.releasePointerCapture(event.pointerId);if(contacts.size===1){const p=[...contacts.values()][0];pan={x:p.x,y:p.y,camera:{...target}};pinch=null;}else if(!contacts.size){if(pan&&event.type==='pointerup'){throwCamera(event.timeStamp);if(Math.hypot(event.clientX-pan.x,event.clientY-pan.y)>40)document.dispatchEvent(new CustomEvent('found',{detail:'wander'}));}pan=null;pinch=null;room.classList.remove('dragging');classify();}schedule();}
+  // The newcomer's lesson (hints.js): the room drifts a breath toward the pages and settles back,
+  // the same coast a released drag makes, so the world shows that it moves before anyone is told.
+  document.addEventListener('hint:nudge',()=>{if(!motion||active!=='home'||pan||pinch||fling)return;target={...camera};fling={vx:-.00017,vy:.00002};schedule();});
   room.addEventListener('pointerup',endPan);room.addEventListener('pointercancel',endPan);
   room.addEventListener('pointerleave',()=>{pointer={x:0,y:0};schedule();});
   document.addEventListener('keydown',event=>{
@@ -194,42 +262,122 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     const note='asdfgh'.indexOf(event.key.toLowerCase());if(active==='music'&&note>=0&&!event.repeat){event.preventDefault();playGesture(note,.9);return;}
     if(active==='music'&&event.code==='Space'&&!event.repeat&&!event.target.closest('button,a')){event.preventDefault();strum();return;}
     const directions={ArrowLeft:[-.2,0],ArrowRight:[.2,0],ArrowUp:[0,-.2],ArrowDown:[0,.2]};
-    if(directions[event.key]){event.preventDefault();const d=directions[event.key];target.x=clamp(target.x+d[0]/target.z,-1.65,1.72);target.y=clamp(target.y+d[1]/target.z,-1.5,1.7);classify();schedule();}
+    if(directions[event.key]){event.preventDefault();fling=null;const d=directions[event.key];target.x=clamp(target.x+d[0]/target.z,-1.65,1.72);target.y=clamp(target.y+d[1]/target.z,-1.5,1.7);classify();schedule();}
   });
   const motionButton=document.querySelector('#motion');
   function setMotion(value){motion=value;document.body.dataset.motion=value?'on':'off';motionButton.setAttribute('aria-pressed',String(!value));motionButton.textContent=value?t("动态开","Motion on"):t("动态关","Motion off");if(!value)pointer={x:0,y:0};schedule();}
   motionButton.addEventListener('click',()=>{guitarInteraction=!motion;setMotion(!motion);});reduced.addEventListener('change',e=>setMotion(!e.matches));
 
-  function flipPaper(paper) {
-    const flipped=!paper.classList.contains('flipped');paper.classList.toggle('flipped',flipped);paper.setAttribute('aria-pressed',String(flipped));
-    paper.querySelector('.paper-front').inert=flipped;paper.querySelector('.paper-back').inert=!flipped;
-  }
-  papers.forEach((paper,i)=>{
-    let drag=null;
-    paper.addEventListener('pointerdown',event=>{if(event.button!==0||event.target.closest('a,button'))return;event.stopPropagation();paper.style.zIndex=++paperTop;drag={x:event.clientX,y:event.clientY,offset:{...paperOffsets[i]},distance:0};paper.setPointerCapture(event.pointerId);});
-    paper.addEventListener('pointermove',event=>{if(!drag)return;event.stopPropagation();const dx=(event.clientX-drag.x)/camera.z,dy=(event.clientY-drag.y)/camera.z;drag.distance=Math.hypot(dx,dy);paperOffsets[i]={x:clamp(drag.offset.x+dx/width,-.23,.23),y:clamp(drag.offset.y+dy/height,-.26,.16)};paper.style.setProperty('--dx',`${paperOffsets[i].x*width}px`);paper.style.setProperty('--dy',`${paperOffsets[i].y*height}px`);});
-    function release(event,cancel=false){if(!drag)return;event.stopPropagation();if(!cancel&&drag.distance<7)flipPaper(paper);drag=null;if(paper.hasPointerCapture(event.pointerId))paper.releasePointerCapture(event.pointerId);}
-    paper.addEventListener('pointerup',e=>release(e));paper.addEventListener('pointercancel',e=>release(e,true));
-    paper.addEventListener('keydown',event=>{if(event.target===paper&&(event.key==='Enter'||event.key===' ')){event.preventDefault();flipPaper(paper);}});
-    paper.querySelector('.turn-back').addEventListener('click',event=>{event.stopPropagation();flipPaper(paper);});
-  });
-  document.querySelector('.paper-reset').addEventListener('click',()=>papers.forEach((paper,i)=>{paperOffsets[i]={x:0,y:0};paper.style.setProperty('--dx','0px');paper.style.setProperty('--dy','0px');paper.style.zIndex='';if(paper.classList.contains('flipped'))flipPaper(paper);}));
 
   const drawArea=document.querySelector('.draw-area');
   function localPoint(event){const b=drawArea.getBoundingClientRect();return{x:clamp((event.clientX-b.left)/b.width,0,1),y:clamp((event.clientY-b.top)/b.height,0,1)};}
-  function commitLine(){if(drawing&&drawing.points.length>3){drawing.amp=1;lines.push(drawing);if(lines.length>18)lines.shift();pluck(drawing.note,.6);drawArea.classList.add('has-lines');}drawing=null;schedule();}
-  drawArea.addEventListener('pointerdown',event=>{if(event.button!==0)return;event.stopPropagation();drawArea.setPointerCapture(event.pointerId);drawing={points:[localPoint(event)],amp:0,note:lines.length%6,pointer:event.pointerId};});
-  drawArea.addEventListener('pointermove',event=>{
-    event.stopPropagation();const p=localPoint(event);
-    if(drawing&&drawing.pointer===event.pointerId){const last=drawing.points[drawing.points.length-1];if(Math.hypot(p.x-last.x,p.y-last.y)>.006&&drawing.points.length<300)drawing.points.push(p);schedule();return;}
-    let closest=-1,distance=.035;
-    lines.forEach((strand,i)=>strand.points.forEach(point=>{const d=Math.hypot(point.x-p.x,point.y-p.y);if(d<distance){distance=d;closest=i;}}));
-    if(closest>=0&&(closest!==lineContact||performance.now()-lastLinePluck>350)){lines[closest].amp=1;pluck(lines[closest].note,.7);lastLinePluck=performance.now();}lineContact=closest;
+  const found=key=>document.dispatchEvent(new CustomEvent('found',{detail:key}));
+  // Lengths and distances in drawing-area widths, so a line keeps its note at any window size.
+  const pxOf=(a,c)=>{const {bw,bh}=traceFrame();return Math.hypot((a.x-c.x)*bw,(a.y-c.y)*bh)/bw;};
+  function nearest(p,reach){let hit=null,distance=reach;lines.forEach(strand=>strand.points.forEach((point,i)=>{const d=pxOf(point,p);if(d<distance){distance=d;hit={strand,u:i/(strand.points.length-1)};}}));return hit;}
+  function sing(strand,strength){
+    if(!enabled||document.hidden||!audio||audio.state!=='running')return;
+    const hz=scale[strand.note],now=audio.currentTime;
+    rig.play(hz,strength*.85);
+    // A closed line is a bowl: the same note with its upper partials, slightly late, slightly apart.
+    if(strand.loop){rig.play(hz*2.01,strength*.3,now+.014);rig.play(hz*2.99,strength*.16,now+.03);}
+    audioTailUntil=now+(params.echo?12:strand.loop?5:3.3);
+  }
+  function strike(strand,u,strength,answer=false){
+    strand.amp=Math.max(strand.amp,strength);strand.at=u;ruler={note:strand.note,amp:Math.max(ruler.note===strand.note?ruler.amp:0,strength)};
+    sing(strand,strength);schedule();
+    if(answer)return;
+    // Where two lines cross, the other one answers, quietly, from the crossing point.
+    const partners=crossings.filter(c=>c.a===strand||c.b===strand);
+    partners.forEach((c,i)=>setTimeout(()=>{const other=c.a===strand?c.b:c.a;if(lines.includes(other))strike(other,c.a===strand?c.ub:c.ua,.34,true);},70+i*40));
+    if(partners.length)found('trace-cross');
+  }
+  function crossingsOf(strand){
+    const out=[],{bw,bh}=traceFrame(),P=strand.points.map(p=>({x:p.x*bw,y:p.y*bh}));
+    lines.forEach(other=>{
+      if(other===strand)return;let count=0;const Q=other.points.map(p=>({x:p.x*bw,y:p.y*bh}));
+      for(let i=1;i<P.length&&count<3;i++)for(let j=1;j<Q.length&&count<3;j++){
+        const a=P[i-1],b=P[i],c=Q[j-1],d=Q[j],den=(b.x-a.x)*(d.y-c.y)-(b.y-a.y)*(d.x-c.x);if(!den)continue;
+        const s=((c.x-a.x)*(d.y-c.y)-(c.y-a.y)*(d.x-c.x))/den,t=((c.x-a.x)*(b.y-a.y)-(c.y-a.y)*(b.x-a.x))/den;
+        if(s<0||s>1||t<0||t>1)continue;
+        out.push({a:strand,b:other,ua:(i-1+s)/(P.length-1),ub:(j-1+t)/(Q.length-1),x:(a.x+(b.x-a.x)*s)/bw,y:(a.y+(b.y-a.y)*s)/bh});count++;
+      }
+    });
+    return out;
+  }
+  function commitLine(){
+    const strand=drawing;drawing=null;
+    if(strand&&strand.points.length>3){
+      const pts=strand.points;let length=0;for(let i=1;i<pts.length;i++)length+=pxOf(pts[i-1],pts[i]);
+      // Ends that meet close the line into a ring.
+      strand.loop=pts.length>=14&&length>.22&&pxOf(pts[0],pts[pts.length-1])<Math.max(.035,length*.09);
+      if(strand.loop)pts.push({...pts[0]});
+      strand.note=tuneTo(strand.loop?length/2:length);strand.amp=0;strand.at=.5;
+      lines.push(strand);
+      if(lines.length>18){const gone=lines.shift();crossings=crossings.filter(c=>c.a!==gone&&c.b!==gone);}
+      crossings.push(...crossingsOf(strand));
+      strike(strand,.5,.62,true);
+      drawArea.classList.add('has-lines');drawArea.dataset.lines=lines.length;
+      found('trace-line');if(strand.loop)found('trace-loop');
+      // A new line can make the room's next lesson possible (a loop to close, two lines to cross).
+      document.dispatchEvent(new Event('hint:recheck'));
+    }
+    schedule();
+  }
+  let lastMove=0;
+  drawArea.addEventListener('pointerdown',event=>{
+    if(event.button!==0)return;event.stopPropagation();drawArea.setPointerCapture(event.pointerId);
+    if(!audio)setSound(true);
+    lastMove=performance.now();drawing={points:[{...localPoint(event),w:1.4}],amp:0,pointer:event.pointerId};
   });
-  drawArea.addEventListener('pointerup',event=>{event.stopPropagation();if(drawing&&drawing.pointer===event.pointerId){if(drawing.points.length<=3){const p=localPoint(event);let closest=-1,distance=.055;lines.forEach((strand,i)=>strand.points.forEach(point=>{const d=Math.hypot(point.x-p.x,point.y-p.y);if(d<distance){distance=d;closest=i;}}));if(closest>=0){lines[closest].amp=1;pluck(lines[closest].note,.85);}}commitLine();if(drawArea.hasPointerCapture(event.pointerId))drawArea.releasePointerCapture(event.pointerId);}});
-  drawArea.addEventListener('pointercancel',()=>{drawing=null;schedule();});drawArea.addEventListener('pointerleave',()=>lineContact=-1);
-  document.querySelector('#add-line').addEventListener('click',()=>{const k=lines.length;drawing={points:Array.from({length:65},(_,i)=>{const t=i/64;return{x:.08+.84*t,y:clamp(.5+Math.sin(t*Math.PI*2+k*.9)*(.17+(k%3)*.035)+(k%3-1)*.08,.05,.95)}}),note:k%6,amp:0};commitLine();});
-  document.querySelector('#clear-lines').addEventListener('click',()=>{lines=[];drawing=null;drawArea.classList.remove('has-lines');schedule();});
+  drawArea.addEventListener('pointermove',event=>{
+    const p=localPoint(event);
+    if(drawing&&drawing.pointer===event.pointerId){
+      const last=drawing.points[drawing.points.length-1],step=pxOf(p,last),now=performance.now();
+      if(step>.004&&drawing.points.length<300){
+        // Pencil pressure: a slow hand leaves a darker, wider line than a quick one.
+        const pace=step*1000/Math.max(8,now-lastMove);lastMove=now;
+        drawing.points.push({...p,w:last.w+(clamp(2-pace*.9,.65,2)-last.w)*.35});
+      }
+      schedule();return;
+    }
+    const hit=nearest(p,.028),contact=hit?.strand??null;
+    if(hit&&(contact!==lineContact||performance.now()-lastLinePluck>350)){strike(hit.strand,hit.u,.7);lastLinePluck=performance.now();found('trace-pluck');}
+    lineContact=contact;
+  });
+  drawArea.addEventListener('pointerup',event=>{
+    event.stopPropagation();
+    if(drawing&&drawing.pointer===event.pointerId){
+      if(drawing.points.length<=3){const hit=nearest(localPoint(event),.055);if(hit){strike(hit.strand,hit.u,.85);found('trace-pluck');}}
+      commitLine();
+      if(drawArea.hasPointerCapture(event.pointerId))drawArea.releasePointerCapture(event.pointerId);
+    }
+  });
+  drawArea.addEventListener('pointercancel',()=>{drawing=null;schedule();});drawArea.addEventListener('pointerleave',()=>lineContact=null);
+  document.querySelector('#add-line').addEventListener('click',()=>{const k=lines.length;drawing={points:Array.from({length:65},(_,i)=>{const t=i/64;return{x:.08+.84*t,y:clamp(.5+Math.sin(t*Math.PI*2+k*.9)*(.17+(k%3)*.035)+(k%3-1)*.08,.05,.95),w:1.1+Math.sin(t*Math.PI)*.5}}),amp:0};commitLine();});
+  document.querySelector('#clear-lines').addEventListener('click',()=>{lines=[];crossings=[];drawing=null;drawArea.classList.remove('has-lines');drawArea.dataset.lines=0;schedule();});
+  // The quiet tutorial (hints.js). A pencil sketches a line by itself and the line hums; later the
+  // visitor's own line shivers once, waiting to be touched; later still the pencil closes a small
+  // ring that sends out ripples. None of it makes a sound.
+  const ghost=drawArea.querySelector('.trace-ghost path');
+  document.addEventListener('hint:sketch',()=>{
+    if(!motion||active!=='trace'||drawing||!ghost)return;
+    const svg=ghost.ownerSVGElement;svg.getAnimations({subtree:true}).forEach(a=>a.cancel());
+    ghost.animate([{clipPath:'inset(-20% 100% -20% 0)'},{clipPath:'inset(-20% -2% -20% 0)'}],{duration:1500,easing:'cubic-bezier(.45,.05,.4,1)',fill:'both'});
+    svg.animate([{opacity:0,offset:0},{opacity:1,offset:.04},{opacity:1,offset:.78},{opacity:0}],{duration:4300,fill:'both'});
+    // Once drawn, it is plucked by an invisible finger: a damped shiver across its length.
+    const ring=[1,1.5,.62,1.3,.82,1.12,.95,1];
+    svg.animate(ring.map((y,i)=>({scale:`1 ${y}`,offset:.4+.6*i/(ring.length-1)})),{duration:2600,easing:'ease-in-out'});
+  });
+  document.addEventListener('hint:quiver',()=>{if(!motion||active!=='trace'||!lines.length)return;const last=lines[lines.length-1];last.at=.3;last.amp=.42;schedule();});
+  const ghostRing=drawArea.querySelector('.trace-ghost-ring');
+  document.addEventListener('hint:ring',()=>{
+    if(!motion||active!=='trace'||drawing||!ghostRing)return;
+    ghostRing.getAnimations({subtree:true}).forEach(a=>a.cancel());
+    ghostRing.querySelector('path').animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:1300,easing:'cubic-bezier(.45,.05,.4,1)',fill:'both'});
+    ghostRing.animate([{opacity:0,offset:0},{opacity:1,offset:.04},{opacity:1,offset:.8},{opacity:0}],{duration:4200,fill:'both'});
+    ghostRing.querySelectorAll('circle').forEach((c,i)=>c.animate([{r:'11px',opacity:.55},{r:`${19+i*4}px`,opacity:0}],{duration:1500,delay:1350+i*260,easing:'cubic-bezier(.2,.6,.3,1)',fill:'both'}));
+  });
 
   const closeup=document.querySelector('#guitar-closeup'),guitarStage=document.querySelector('.guitar-stage');
   const detailViews={body:[.79,2.12,t("SH-1n / SH-16\n换成了自己的声音。","SH-1n / SH-16\nA little closer to my own sound.")],neck:[.395,2.55,t("枫木指板，二十二品。","Maple fingerboard. Twenty-two frets.")],head:[.084,4.8,t("BanG Dream!\n乐奈的那把。","BanG Dream!\nRāna’s guitar.")],whole:[.5,.94,t("乐奈同款。也是我的这一把。","Rāna’s model. My own guitar.")]};
@@ -272,7 +420,9 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     catch{enabled=false;setControl(localSound,t("声音暂不可用","Sound is unavailable"),null);soundButton.querySelector('span').textContent=t("声音暂不可用","Sound is unavailable");soundButton.setAttribute('aria-pressed','false');localSound.setAttribute('aria-pressed','false');return false;}
     finally{soundButton.disabled=localSound.disabled=false;}
   }
-  soundButton.addEventListener('click',()=>setSound(!enabled));localSound.addEventListener('click',()=>setSound(!enabled));
+  soundButton.addEventListener('click',()=>setSound(!enabled));
+  // Small sounds from the rooms themselves, heard only when sound is on.
+  document.addEventListener('roomsound',event=>{if(!enabled||!rig||document.hidden)return;if(event.detail==='lamp')rig.click(.55,.58);if(event.detail==='crumple')rig.crumple?.();if(event.detail==='tick')rig.click(.16,1.7);});localSound.addEventListener('click',()=>setSound(!enabled));
   function frequencyFor(index){const fret=active==='music'?chords[chord][index]:0;return fret<0?null:frequencies[index]*2**(fret/12);}
   function pluck(index,strength=1,fromLoop=false){
     const frequency=frequencyFor(index);if(!frequency)return;
@@ -285,7 +435,10 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
     }
     rig.play(frequency,strength);audioTailUntil=audio.currentTime+(params.echo?12:3.3);
   }
-  async function playGesture(index,strength=1){if(!audio&&!await setSound(true))return;pluck(index,strength);}
+  const strummed=()=>document.dispatchEvent(new CustomEvent('found',{detail:'music-strings'}));
+  async function playGesture(index,strength=1){strummed();if(!audio&&!await setSound(true))return;pluck(index,strength);}
+  // The quiet tutorial (hints.js): the strings shiver one after another, as if brushed, without a sound.
+  document.addEventListener('hint:strings',()=>{if(!motion||active!=='music')return;for(let n=0;n<6;n++)setTimeout(()=>{if(active!=='music')return;pulses[n]=Math.max(pulses[n],.34-n*.02);schedule();},n*95);});
   document.addEventListener('roompluck',async event=>{
     const {index,strength=.5,wake=false}=event.detail||{};
     if(active!=='paths'||!Number.isInteger(index)||index<0||index>5)return;
@@ -304,7 +457,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   }));
   strings.forEach(button=>{
     const note=Number(button.dataset.note);let lastPointer=-Infinity;
-    button.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'&&enabled){lastPointer=performance.now();pluck(note,.67);}});
+    button.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'&&enabled){lastPointer=performance.now();pluck(note,.67);strummed();}});
     button.addEventListener('click',event=>{if(!event.detail||performance.now()-lastPointer>110||!audio)playGesture(note,1);});
   });
   const stringBed=document.querySelector('.string-bed');let touchString=-1;

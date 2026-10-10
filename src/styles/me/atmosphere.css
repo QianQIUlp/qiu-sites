@@ -5,11 +5,17 @@
 /* Daylight ------------------------------------------------------------- */
 .daylight{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;--sun-x:78%;--sun-y:16%;--blind-op:1;--leaf-op:.85}
 .daylight>*{position:absolute;display:block;transition:opacity 1.4s ease}
-.day-sun{inset:0;mix-blend-mode:soft-light;background:radial-gradient(58% 72% at var(--sun-x) var(--sun-y),rgba(255,206,140,.6),rgba(255,206,140,0) 72%)}
-.day-blinds{inset:-35%;opacity:var(--blind-op);mix-blend-mode:multiply;filter:blur(6px);background:repeating-linear-gradient(-24deg,rgba(118,86,50,0) 0 44px,rgba(118,86,50,.15) 56px 84px,rgba(118,86,50,0) 96px 118px);-webkit-mask:radial-gradient(34% 40% at 66% 40%,#000 30%,transparent 100%);mask:radial-gradient(34% 40% at 66% 40%,#000 30%,transparent 100%);animation:day-drift 38s ease-in-out infinite alternate}
-.day-leaves{right:-5%;top:-8%;width:52%;height:66%;opacity:var(--leaf-op);mix-blend-mode:multiply;filter:blur(7px)}
+.day-sun{inset:0;mix-blend-mode:soft-light;opacity:calc(1 - var(--dusk,0) * .75);background:radial-gradient(58% 72% at calc(var(--sun-x) - var(--gold,0) * 10%) calc(var(--sun-y) + var(--gold,0) * 16%),color-mix(in oklab,rgba(255,206,140,.6),rgba(255,150,86,.64) calc(var(--gold,0) * 100%)),rgba(255,190,130,0) 72%)}
+.day-blinds{inset:-35%;opacity:calc(var(--blind-op) * (1 - var(--dusk,0) * .7));scale:1 calc(1 + var(--gold,0) * .55);rotate:calc(var(--gold,0) * -9deg);mix-blend-mode:multiply;filter:blur(6px);background:repeating-linear-gradient(-24deg,rgba(118,86,50,0) 0 44px,rgba(118,86,50,.15) 56px 84px,rgba(118,86,50,0) 96px 118px);-webkit-mask:radial-gradient(34% 40% at 66% 40%,#000 30%,transparent 100%);mask:radial-gradient(34% 40% at 66% 40%,#000 30%,transparent 100%);animation:day-drift 38s ease-in-out infinite alternate}
+.day-leaves{right:-5%;top:-8%;width:52%;height:66%;opacity:calc(var(--leaf-op) * (1 - var(--dusk,0) * .65));transform-origin:100% 0;scale:calc(1 + var(--gold,0) * .12) calc(1 + var(--gold,0) * .6);mix-blend-mode:multiply;filter:blur(7px)}
 .day-leaves g{fill:rgba(66,76,46,.34);stroke:rgba(66,76,46,.32);transform-origin:93% 0;animation:leaf-sway 10s ease-in-out infinite alternate}
 .day-leaves .leaf-branch-b{fill:rgba(66,76,46,.26);animation-duration:14s;animation-delay:-5s}
+/* Late in the day (afternoon.js): the low sun turns the light to ember, then evening settles in. */
+.day-ember{inset:0;mix-blend-mode:soft-light;background:radial-gradient(120% 110% at calc(var(--sun-x) + 4%) calc(var(--sun-y) - 6%),rgba(255,128,60,.85),rgba(255,128,60,.3) 46%,rgba(255,128,60,0) 80%);opacity:calc(var(--gold,0) * (1 - var(--dusk,0) * .8) * .42)}
+.day-dusk{inset:0;mix-blend-mode:multiply;background:linear-gradient(205deg,rgba(240,196,166,.7),rgba(206,158,150,.72) 48%,rgba(150,128,158,.78));opacity:calc(var(--dusk,0) * .46)}
+/* The lamp of 不赶时间, once lit: it shines over the dimmed evening, so it sits in the light layer. */
+.day-lamp{inset:0;mix-blend-mode:soft-light;background:radial-gradient(26% 34% at var(--lamp-x,20%) var(--lamp-y,60%),rgba(255,210,146,.62),rgba(255,196,128,.26) 48%,rgba(255,196,128,0) 80%);opacity:0}
+#room[data-place=idle] .day-lamp{opacity:var(--lamp,0)}
 .day-grain{inset:0;background-image:var(--grain);background-size:180px;opacity:.13;mix-blend-mode:multiply}
 .day-vignette{inset:0;background:radial-gradient(125% 105% at 52% 44%,transparent 56%,rgba(68,46,22,.16))}
 @keyframes day-drift{to{transform:translate3d(54px,-10px,0)}}
@@ -18,7 +24,7 @@
 #room[data-place=paths] .daylight,#room[data-place=trace] .daylight,#room[data-place=blindspot] .daylight{--sun-x:24%;--sun-y:6%;--blind-op:.55;--leaf-op:.5}
 #room[data-place=rethink] .daylight,#room[data-place=idle] .daylight,#room[data-place=work] .daylight{--sun-x:88%;--sun-y:58%;--blind-op:.8;--leaf-op:.7}
 #room[data-place=papers] .daylight{--sun-x:58%;--sun-y:12%}
-#room[data-place=music] .day-sun,#room[data-place=music] .day-blinds,#room[data-place=music] .day-leaves,#room[data-place=music] .day-vignette{opacity:0}
+#room[data-place=music] .day-sun,#room[data-place=music] .day-blinds,#room[data-place=music] .day-leaves,#room[data-place=music] .day-vignette,#room[data-place=music] .day-ember,#room[data-place=music] .day-dusk{opacity:0}
 #room.overviewing .day-blinds,#room.overviewing .day-leaves{opacity:.45}
 #room.overviewing .day-vignette{opacity:.6}
 body[data-motion=off] .day-blinds,body[data-motion=off] .day-leaves g{animation:none}
@@ -28,7 +34,6 @@ body[data-motion=off] .day-blinds,body[data-motion=off] .day-leaves g{animation:
 .name span:first-child{filter:drop-shadow(-12px 16px 16px var(--cast))}
 .name span:last-child{filter:drop-shadow(-6px 9px 6px rgba(70,48,24,.14))}
 .loose-paper{filter:drop-shadow(-14px 22px 20px rgba(58,40,20,.2)) drop-shadow(-2px 3px 3px rgba(58,40,20,.12))}
-.loose-paper:active{filter:drop-shadow(-26px 40px 34px rgba(58,40,20,.22)) drop-shadow(-3px 5px 4px rgba(58,40,20,.12))}
 .paper-face{background-image:var(--grain),linear-gradient(118deg,rgba(255,255,255,.4),rgba(255,255,255,0) 42%,rgba(0,0,0,.035));background-size:180px,auto;background-blend-mode:multiply}
 .obligation{filter:drop-shadow(-10px 16px 14px rgba(58,40,20,.2))}
 

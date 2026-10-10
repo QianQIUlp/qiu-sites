@@ -94,3 +94,30 @@
   .blind-controls button{padding:6px 0;margin:0}
   .blind-caption p{font-size:8px}.blind-guide{font-size:6px}
 }
+
+/* 盲点's test card: off-white card stock printed with a fixation cross and a dot, a fixed distance
+   apart so the dot can fall into a real eye's blind spot. It turns over like a loose page. */
+.eye-card{position:absolute;left:5%;top:29%;z-index:3;width:clamp(240px,21vw,290px);height:clamp(92px,8vw,110px);padding:0;perspective:900px;transform:rotate(-2.5deg);pointer-events:auto;cursor:pointer;filter:drop-shadow(-6px 10px 9px rgba(58,40,20,.16)) drop-shadow(0 1px 1px rgba(58,40,20,.12))}
+.eye-face{position:absolute;inset:0;display:flex;flex-direction:column;border-radius:5px;background:#f6f3ea linear-gradient(176deg,rgba(255,255,255,.5),rgba(255,255,255,0) 40%);border:1px solid rgba(120,112,92,.28);backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .7s cubic-bezier(.2,.75,.2,1)}
+.eye-face::before{content:"";position:absolute;inset:5px;border:.5px solid rgba(120,112,92,.3);border-radius:3px;pointer-events:none}
+.eye-marks{flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 11% 0 9%}
+/* The marks sit 200px apart (about 5 cm on a desktop screen): the dot vanishes at roughly 15 cm. */
+.eye-marks b{font:400 26px/1 var(--serif);color:#1d1e1b;width:26px;text-align:center}
+.eye-dot{display:block;width:15px;height:15px;border-radius:50%;background:#1d1e1b}
+.eye-front small,.eye-back small{font:7px/1.5 var(--mono);letter-spacing:.12em;color:rgba(70,66,56,.62);text-align:center;padding:0 10px 9px}
+.eye-back{transform:rotateY(180deg);justify-content:center;gap:6px;padding:12px 18px;text-align:left}
+.eye-back b{font-weight:400;font-size:13px;line-height:1.35;color:var(--ink)}
+.eye-back small{text-align:left;padding:0;font:10px/1.6 var(--sans);letter-spacing:0;color:#5f6151}
+.eye-card.turned .eye-front{transform:rotateY(-180deg)}
+.eye-card.turned .eye-back{transform:rotateY(0)}
+.eye-card:focus-visible{outline:1px solid var(--red);outline-offset:4px}
+.overviewing .eye-card{opacity:0}
+@media(max-width:700px){
+  .eye-card{left:auto;right:4%;top:76.5%;width:164px;height:56px;transform:rotate(-2deg)}
+  .eye-marks b{font-size:20px;width:20px}
+  .eye-dot{width:11px;height:11px}
+  .eye-front small{font-size:6px;padding-bottom:5px}
+  .eye-back{padding:7px 10px;gap:2px}
+  .eye-back b{font-size:10px}
+  .eye-back small{font-size:7.5px;line-height:1.4}
+}
