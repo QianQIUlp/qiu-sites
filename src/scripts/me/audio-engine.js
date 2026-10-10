@@ -1,12 +1,28 @@
 // A lightweight instrument and effect chain, inspired by pedals, not a circuit emulation.
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
-export const defaultRig={goldDrive:32,goldTone:55,goldLevel:50,blueLevel:50,blueTone:50,blueDrive:42,echoTime:420,echoFeedback:34,echoMix:28,volume:65,gold:false,blue:false,echo:false};
+export const defaultRig={goldDrive:32,goldTone:55,goldLevel:50,blueLevel:50,blueTone:50,blueDrive:42,harmBalance:45,harmKey:7,harmShift:2,echoTime:420,echoFeedback:34,echoMix:28,volume:65,gold:false,blue:false,harm:false,echo:false};
+export const pedalKeys=['gold','blue','harm','echo'];
 export const tones={
   clean:{...defaultRig},
   gold:{...defaultRig,gold:true,goldDrive:34,goldTone:58},
   blue:{...defaultRig,blue:true,blueDrive:58,blueTone:46},
+  harm:{...defaultRig,harm:true,gold:true,goldDrive:22,harmBalance:48,harmShift:2},
   night:{...defaultRig,gold:true,echo:true,goldDrive:20,goldTone:44,echoTime:560,echoFeedback:48,echoMix:42}
 };
+// The harmonist's SHIFT knob, in steps of the chosen major scale (a diatonic harmony, not a fixed interval).
+export const harmonyShifts=[{steps:-7,label:'-1 OCT'},{steps:-3,label:'-4TH'},{steps:2,label:'+3RD'},{steps:3,label:'+4TH'},{steps:4,label:'+5TH'},{steps:5,label:'+6TH'},{steps:7,label:'+1 OCT'}];
+export const keyNames=['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const major=[0,2,4,5,7,9,11];
+export function harmonyFor(frequency,key,shift){
+  const midi=Math.round(69+12*Math.log2(frequency/440)),offset=frequency/(440*2**((midi-69)/12));
+  const relative=((midi-key)%12+12)%12,octave=Math.floor((midi-key)/12);
+  // A note outside the key borrows the degree just below it, then keeps its own chromatic distance.
+  let degree=6;while(major[degree]>relative)degree--;
+  const chromatic=relative-major[degree],steps=harmonyShifts[shift]?.steps??2;
+  const target=degree+steps,targetOctave=octave+Math.floor(target/7),targetDegree=((target%7)+7)%7;
+  const targetMidi=key+targetOctave*12+major[targetDegree]+chromatic;
+  return 440*2**((targetMidi-69)/12)*offset;
+}
 
 export function makePluck(context,frequency){
   const rate=context.sampleRate,seconds=clamp(5.2-frequency/260,2.4,5),length=Math.ceil(rate*seconds);
@@ -47,8 +63,21 @@ function makeRoom(context,seconds=2.3){
   }
   return impulse;
 }
+const ranges={echoTime:[80,800],echoFeedback:[0,72],harmKey:[0,11],harmShift:[0,harmonyShifts.length-1]};
+function makeClick(context){
+  // A footswitch: a sharp metal tick over a soft thump from the enclosure.
+  const rate=context.sampleRate,length=Math.ceil(rate*.06),buffer=context.createBuffer(1,length,rate),data=buffer.getChannelData(0);
+  let seed=91,soft=0;
+  for(let i=0;i<length;i++){
+    seed=(Math.imul(seed,1664525)+1013904223)>>>0;const t=i/rate,white=seed/4294967296*2-1;soft+=(white-soft)*.35;
+    data[i]=white*Math.exp(-t*900)*.55+soft*Math.exp(-t*180)*.35+Math.sin(2*Math.PI*96*t)*Math.exp(-t*70)*.5;
+  }
+  return buffer;
+}
 export function createAudioRig(context,destination=context.destination){
   const input=context.createGain(),master=context.createGain(),analyser=context.createAnalyser();
+  // Plucked notes and their harmony voices meet at the input; the harmonist's BALANCE sets the blend.
+  const direct=context.createGain(),harmony=context.createGain();direct.connect(input);harmony.connect(input);harmony.gain.value=0;
   master.gain.value=0;
   const values={...defaultRig},buffers=new Map(),voices=new Set();
   const gain=(value=1)=>{const n=context.createGain();n.gain.value=value;return n;};
@@ -70,9 +99,11 @@ export function createAudioRig(context,destination=context.destination){
   const highpass=filter('highpass',65),cabinet=filter('lowpass',6600),presence=filter('peaking',2600,.9);
   presence.gain.value=2.5;
   input.connect(highpass).connect(gold.entry);gold.output.connect(blue.entry);blue.output.connect(filter('highpass',35)).connect(presence).connect(cabinet);
-  const delay=context.createDelay(1),feedback=gain(.34),delaySend=gain(0),delayMix=gain(0),damping=filter('lowpass',3300);
+  const delay=context.createDelay(1),feedback=gain(.34),delaySend=gain(0),delayMix=gain(0),damping=filter('lowpass',3300),tapeAge=filter('highpass',180);
   cabinet.connect(master);cabinet.connect(delaySend).connect(delay);
-  delay.connect(damping).connect(feedback).connect(delay);
+  delay.connect(damping).connect(tapeAge).connect(feedback).connect(delay);
+  // Tape wow: the echo's pitch drifts a hair as the reels turn.
+  const wow=context.createOscillator(),wowDepth=gain(.0011);wow.frequency.value=.55;wow.connect(wowDepth).connect(delay.delayTime);wow.start();
   delay.connect(delayMix).connect(master);
   // Every note gets a little air, whichever pedals are on.
   const room=context.createConvolver(),roomSend=gain(.2),roomTone=filter('lowpass',4200);
@@ -83,7 +114,9 @@ export function createAudioRig(context,destination=context.destination){
   const ceiling=context.createWaveShaper(),ceilingCurve=new Float32Array(4097);
   for(let i=0;i<ceilingCurve.length;i++){const x=i/(ceilingCurve.length-1)*2-1,a=Math.abs(x);ceilingCurve[i]=a<=.65?x:Math.sign(x)*(.65+.25*Math.tanh((a-.65)/.25));}
   ceiling.curve=ceilingCurve;ceiling.oversample='2x';
-  master.connect(compressor).connect(ceiling).connect(analyser).connect(destination);analyser.fftSize=512;
+  master.connect(compressor).connect(ceiling).connect(destination);
+  // The VU reads the board's output before the safety limiter, so the pedals' Output knobs and the volume really move it.
+  const sink=gain(0);master.connect(analyser).connect(sink).connect(destination);analyser.fftSize=1024;
   const meterData=new Float32Array(analyser.fftSize);
   function apply(){
     const g=values.goldDrive/100,b=values.blueDrive/100;
@@ -94,6 +127,8 @@ export function createAudioRig(context,destination=context.destination){
     smooth(blue.pre.gain,1+b*38);smooth(blue.post.gain,(.4+values.blueLevel/100)*.75);
     smooth(blue.tone.frequency,900*Math.pow(8,values.blueTone/100));
     smooth(blue.dry.gain,values.blue?0:1);smooth(blue.wet.gain,values.blue?1:0);
+    const blend=values.harmBalance/100;
+    smooth(direct.gain,values.harm?Math.min(1,2-2*blend):1);smooth(harmony.gain,values.harm?Math.min(1,2*blend)*.82:0);
     smooth(delay.delayTime,values.echoTime/1000);smooth(feedback.gain,values.echoFeedback/100);
     smooth(delaySend.gain,values.echo?1:0);smooth(delayMix.gain,values.echo?values.echoMix/100:0);
     smooth(master.gain,values.volume/100*.65);
@@ -101,24 +136,36 @@ export function createAudioRig(context,destination=context.destination){
   function set(patch){
     for(const [key,value] of Object.entries(patch)){
       if(!Object.hasOwn(values,key))continue;
-      if(['gold','blue','echo'].includes(key))values[key]=Boolean(value);
-      else if(Number.isFinite(value))values[key]=clamp(value,key==='echoTime'?80:0,key==='echoTime'?800:key==='echoFeedback'?72:100);
+      if(pedalKeys.includes(key))values[key]=Boolean(value);
+      else if(Number.isFinite(value)){const [min,max]=ranges[key]||[0,100];values[key]=clamp(value,min,max);}
     }
     apply();
   }
+  function voice(frequency,strength,when,kind,into){
+    const key=frequency.toFixed(3);
+    if(!buffers.has(key)){if(buffers.size>=64)buffers.delete(buffers.keys().next().value);buffers.set(key,makePluck(context,frequency));}
+    if(voices.size>=40){const first=voices.values().next().value;first.source.stop();voices.delete(first);}
+    const source=context.createBufferSource(),level=gain(clamp(strength,0,1)*.85);
+    source.buffer=buffers.get(key);source.connect(level).connect(into);
+    const entry={source,kind};voices.add(entry);
+    source.onended=()=>{voices.delete(entry);source.disconnect();level.disconnect();};
+    source.start(Math.max(when,context.currentTime));return source;
+  }
   function play(frequency,strength=1,when=context.currentTime,kind='live'){
     if(!Number.isFinite(frequency)||frequency<40||frequency>1600)return;
-    const key=frequency.toFixed(3);
-    if(!buffers.has(key)){if(buffers.size>=48)buffers.delete(buffers.keys().next().value);buffers.set(key,makePluck(context,frequency));}
-    if(voices.size>=32){const first=voices.values().next().value;first.source.stop();voices.delete(first);}
-    const source=context.createBufferSource(),level=gain(clamp(strength,0,1)*.85);
-    source.buffer=buffers.get(key);source.connect(level).connect(input);
-    const voice={source,kind};voices.add(voice);
-    source.onended=()=>{voices.delete(voice);source.disconnect();level.disconnect();};
-    source.start(Math.max(when,context.currentTime));return source;
+    // The harmony voice always rings, silently when bypassed, so BALANCE and the switch act on notes already sounding.
+    const second=harmonyFor(frequency,values.harmKey,values.harmShift);
+    if(second>=40&&second<=2400)voice(second,strength*.9,when+.009,kind,harmony);
+    return voice(frequency,strength,when,kind,direct);
+  }
+  const clickBuffer=makeClick(context),clickLevel=gain(.32);clickLevel.connect(compressor);
+  function click(level=1,rate=1){
+    // rate > 1 makes the smaller, drier tick of a stepped knob's detent.
+    const source=context.createBufferSource(),amount=gain(level);source.buffer=clickBuffer;source.playbackRate.value=rate;
+    source.connect(amount).connect(clickLevel);source.start();source.onended=()=>{source.disconnect();amount.disconnect();};
   }
   function stopLoop(){for(const v of voices)if(v.kind==='loop'){v.source.stop();voices.delete(v);}}
   function meter(){analyser.getFloatTimeDomainData(meterData);let sum=0;for(const n of meterData)sum+=n*n;return Math.sqrt(sum/meterData.length);}
   apply();
-  return{input,set,play,stopLoop,meter,get active(){return voices.size>0;}};
+  return{input,set,play,click,stopLoop,meter,get active(){return voices.size>0;}};
 }

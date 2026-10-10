@@ -59,75 +59,11 @@
 .board-heading>span:first-child{color:var(--ink);font-size:11px}
 .board-heading small{font-size:8px}
 .board-heading .signal-label{display:none;font:7px var(--mono);letter-spacing:.04em}
-.pedal-deck{position:absolute;left:35%;right:6.5%;top:47%;bottom:9%;display:grid;grid-template-columns:1.14fr .89fr .95fr;gap:clamp(18px,3vw,48px);align-items:stretch;pointer-events:auto;isolation:isolate}
-.pedal{position:relative;min-width:0;max-height:365px;align-self:stretch;border-radius:10px 10px 12px 12px;container-type:inline-size;cursor:default}
-.pedal-deck.sliding{scroll-snap-type:none}
-.pedal:before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4;box-shadow:inset 0 1px 1px #fff8,inset 1px 0 1px #fff4,inset -1px -2px 2px #0006}
-.pedal-gold{transform:rotate(-3deg);background:linear-gradient(118deg,#ddc78c 0,#c6ad73 19%,#b2985f 69%,#bda774);border:1px solid #87713f;box-shadow:0 7px 0 #756139,1px 9px 0 #4d4432,3px 16px 12px #2f291c3b,8px 28px 26px #2f291c29;color:#332d20}
-.pedal-blue{transform:rotate(2deg);background:linear-gradient(118deg,#4f99c9 0,#2e82ba 27%,#236496 80%,#1a5384);border:1px solid #22557a;box-shadow:0 7px 0 #174266,1px 9px 0 #25323c,3px 16px 12px #10243640,8px 28px 26px #1c2b3029;color:#f5eecf}
-.pedal-echo{transform:rotate(-1deg);background:linear-gradient(118deg,#446562,#2d4945 40%,#233d3a);border:1px solid #243c37;box-shadow:0 7px 0 #1b302a,1px 9px 0 #1c2823,3px 16px 12px #11282140,8px 28px 26px #1c2b3029;color:#d4c795}
-.screw{position:absolute;width:8px;height:8px;border-radius:50%;background:linear-gradient(115deg,#faf2db,#857e68 48%,#eee2c5 74%,#645e4f);box-shadow:0 0 0 1px #0005,1px 1px 2px #0008;z-index:5}
-.screw:after{content:"";position:absolute;left:1px;right:1px;top:3px;height:1px;background:#48463b;box-shadow:0 1px #fff6;transform:rotate(-27deg)}
-.screw-tl{left:8px;top:8px}.screw-tr{right:8px;top:8px;transform:rotate(60deg)}.screw-bl{left:8px;bottom:9px;transform:rotate(90deg)}.screw-br{right:8px;bottom:9px}
-.jack{position:absolute;width:11px;height:20px;top:23%;background:linear-gradient(#aaa993,#eee9d3 35%,#464943 43%,#b1b1a0 55%,#64665b);border:1px solid #686a60;border-radius:2px;box-shadow:0 1px 2px #0006;z-index:-1}
-.jack-left{left:-10px}.jack-right{right:-10px}
-.patch-cable{position:absolute;top:24%;width:15%;height:37%;border:7px solid #303431;border-top:0;border-radius:0 0 50% 45%;box-shadow:inset 1px 0 1px #a1a49b,2px 3px 3px #0003;z-index:-2}
-.cable-one{left:31%;transform:rotate(-13deg)}.cable-two{left:66%;transform:rotate(9deg)}
-.pedal-dials{display:flex;justify-content:space-around;gap:2px;padding:20px 7% 0}
-.dial{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;position:relative;font-family:var(--mono);text-align:center;pointer-events:auto}
-.dial-label{font-size:clamp(6px,4.1cqw,9px);font-weight:bold;letter-spacing:.035em}
-.dial-control{position:relative;width:clamp(30px,23cqw,53px);aspect-ratio:1;display:block;margin:4px 0 2px;touch-action:none}
-.dial-ticks{position:absolute;inset:-5px;border-radius:50%;background:repeating-conic-gradient(from 225deg,currentColor 0deg 1.5deg,transparent 1.5deg 27deg);mask:radial-gradient(circle,transparent 63%,#000 65%,#000 71%,transparent 73%);opacity:.55;clip-path:polygon(0 0,100% 0,100% 100%,70% 100%,50% 75%,30% 100%,0 100%)}
-.knob{position:absolute;inset:1px;border-radius:50%;background:repeating-conic-gradient(#151917 0deg 7deg,#3f4239 7deg 11deg,#111511 11deg 15deg);box-shadow:1px 3px 3px #0009,0 1px 0 2px #101410;transform:rotate(var(--angle));pointer-events:none}
-.knob:before{content:"";position:absolute;inset:12%;border-radius:50%;background:radial-gradient(circle at 35% 22%,#515148,#252823 57%,#171b17);box-shadow:inset 0 1px 1px #a6a78b66,0 1px 1px #000}
-.knob i{position:absolute;width:3px;top:4px;left:calc(50% - 1.5px);height:30%;background:#e5ddbd;border-radius:1px;box-shadow:0 0 1px #0009;z-index:1}
-.dial input{position:absolute;inset:-7px;width:calc(100% + 14px);height:calc(100% + 14px);opacity:0;cursor:ns-resize;touch-action:none;margin:0}
-.dial:has(input:focus-visible) .dial-control{outline:2px solid currentColor;outline-offset:8px;border-radius:50%}
-.dial output{font:8px var(--mono);font-variant-numeric:tabular-nums;opacity:.75;white-space:nowrap}
-.dial:hover output,.dial:has(input:focus-visible) output,.dial:has(input.dragging) output{opacity:1}
-.gold-art{position:absolute;top:39%;left:9%;right:9%;text-align:center;pointer-events:none}
-.gold-art svg{height:clamp(25px,19cqw,50px);max-width:100%;width:100%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.8;display:block;margin:0 auto 4px}
-.gold-art strong{font:700 clamp(12px,10cqw,22px)/1 var(--serif);letter-spacing:.08em}
-.gold-art>span{display:block;font:clamp(5px,3.5cqw,7px) var(--mono);margin-top:5px;letter-spacing:.16em}
-.footswitch{position:absolute;bottom:7%;left:50%;transform:translateX(-50%);width:70px;height:29%;min-height:65px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:10px;border-radius:4px;touch-action:manipulation}
-.led{display:block;width:6px;height:6px;flex-shrink:0;border-radius:50%;background:#491c0d;box-shadow:0 0 0 2px #282b2366,inset 1px 1px 1px #080f0c;transition:background .12s,box-shadow .12s}
-[data-on=true] .led{background:#ff7952;box-shadow:0 0 0 1px #72452c,0 0 9px #ff6b3999,inset 0 1px #ffeab5}
-.metal-switch{display:block;width:27px;height:27px;border-radius:50%;background:radial-gradient(ellipse at 36% 24%,#ffffed,#b2b5a9 47%,#59665e 64%,#e3e2c9 70%,#858d7b);border:2px solid #bac1ac;box-shadow:0 2px 0 2px #4a554a,0 3px 0 4px #c5c7ae,0 5px 3px 5px #393d3180;position:relative}
-.metal-switch:before{content:"";position:absolute;inset:3px;border-radius:50%;border:1px solid #fff7;background:linear-gradient(130deg,#fff6,transparent 50%,#48554b33)}
-.footswitch:active .metal-switch{transform:translateY(2px);box-shadow:0 1px 0 2px #4a554a,0 2px 0 4px #c5c7ae,0 3px 3px 5px #393d3180}
-.pedal-state{font:7px var(--sans);letter-spacing:.1em;opacity:.75;margin-top:3px}
-.pedal-edition{position:absolute;bottom:9px;left:13px;right:13px;font:5px var(--mono);text-align:center;letter-spacing:.1em;opacity:.58;pointer-events:none}
-.blue-name{position:absolute;top:39%;left:11%;right:11%;pointer-events:none}
-.blue-name>span{font:bold clamp(11px,9.3cqw,23px)/1.1 var(--sans);letter-spacing:-.045em}
-.blue-name strong{display:block;font:700 clamp(9px,6.8cqw,17px) var(--sans);margin-top:3px}
-.blue-name small{font:5px var(--mono);letter-spacing:.2em;display:block;margin-top:6px}
-.blue-tread{width:auto;left:8%;right:8%;bottom:7%;height:34%;transform:none;min-height:65px;gap:0;justify-content:stretch}
-.blue-tread .led{position:absolute;top:-23px;right:1px}
-.rubber-pad{width:100%;height:100%;min-height:40px;border-radius:3px 3px 7px 7px;border:2px solid #2c3a35;background:linear-gradient(145deg,#333d37,#1e2926 50%);box-shadow:inset 0 2px #5b655755,0 3px 0 #123652,0 4px 3px #112d4488;display:grid;place-items:center}
-.rubber-pad:before{content:"";position:absolute;inset:7px;border:1px solid #52615344;border-radius:2px;box-shadow:inset 0 1px #131e1a}
-.rubber-pad b{font:900 clamp(13px,13cqw,30px) var(--sans);letter-spacing:-.04em;color:#24332e;text-shadow:0 1px #61716477,0 -1px #0b1d16}
-.blue-tread:active .rubber-pad{transform:translateY(2px);box-shadow:inset 0 2px #5b655755,0 1px 0 #123652}
-.blue-tread .pedal-state{position:absolute;bottom:8px;color:#b7bf9c}
-.thumbscrew{position:absolute;left:calc(50% - 8px);bottom:-5px;width:16px;height:9px;background:repeating-linear-gradient(90deg,#242f2a 0 2px,#455148 2px 3px);border-radius:3px;box-shadow:0 2px 2px #0006}
-.echo-brand{text-align:center;margin-top:15px}
-.echo-brand>span{font:10px var(--mono);letter-spacing:.13em}
-.echo-brand small{display:block;font-size:6px;letter-spacing:.16em;opacity:.6;margin-top:4px}
-.pedal-echo .pedal-dials{padding-top:14px}
-.pedal-echo .knob:before{background:radial-gradient(circle at 35% 22%,#d9d0ab,#a99f7d 57%,#726d52)}
-.pedal-echo .knob i{background:#334237;box-shadow:none}
-.echo-display{position:absolute;top:43%;left:12%;right:12%;height:19%;border:3px solid #1a302a;border-radius:4px;background:linear-gradient(135deg,#202e22,#101e19);box-shadow:inset 0 2px 7px #0009,0 1px #8f9c7255;display:flex;align-items:center;justify-content:center;gap:4px;color:#aeae64}
-.echo-display>span{position:absolute;left:6px;top:4px;font:5px var(--mono);letter-spacing:.1em;color:#778b57}
-.echo-display strong{font:clamp(16px,17cqw,32px)/1 var(--mono);font-weight:400;letter-spacing:-.1em}
-.echo-display small{font:7px var(--mono);align-self:center;margin-top:8px}
-.echo-display i{position:absolute;right:6px;top:4px;font:5px var(--mono);opacity:.3}
-.pedal-echo[data-on=true] .echo-display{color:#e6d992;text-shadow:0 0 9px #c6be6955}
-.pedal-echo[data-on=true] .echo-display i{opacity:1}
-.pedal-echo .footswitch{bottom:7%;height:28%}
 .board-caption{position:absolute;left:34%;right:5.5%;bottom:2%;display:flex;justify-content:space-between;color:var(--muted);font:8px var(--mono)}
 .board-caption>span:first-child{font:9px var(--sans)}
-@media(min-width:1450px){.board-heading .signal-label{display:block}.board-heading small{margin-left:auto;margin-right:24px}.pedal-deck{left:37%;right:8%;top:44%;bottom:8%}.pedal-dials{padding-top:28px}.music .music-footer{top:57%;bottom:8%}}
-@media(max-width:1000px){.music .place-heading h2{font-size:28px}.music .place-heading>p{font-size:10px}.tone-presets{top:36%;width:24%}.tone-presets button{font-size:10px;padding:7px}.pedal-deck{gap:24px;left:34%;right:6%}.music .music-footer{width:24%}.loop-actions{gap:10px}.music #loop{font-size:10px;gap:6px}#loop-overdub{font-size:9px}.pedal-dials{padding:17px 6% 0}.pedal-echo .pedal-dials{padding-top:13px}.echo-brand>span{font-size:8px}.board-heading small{font-size:7px}.board-caption{font-size:7px}.board-caption>span:first-child{font-size:8px}.gold-art{top:40%}}
-@media(max-height:720px) and (min-width:701px){.music .place-heading h2{font-size:28px;margin:12px 0}.music .place-heading>p{font-size:10px}.music .music-footer{top:58%;gap:8px}.tone-presets{top:36%}.tone-presets>div{margin:9px 0}.loop-beats{margin-top:8px}.loop-beats i{height:10px}.music .loop-progress{margin:5px 0 7px}.music #loop-caption{margin-top:4px;font-size:8px}.output-meter{margin:7px 0}.pedal-deck{top:47%;bottom:10%}.pedal-dials{padding-top:15px}.dial-control{width:clamp(28px,21cqw,40px);margin:2px 0}.dial output{font-size:7px}.gold-art{top:39%}.gold-art svg{height:24px}.gold-art strong{font-size:15px}.gold-art>span{font-size:5px;margin-top:3px}.footswitch{gap:7px;min-height:54px;bottom:8%}.metal-switch{width:23px;height:23px}.pedal-state{font-size:6px}.blue-name{top:38%}.blue-name small{margin-top:4px}.blue-tread{height:31%;bottom:9%}.pedal-echo .pedal-dials{padding-top:10px}.echo-brand{margin-top:12px}.echo-brand small{display:none}.echo-display{top:44%;height:18%}.pedal-edition{font-size:4px}.board-caption{bottom:1%}}
+@media(min-width:1450px){.board-heading .signal-label{display:block}.board-heading small{margin-left:auto;margin-right:24px}.music .music-footer{top:57%;bottom:8%}}
+@media(max-width:1000px){.music .place-heading h2{font-size:28px}.music .place-heading>p{font-size:10px}.tone-presets{top:36%;width:24%}.tone-presets button{font-size:10px;padding:7px}.music .music-footer{width:24%}.loop-actions{gap:10px}.music #loop{font-size:10px;gap:6px}#loop-overdub{font-size:9px}.board-heading small{font-size:7px}.board-caption{font-size:7px}.board-caption>span:first-child{font-size:8px}}
+@media(max-height:720px) and (min-width:701px){.music .place-heading h2{font-size:28px;margin:12px 0}.music .place-heading>p{font-size:10px}.music .music-footer{top:58%;gap:8px}.tone-presets{top:36%}.tone-presets>div{margin:9px 0}.loop-beats{margin-top:8px}.loop-beats i{height:10px}.music .loop-progress{margin:5px 0 7px}.music #loop-caption{margin-top:4px;font-size:8px}.output-meter{margin:7px 0}.board-caption{bottom:1%}}
 @media(max-width:700px){
   .board-heading .board-hint-desktop{display:none}.board-heading .board-hint-mobile{display:block}
   .music .place-heading{left:7%;top:3%;width:86%;display:flex;justify-content:space-between;align-items:baseline}
@@ -141,19 +77,9 @@
   #strum{font-size:9px;padding:5px 0 5px 10px}
   .music .string-bed{left:7%;right:7%;top:24%;bottom:57%}.music .string>span{font-size:12px}.music .string small{font-size:7px}
   .board-heading{left:7%;right:7%;top:45%;font-size:9px}.board-heading>span:first-child{font-size:10px}.board-heading small{font-size:7px}
-  .pedal-deck{left:0;right:0;top:49%;bottom:15%;grid-template-columns:165px 145px 155px;gap:26px;padding:3px 7% 22px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;touch-action:pan-x;scroll-snap-type:x proximity}
-  .pedal-deck:after{content:"";width:10px;grid-column:4}.pedal-deck::-webkit-scrollbar{display:none}
-  .pedal{scroll-snap-align:center;transform:none;border-radius:8px}.pedal-gold{transform:rotate(-1deg)}.pedal-blue{transform:rotate(1deg)}
-  .patch-cable{display:none}.pedal-dials{padding-top:14px}
-  .dial-control{width:31px;margin:2px 0}.dial-label{font-size:7px}.dial output{font-size:7px}
-  .gold-art{top:40%}.gold-art svg{height:22px}.gold-art strong{font-size:15px}.gold-art>span{font-size:5px;margin-top:2px}
-  .footswitch{bottom:8%;height:29%;gap:7px;min-height:48px}.metal-switch{width:22px;height:22px}.pedal-state{font-size:6px}.pedal-edition{font-size:4px;bottom:6px}
-  .blue-name{top:41%}.blue-name>span{font-size:17px}.blue-name strong{font-size:12px}.blue-name small{display:none}
-  .blue-tread{height:29%;bottom:8%;min-height:40px}.blue-tread .led{top:-15px}.blue-tread .pedal-state{bottom:4px}
-  .echo-brand{margin-top:10px}.echo-brand>span{font-size:8px}.echo-brand small{display:none}.pedal-echo .pedal-dials{padding-top:11px}.echo-display{top:46%;height:15%;left:13%;right:13%}.echo-display>span,.echo-display i{display:none}.echo-display strong{font-size:20px}.pedal-echo .footswitch{bottom:8%;height:27%}
   .music .music-footer{left:7%;right:7%;top:auto;bottom:1.5%;width:auto;height:12%;display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:22px;align-items:start}
   .music .loop-controls{width:auto;min-width:0}.looper-top{font-size:6px}.loop-beats{margin-top:5px;gap:3px}.loop-beats i{height:5px}.music .loop-progress{height:1px;margin:3px 0 4px}.loop-actions{gap:12px;flex-wrap:nowrap}.music #loop{font-size:9px;min-height:21px;gap:7px}#loop-overdub{font-size:8px;white-space:nowrap}.music #loop-clear{font-size:8px;white-space:nowrap}.music #loop-caption{font-size:7px;line-height:1.3;margin-top:3px}
   .output-strip{margin-top:0}.music .sound-local{font-size:8px;padding:0}#output-level{font-size:6px}.output-meter{height:3px;margin:9px 0}.master-control{gap:4px;font-size:7px}.master-control input{height:12px}.master-control output{min-width:15px}.master-control>span{display:none}
   .board-caption{display:none}
 }
-@media(max-width:700px) and (max-height:750px){.music .place-heading h2{font-size:19px}.music .eyebrow{font-size:6px}.pedal-deck{grid-template-columns:150px 135px 145px;top:49%;bottom:16%;padding-bottom:18px}.dial-control{width:26px}.dial-label,.dial output{font-size:6px}.pedal-dials{padding-top:13px}.gold-art svg{display:none}.gold-art{top:48%}.gold-art strong{font-size:15px}.gold-art>span{margin-top:3px}.footswitch{min-height:40px;gap:5px;bottom:10%}.metal-switch{width:19px;height:19px}.pedal-state{font-size:5px}.pedal-edition{display:none}.blue-name{top:43%}.blue-name>span{font-size:14px}.blue-name strong{font-size:10px}.blue-tread{height:28%;min-height:36px}.blue-tread .led{top:-11px;width:5px;height:5px}.echo-brand{margin-top:9px}.pedal-echo .pedal-dials{padding-top:8px}.echo-display{top:49%;height:14%}.echo-display strong{font-size:16px}.echo-display small{font-size:5px}.pedal-echo .footswitch{bottom:10%;height:25%}.music .music-footer{height:13%}.music #loop-caption{max-width:205px}.loop-beats{margin-top:4px}}
+@media(max-width:700px) and (max-height:750px){.music .place-heading h2{font-size:19px}.music .eyebrow{font-size:6px}.music .music-footer{height:13%}.music #loop-caption{max-width:205px}.loop-beats{margin-top:4px}}

@@ -52,9 +52,9 @@ Check each step yourself in the browser, show Qiu screenshots, and only commit, 
 | Window light, leaf shadows, grain and shadows in `atmosphere.css` | Keep |
 | Pluck timbre and small-room reverb in `audio-engine.js` | Keep |
 | VU meter | Keep |
-| Pedal finish, plugs, LEDs, tape reels | Keep as a starting point; still not crafted enough, redo in step 2 |
+| Pedal finish, plugs, LEDs, tape reels | Redone in step 2 (2026-10-10): four pedals, see `ink-and-light-study.md` |
 | Home guitar swapped for `rana-home.webp`, `guitar-home.webp` deleted | **Undo**: restore `guitar-home.webp` and the original preview from `main` |
 | `guitarInteraction=false`; `.guitar-touch` turned into a strum (`homeVoicing`) | **Undo**: restore mouse-follow, give `.guitar-touch` back `data-open-guitar`, restore the caption copy |
-| Strings room turned into a dark lamp-lit room with a real string close-up (`jam-strings.webp`) | Keep for now; evaluate with Qiu in step 2 |
+| Strings room turned into a dark lamp-lit room with a real string close-up (`jam-strings.webp`) | Kept; Qiu confirmed in step 2 |
 | New compositions for paths, trace, blindspot and rethink rooms | Only layout shuffles; reconsider room by room in step 3. Do not touch the paths sphere itself |
 | Wording in `SKILL.md` and `ink-and-light-study.md` saying the home uses a photo instead of 3D | Revert together with step 1 |

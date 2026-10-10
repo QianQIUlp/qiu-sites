@@ -11,6 +11,7 @@ The homepage `/` and `/en/` use the approved fixed light space and dark guitar c
 - The work area auto-demos on first entry and when any project is selected; pause, resume, replay, manual takeover and pause-on-leave work; the 3D showcase loads on demand and stops drawing off-screen.
 - The new areas' paper strip, put down/restore paper slips, path playing and offset text are operable; English titles, status, ARIA and source links are complete, and mobile captions and controls do not overlap.
 - Music area strings, tone, knobs, switches and loop state are operable, and sound only plays after active interaction; the prototype's verified audio algorithm is kept.
+- The pedalboard reads left to right (Centaur → Blues Driver → Harmonist → After Hours); every knob turns by dragging around it and by keyboard, every stomp presses, clicks and lights its LED, the Harmonist's KEY/SHIFT detents click, and pushing a pedal's output reaches the VU red zone and PEAK lamp. On phones the presets stay on one line and readable over the strings photo, a swipe or tab moves exactly one pedal into the centre, and the room never scrolls sideways.
 - All scenes are reachable via map/keyboard; reduced-motion and no-WebGL fallbacks are kept. With JS disabled, the reading archive is still reachable.
 - canonical, language alternates, robots and sitemap use me.qiu.works; the homepage share image matches the new composition.
 - QStudio is not changed; external domain binding and old-domain redirects must be configured separately at release.
