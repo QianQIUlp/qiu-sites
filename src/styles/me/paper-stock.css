@@ -115,3 +115,4 @@ html[lang=en] .loose-paper.paper-c .paper-back h3{font-family:"Me Drafting",var(
 .loose-paper.paper-c .paper-back p{font-family:"Me Fangsong","Me CJK Serif",var(--serif);color:#4b544c}
 html[lang=en] .loose-paper.paper-c .paper-back p{font-family:"Me Drafting",var(--sans)}
 .loose-paper.paper-c .paper-back .paper-index{font-family:"Me Drafting",var(--mono);opacity:.75}
+@media(max-width:600px){.paper-c .paper-stock::after{content:"SHEET 3 OF 3"}}
