@@ -4,6 +4,7 @@ Pass a directory containing the original TTFs and OFL files listed in
 src/assets/me/fonts/README.md. This is an asset task, not part of the build.
 """
 from pathlib import Path
+import re
 import sys
 
 from fontTools import subset
@@ -51,7 +52,16 @@ display = save("noto-sans-sc.ttf", "noto-sans-sc-display.woff2", set("千秋确�
 assert {ord(c) for c in cjk} <= cjk_font.getBestCmap().keys(), "Missing homepage CJK glyphs"
 assert {ord(c) for c in cjk} <= serif_cjk.getBestCmap().keys(), "Missing homepage serif CJK glyphs"
 assert {ord(c) for c in "千秋确定空"} <= display.getBestCmap().keys()
-for family in ("arimo", "gelasio", "cousine", "noto-sans-sc", "noto-serif-sc"):
+
+# Pencil handwriting for the loose pages' drafts: only the quoted strings between the markers.
+room = (root / "src/components/me/Room.astro").read_text(encoding="utf-8")
+drafts = room.split("// hand-font:start", 1)[1].split("// hand-font:end", 1)[0]
+hand = set("".join(re.findall(r"'([^']*)'", drafts)))
+hand_cjk = {c for c in hand if 0x3000 <= ord(c) <= 0x9FFF or 0xFF00 <= ord(c) <= 0xFFEF}
+hand_cjk_font = save("long-cang.ttf", "long-cang-hand.woff2", hand_cjk)
+save("caveat.ttf", "caveat-hand.woff2", hand - hand_cjk, 450)
+assert {ord(c) for c in hand_cjk} <= hand_cjk_font.getBestCmap().keys(), "Missing handwriting glyphs"
+for family in ("arimo", "gelasio", "cousine", "noto-sans-sc", "noto-serif-sc", "long-cang", "caveat"):
     (output / f"{family}-OFL.txt").write_bytes((sources / f"{family}-OFL.txt").read_bytes())
 for path in output.glob("*.woff2"):
     print(f"{path.name}: {path.stat().st_size:,} bytes")

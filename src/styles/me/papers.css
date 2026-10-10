@@ -1,0 +1,68 @@
+/* Loose pages: paper that carries a throw, and a patch of window light to hold it up to.
+   JS sets --dx/--dy/--spin (where it is), --lift (how high it is held), --sunlit (how much of
+   it lies in the light) and --glow (held up in the light: the paper turns translucent). */
+@font-face{font-family:"Me Hand";src:url("../../assets/me/fonts/caveat-hand.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0020-02FF,U+2000-206F}
+@font-face{font-family:"Me Hand";src:url("../../assets/me/fonts/long-cang-hand.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+3000-9FFF,U+FF00-FFEF}
+:root{
+  --fibre:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.018 .09' numOctaves='4' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36 0 0 0 0 .27 0 0 0 0 .16 0 0 0 1.7 -.86'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>");
+  --dapple:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><g fill='rgb(52,62,36)'><path d='M400 0C330 60 300 120 236 170' fill='none' stroke='rgb(52,62,36)' stroke-width='5'/><path d='M350 40c22-16 58-14 78 0-20 14-56 16-78 0Z' transform='rotate(132 350 40)'/><path d='M330 70c22-16 58-14 78 0-20 14-56 16-78 0Z' transform='rotate(34 330 70)'/><path d='M296 112c26-18 66-16 90 0-24 16-64 18-90 0Z' transform='rotate(150 296 112)'/><path d='M276 136c22-16 58-14 78 0-20 14-56 16-78 0Z' transform='rotate(44 276 136)'/><path d='M246 170c24-17 62-15 84 0-22 15-60 17-84 0Z' transform='rotate(118 246 170)'/><path d='M226 196c20-14 52-12 70 0-18 12-50 14-70 0Z' transform='rotate(70 226 196)'/></g></svg>");
+}
+
+.paper-layer{position:absolute;left:-112%;top:1%;width:100%;height:100%;pointer-events:none}
+.loose-paper{
+  transform:translate(var(--dx,0px),var(--dy,0px)) rotate(calc(var(--rotation) + var(--spin,0deg))) scale(calc(1 + var(--lift,0) * .045));
+  filter:
+    drop-shadow(calc(-14px - var(--lift,0) * 20px) calc(22px + var(--lift,0) * 30px) calc(20px + var(--lift,0) * 20px - var(--sunlit,0) * 7px) rgba(58,40,20,calc(.2 + var(--sunlit,0) * .07 - var(--lift,0) * .05)))
+    drop-shadow(calc(-2px - var(--lift,0) * 2px) calc(3px + var(--lift,0) * 3px) calc(3px + var(--lift,0) * 3px) rgba(58,40,20,calc(.12 - var(--lift,0) * .06)));
+}
+.loose-paper.held{cursor:grabbing}
+
+/* The window's light on the floor: four panes, skewed by the low afternoon sun. */
+.paper-sun{position:absolute;left:59%;top:3%;width:37%;height:52%;display:grid;grid-template:1fr 1fr/1fr 1fr;gap:6% 6.5%;transform:skewX(-19deg) rotate(-5deg);pointer-events:none;animation:sun-breathe 19s ease-in-out infinite alternate}
+.paper-sun i{display:block;border-radius:2px;filter:blur(2.5px);background:linear-gradient(162deg,rgba(255,246,222,.95),rgba(255,234,192,.84) 62%,rgba(255,224,174,.76));box-shadow:0 0 0 2px rgba(255,192,122,.26),0 0 44px 8px rgba(255,204,136,.24)}
+.paper-sun::before{content:"";position:absolute;inset:-80% -70%;background:radial-gradient(closest-side,rgba(66,48,28,0) 30%,rgba(66,48,28,.055) 56%,rgba(66,48,28,0) 100%)}
+.paper-sun::after{content:"";position:absolute;inset:-8% -10% 0 0;background:var(--dapple) no-repeat 100% 0/86% auto;filter:blur(7px);opacity:.36;mix-blend-mode:multiply;transform-origin:100% 0;animation:dapple-sway 11s ease-in-out infinite alternate}
+@keyframes sun-breathe{0%{opacity:.86}55%{opacity:1}100%{opacity:.9}}
+@keyframes dapple-sway{from{transform:rotate(-2.2deg) translate(0,0)}to{transform:rotate(2.6deg) translate(-2%,1.5%)}}
+
+/* What only the light shows. Each face blends only with itself, never with the desk below. */
+.paper-face{isolation:isolate}
+.paper-face>*{position:relative;z-index:1}
+.paper-face>.paper-light{position:absolute;inset:0;z-index:0;padding:inherit;pointer-events:none;opacity:var(--glow,0)}
+.paper-face::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background-image:var(--fibre);background-size:260px;mix-blend-mode:multiply;opacity:calc(var(--glow,0) * .3)}
+.paper-face::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(140% 105% at 94% -8%,rgba(255,240,206,.95),rgba(255,216,156,.55) 44%,rgba(255,200,130,0) 86%);mix-blend-mode:screen;opacity:max(calc(var(--glow,0) * .78),calc(var(--sunlit,0) * .26))}
+.paper-face>.paper-dapple{position:absolute;inset:-25% -25% auto auto;width:120%;height:120%;z-index:3;pointer-events:none;background:var(--dapple) no-repeat 100% 0/100% auto;filter:blur(10px);mix-blend-mode:multiply;opacity:calc(var(--glow,0) * .42);transform-origin:100% 0;animation:dapple-sway 9s ease-in-out infinite alternate}
+
+.paper-through{position:absolute;inset:0;padding:inherit;display:flex;flex-direction:column;justify-content:center;gap:10px;transform:scaleX(-1);opacity:.17;filter:blur(.7px)}
+.paper-through b{display:block;font-weight:400;font-size:clamp(17px,1.8vw,28px);line-height:1.4}
+.paper-through span{display:block;font-size:11px;line-height:1.8}
+.paper-back .paper-through{justify-content:center}
+.paper-back .paper-through span{font-size:clamp(19px,2.1vw,34px);line-height:1.6;letter-spacing:-.05em}
+.paper-back .paper-through s{font-size:.6em}
+
+.paper-draft{position:absolute;inset:0;font-family:"Me Hand","Me CJK Serif",var(--serif);color:rgba(60,62,56,.82);font-weight:400;letter-spacing:0;text-shadow:0 0 .5px rgba(60,62,56,.4)}
+.paper-b .paper-draft{color:rgba(74,24,14,.78);text-shadow:0 0 .5px rgba(74,24,14,.4)}
+.draft-struck{position:absolute;left:9%;top:12.5%;font-size:clamp(14px,1.25vw,21px);line-height:1.2;white-space:nowrap;opacity:.68;transform:rotate(-2.2deg);transform-origin:0 50%}
+.draft-struck svg{position:absolute;left:-4%;top:30%;width:108%;height:44%;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.15;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.draft-struck svg path+path{stroke-width:.8;opacity:.7}
+.draft-kept{position:absolute;left:11%;top:20.5%;font-size:clamp(14px,1.25vw,21px);line-height:1.2;white-space:nowrap;transform:rotate(-1.1deg);transform-origin:0 50%}
+.draft-note{position:absolute;left:10%;bottom:12%;display:flex;align-items:flex-end;gap:5px;font-size:clamp(13px,1.1vw,18px);line-height:1;white-space:nowrap;transform:rotate(-5deg);transform-origin:0 100%}
+.draft-note svg{width:2.1em;height:1.25em;flex:none;fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;transform:translateY(-.35em)}
+html[lang=en] .draft-struck,html[lang=en] .draft-kept{font-size:clamp(16px,1.45vw,24px)}
+html[lang=en] .draft-note{font-size:clamp(15px,1.3vw,21px)}
+/* The short page has room for one line above its text: the rewrite goes below it. */
+.paper-b .draft-kept{font-size:clamp(12px,1.05vw,18px)}
+html[lang=en] .paper-b .draft-kept{font-size:clamp(15px,1.35vw,22px)}
+.paper-c .draft-struck{top:21%}
+.paper-c .draft-kept{top:72%}
+.paper-c .draft-note{bottom:5%}
+
+body[data-motion=off] .paper-sun,body[data-motion=off] .paper-sun::after,body[data-motion=off] .paper-face>.paper-dapple{animation:none}
+
+@media(max-width:600px){
+  .paper-sun{left:52%;top:15%;width:42%;height:21%}
+  .draft-struck,.draft-kept,html[lang=en] .draft-struck,html[lang=en] .draft-kept{font-size:12px}
+  .draft-note,html[lang=en] .draft-note{font-size:11px;bottom:15%}
+  .paper-c .draft-kept{display:none}
+  .paper-c .draft-note{bottom:4%}
+}

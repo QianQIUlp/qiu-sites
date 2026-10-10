@@ -11,10 +11,8 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   let tilt={x:0,y:0},pointer={x:0,y:0},guitarInteraction=true;
   const pulses=Array(6).fill(0),frequencies=[329.63,246.94,196,146.83,110,82.41];
   const places={home:{x:0,y:0,z:1,name:t("小屋中央","At home")},papers:{x:-1.12,y:.01,z:1,name:t("几张散页","Loose pages")},music:{x:1.13,y:0,z:1,name:t("琴弦之间","A little jam")},trace:{x:.06,y:-1.11,z:1,name:t("留一笔","Leave a line")},rethink:{x:-1.12,y:1.12,z:1,name:t("另一面", "The other side")},work:{x:1.13,y:1.12,z:1,name:t("拆开看看", "Beneath the surface")},idle:{x:0,y:1.12,z:1,name:t("不赶时间", "No hurry")},paths:{x:-1.12,y:-1.11,z:1,name:t("未走之路", "Paths untaken")},blindspot:{x:1.13,y:-1.11,z:1,name:t("盲点", "Blind spots")},overview:{x:.01,y:.035,z:.24,name:t("整间小屋","The whole room")}};
-  let camera={x:0,y:0,z:1},target={...camera},active='home',paperTop=4,fling=null;
+  let camera={x:0,y:0,z:1},target={...camera},active='home',fling=null;
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-  const paperOffsets=[{x:0,y:0},{x:0,y:0},{x:0,y:0}];
-  const papers=[...document.querySelectorAll('.loose-paper')];
   let lines=[],drawing=null,lineContact=-1,lastLinePluck=0;
   let loopNotes=[],recording=false,looping=false,recordStart=0,loopStart=0,lastLoopPosition=-1;
   const loopButton=document.querySelector('#loop'),loopClear=document.querySelector('#loop-clear'),loopCaption=document.querySelector('#loop-caption');
@@ -130,14 +128,14 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   function resize() {
     const rect=room.getBoundingClientRect();width=rect.width;height=rect.height;dpr=Math.min(devicePixelRatio||1,2);
     canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
-    papers.forEach((paper,i)=>{paper.style.setProperty('--dx',`${paperOffsets[i].x*width}px`);paper.style.setProperty('--dy',`${paperOffsets[i].y*height}px`);});setActive(active);schedule();
+    setActive(active);schedule();
   }
   function setActive(place) {
     const changed=active!==place;
     active=place;room.dataset.place=place;if(place!=='home')pointer={x:0,y:0};room.classList.toggle('overviewing',place==='overview');
     document.querySelectorAll('.language-switch a').forEach(link=>link.hash=place);
     document.querySelector('#where-name').textContent=places[place].name;
-    document.querySelector('#where-hint').textContent=place==='papers'?t("拖动纸张 · 点一下翻面","Drag a page · Click to turn"):place==='music'?t("划过琴弦 · A S D F G H","Pluck a string · A S D F G H"):place==='trace'?t("画一根弦 · 松手再拨动","Draw a line · Let go, then pluck"):width<=600?t("拖动画面 · 双指缩放","Drag to wander · Pinch to zoom"):t("拖动画面漫游 · 滚轮缩放","Drag to wander · Scroll to zoom");
+    document.querySelector('#where-hint').textContent=place==='papers'?t("举到光里看看 · 点一下翻面","Hold a page to the light · Click to turn"):place==='music'?t("划过琴弦 · A S D F G H","Pluck a string · A S D F G H"):place==='trace'?t("画一根弦 · 松手再拨动","Draw a line · Let go, then pluck"):width<=600?t("拖动画面 · 双指缩放","Drag to wander · Pinch to zoom"):t("拖动画面漫游 · 滚轮缩放","Drag to wander · Scroll to zoom");
     const roomHints={rethink:t("拖动纸带 · 换一面想想", "Turn the ribbon · Think again"),work:t("移动切面 · 看见做法与边界", "Move the section · Reveal decisions"),idle:t("把「应该」放下 · 留一会儿白", "Let go of a “should” · Take a moment"),paths:t("拨开线束 · 听一条自己的路", "Bend the threads · Hear your path"),blindspot:t("转动「确定」 · 看见藏住的间隙", "Turn certainty · Find its gaps")};
     if(roomHints[place])document.querySelector('#where-hint').textContent=roomHints[place];
     document.querySelectorAll('[data-scene]').forEach(node=>node.inert=node.dataset.scene!==place);
@@ -223,20 +221,6 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   function setMotion(value){motion=value;document.body.dataset.motion=value?'on':'off';motionButton.setAttribute('aria-pressed',String(!value));motionButton.textContent=value?t("动态开","Motion on"):t("动态关","Motion off");if(!value)pointer={x:0,y:0};schedule();}
   motionButton.addEventListener('click',()=>{guitarInteraction=!motion;setMotion(!motion);});reduced.addEventListener('change',e=>setMotion(!e.matches));
 
-  function flipPaper(paper) {
-    const flipped=!paper.classList.contains('flipped');paper.classList.toggle('flipped',flipped);paper.setAttribute('aria-pressed',String(flipped));
-    paper.querySelector('.paper-front').inert=flipped;paper.querySelector('.paper-back').inert=!flipped;
-  }
-  papers.forEach((paper,i)=>{
-    let drag=null;
-    paper.addEventListener('pointerdown',event=>{if(event.button!==0||event.target.closest('a,button'))return;event.stopPropagation();paper.style.zIndex=++paperTop;drag={x:event.clientX,y:event.clientY,offset:{...paperOffsets[i]},distance:0};paper.setPointerCapture(event.pointerId);});
-    paper.addEventListener('pointermove',event=>{if(!drag)return;event.stopPropagation();const dx=(event.clientX-drag.x)/camera.z,dy=(event.clientY-drag.y)/camera.z;drag.distance=Math.hypot(dx,dy);paperOffsets[i]={x:clamp(drag.offset.x+dx/width,-.23,.23),y:clamp(drag.offset.y+dy/height,-.26,.16)};paper.style.setProperty('--dx',`${paperOffsets[i].x*width}px`);paper.style.setProperty('--dy',`${paperOffsets[i].y*height}px`);});
-    function release(event,cancel=false){if(!drag)return;event.stopPropagation();if(!cancel&&drag.distance<7)flipPaper(paper);drag=null;if(paper.hasPointerCapture(event.pointerId))paper.releasePointerCapture(event.pointerId);}
-    paper.addEventListener('pointerup',e=>release(e));paper.addEventListener('pointercancel',e=>release(e,true));
-    paper.addEventListener('keydown',event=>{if(event.target===paper&&(event.key==='Enter'||event.key===' ')){event.preventDefault();flipPaper(paper);}});
-    paper.querySelector('.turn-back').addEventListener('click',event=>{event.stopPropagation();flipPaper(paper);});
-  });
-  document.querySelector('.paper-reset').addEventListener('click',()=>papers.forEach((paper,i)=>{paperOffsets[i]={x:0,y:0};paper.style.setProperty('--dx','0px');paper.style.setProperty('--dy','0px');paper.style.zIndex='';if(paper.classList.contains('flipped'))flipPaper(paper);}));
 
   const drawArea=document.querySelector('.draw-area');
   function localPoint(event){const b=drawArea.getBoundingClientRect();return{x:clamp((event.clientX-b.left)/b.width,0,1),y:clamp((event.clientY-b.top)/b.height,0,1)};}

@@ -1,5 +1,6 @@
 // Start the camera, navigation and sound controls before loading WebGL.
 import './scene.js';
+import './papers.js';
 
 requestAnimationFrame(() => setTimeout(() => {
   // Explicit imports let Vite split and fingerprint each module and its assets.

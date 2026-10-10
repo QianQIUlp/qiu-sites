@@ -28,7 +28,6 @@ body[data-motion=off] .day-blinds,body[data-motion=off] .day-leaves g{animation:
 .name span:first-child{filter:drop-shadow(-12px 16px 16px var(--cast))}
 .name span:last-child{filter:drop-shadow(-6px 9px 6px rgba(70,48,24,.14))}
 .loose-paper{filter:drop-shadow(-14px 22px 20px rgba(58,40,20,.2)) drop-shadow(-2px 3px 3px rgba(58,40,20,.12))}
-.loose-paper:active{filter:drop-shadow(-26px 40px 34px rgba(58,40,20,.22)) drop-shadow(-3px 5px 4px rgba(58,40,20,.12))}
 .paper-face{background-image:var(--grain),linear-gradient(118deg,rgba(255,255,255,.4),rgba(255,255,255,0) 42%,rgba(0,0,0,.035));background-size:180px,auto;background-blend-mode:multiply}
 .obligation{filter:drop-shadow(-10px 16px 14px rgba(58,40,20,.2))}
 
