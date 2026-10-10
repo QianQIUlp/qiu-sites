@@ -35,7 +35,7 @@ The entry guitar turns slightly with the mouse; clicking opens a close-up. The c
 
 「拆开看看」 ("Take It Apart") uses four symbolic sculptures to carry the real problems, approaches and boundaries of VeriSilo, MealCircuit, Crewlight and Hadoop Lab, without claiming to be physical hardware models. On first entry and every time a project is selected, a full 13.4-second showcase auto-plays once; it can be paused, resumed and replayed. Manually dragging the cross-section or choosing a stage takes over the demo, leaving pauses it, and once played an ordinary return does not restart it. With motion off, the cross-section showcase stays and the camera orbit is cancelled.
 
-The music area supports six strings, A S D F G H, Space to strum, and Open / Em / G / C / D. The nine knobs support vertical dragging, the scroll wheel, arrow keys, Shift for fine adjustment and double-click to reset. All three pedals can be bypassed, and four presets provide starting points.
+The music area supports six strings, A S D F G H, Space to strum, and Open / Em / G / C / D. The twelve knobs turn by dragging around the shaft (or vertically), the scroll wheel, arrow keys, Shift for fine adjustment and double-click to reset. All four pedals (Centaur, Blues Driver, Harmonist, After Hours, in signal order left to right) can be bypassed, and five presets provide starting points.
 
 It starts muted; audio starts only after the user plays or turns sound on, and the microphone is never requested. A 6-second loop records pitch and velocity and can be overdubbed; all layers share the current effects, not separate tracks. In the background, recording and the loop pause and output is muted; on return the loop does not resume automatically. Recordings are not kept after refresh.
 
@@ -62,7 +62,7 @@ Official sources: [model page](https://espguitars.co.jp/collaborate/33185/), [fr
 
 During prototyping, imagegen removed strings and hardware from the real photo, which were then rebuilt as separate geometry so strings and switches are not baked into the finish. This integration reuses the approved textures directly. Occluded wood grain is painted in, back and side materials are approximate reconstructions, and the model is not a scan of the real instrument; no verifiable matching official back image was found, so full 360° rotation is not enabled.
 
-The tone is plucked-string synthesis inspired by classic pedals, not real-guitar samples or circuit emulation of the original units. The BD-2's appearance references the [BOSS product page](https://www.boss.info/us/products/bd-2/). Prototype audio checks covered output, bypass, mute, maximum gain, echo tails and all nine knobs; integration keeps the audio algorithm and only adjusts module paths.
+The tone is plucked-string synthesis inspired by classic pedals, not real-guitar samples or circuit emulation of the original units. The BD-2's appearance references the [BOSS product page](https://www.boss.info/us/products/bd-2/). Prototype audio checks covered output, bypass, mute, maximum gain, echo tails and all nine knobs (the 2026-10-10 board adds the Harmonist's three knobs, a stomp click, tape wow and a pre-limiter VU tap); integration keeps the audio algorithm and only adjusts module paths.
 
 ## Release boundaries
 
