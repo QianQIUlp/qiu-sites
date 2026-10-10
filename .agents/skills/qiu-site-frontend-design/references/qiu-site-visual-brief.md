@@ -24,12 +24,12 @@ The 2026-09-22 Q Studio iteration makes this workbench browsable: a large editor
 real VeriSilo evidence visible in the hero, a four-project index, native expandable dossiers,
 and a dialog for inspecting the complete localized evidence image at its original size.
 Keep screenshot provenance, keyboard operation, focus return, selected anchors across locales,
-and copy-email feedback. The personal portal and all project-note/article links now lead to `me.qiu.works`, with the Chinese name 千秋 retained in both languages and a current guitar-homepage preview. Use the active developer workbench contract for the precise behavior.
+and copy-email feedback. The personal portal and all project-note/article links now lead to `me.qiu.works`, with the Chinese name 千秋 (Qianqiu) retained in both languages and a current guitar-homepage preview. Use the active developer workbench contract for the precise behavior.
 
 ## Design Intent
 
 - Preserve the real room, guitar, warm light and physically credible materials.
-- Use **Light / Dark** as internal documentation names while preserving visible 「昼 / 夜」 and `Day / Night`; paired assets
+- Use **Light / Dark** as internal documentation names while preserving visible 「昼 / 夜」 (Day / Night) and `Day / Night`; paired assets
   keep the same composition, objects, hotspots and contact relationships.
 - Keep red as a restrained accent rather than a seal/cinnabar semantic or general brand fill.
 - Use normal readable serif/sans/mono roles. Do not show QiuBrush, calligraphy or seals.

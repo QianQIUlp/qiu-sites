@@ -1,19 +1,19 @@
 # Visual QA Checklist
 
-## me.qiu.works 首页（2026-09-29 九宫格）
+## me.qiu.works homepage (2026-09-29 nine-grid)
 
-首页 `/`、`/en/` 使用已确认的固定浅色空间与深色吉他近看，不执行下文旧首页的昼夜背景或三台项目入口检查。内页仍检查其现有 Light/Dark 阅读体验。
+The homepage `/` and `/en/` use the approved fixed light space and dark guitar close-up; the old homepage's day/night background and three project-entry checks below do not apply. Inner pages still check their existing Light/Dark reading experience.
 
-- 根站构建通过；中英文共享首页在桌面、平板及 375 × 667 小屏可进入九个空间。
-- 「千秋」在两种语言中保留；切换语言保留场景 hash，文章与项目列表链接指向本站。
-- 首页自托管字体成功加载；中英文箭头及播放/录音/静音/重置状态都是 SVG，图标不进入读屏名称。检查字体加载后「确定」画布和作品铭牌刷新，以及字体请求失败时的可读回退。
-- 入口先显示同模型的吉他预览，三维首帧后无缝接续；可近看、切换细节及返回；贴图、预览和 Worker 由构建产物加载，无原型路径。
-- 作品区首次进入与选择任一项目自动演示；暂停、继续、重播、手动接管和离开暂停有效；三维展区按需加载与离屏停绘。
-- 新区域的纸带、放下/恢复纸片、路径演奏与错位文字可操作；英文标题、状态、ARIA 和来源链接完整，手机字幕与控件不重叠。
-- 音乐区弦、音色、旋钮、开关与循环状态可操作，主动交互才发声；沿用原型已验证的音频算法。
-- 所有场景可通过地图/键盘到达；减少动态与无 WebGL 的回退保留。禁用 JS 时仍能进入阅读档案。
-- canonical、语言 alternate、robots、sitemap 使用 me.qiu.works；首页分享图对应新构图。
-- 不更改 QStudio，外部域名绑定和旧域名跳转需在发布时另行配置。
+- Root-site build passes; the shared Chinese/English homepage can reach all nine spaces on desktop, tablet and the 375 × 667 small screen.
+- 「千秋」 (Qianqiu) is kept in both languages; switching language keeps the scene hash, and article and project list links point to this site.
+- Homepage self-hosted fonts load successfully; Chinese and English arrows and play/record/mute/reset states are all SVG, and icons do not enter accessible names. Check that the 「确定」 ("certain") canvas and project nameplates refresh after fonts load, and that a readable fallback remains when font requests fail.
+- The entry first shows a guitar preview of the same model and hands over seamlessly after the first 3D frame; close-up, detail switching and return work; textures, previews and the Worker load from build output, with no prototype paths.
+- The work area auto-demos on first entry and when any project is selected; pause, resume, replay, manual takeover and pause-on-leave work; the 3D showcase loads on demand and stops drawing off-screen.
+- The new areas' paper strip, put down/restore paper slips, path playing and offset text are operable; English titles, status, ARIA and source links are complete, and mobile captions and controls do not overlap.
+- Music area strings, tone, knobs, switches and loop state are operable, and sound only plays after active interaction; the prototype's verified audio algorithm is kept.
+- All scenes are reachable via map/keyboard; reduced-motion and no-WebGL fallbacks are kept. With JS disabled, the reading archive is still reachable.
+- canonical, language alternates, robots and sitemap use me.qiu.works; the homepage share image matches the new composition.
+- QStudio is not changed; external domain binding and old-domain redirects must be configured separately at release.
 
 Use this checklist before merging visible site changes. Test the built site when possible:
 
@@ -33,39 +33,39 @@ Always check **Light** and **Dark** mode for changed routes.
 
 ## Modern Room Design System
 
-改动触及色彩、字体、动效或房间场景时，除下方路由条目外逐项过本节
-（首页创作原点见 `docs/uiux/homepage-art-direction.md`，实现契约见 `docs/uiux/ink-and-light-study.md`）：
+When a change touches color, fonts, motion or the room scene, go through this section item by item in addition to the route entries below
+(homepage creative origin: `docs/uiux/homepage-art-direction.md`; implementation contract: `docs/uiux/ink-and-light-study.md`):
 
-- 双主题为同一构图：Light 与 Dark 摄影资产之间没有元素消失、移位、悬浮、穿插或换布局，
-  只有时间、灯态、曝光和对应阴影变化；切换时不露出另一主题或底色。
-- 标题、正文、次要信息和分隔通过字号、字重、对比与留白形成清楚层级，没有靠新增底板或装饰标签堆叠。
-- 红色只作少量 accent；普通按钮、链接与大段文字没有整体染红，也没有附加朱砂、印章或批注语义。
-- 房间主光、物件接触阴影和 UI 阴影方向一致，没有互相矛盾的漂浮效果。
-- 首页姓名、组件标题、导航、目录和正文均使用正常可读字体；可见界面没有 QiuBrush、书法字或印章。
-- 文案与 `f6ed8fd` 一致，例外只有既有四项白名单，以及 2026-07-29 明确批准的身份锚点、开发者/联系入口和 VeriSilo 档案；
-  删除生成的「题跋」；删除可见的「授权协议 · 文末记」区块。主题按钮仍是「昼 / 夜」与 `Day / Night`。
-- `data-reveal` 若保留，只做轻微、短暂的淡入/位移，首屏和正文不等待动画才可读。
-- 主题转场短而稳定，连点不残留遮罩；文案和实现说明不把它包装成传统媒介效果；
-  `prefers-reduced-motion` 下即时切换。
-- DOM 和截图中没有花瓣、墨絮、漂浮尘点或替代性的纯装饰粒子。
-- 场景图使用普通渐变/遮罩自然融入布局，没有宣纸、泼墨或古画边缘效果。
-- 房间墙面保持雪白哑光漆的物理质感；墙、木、金属、织物、皮革与橡胶没有共享的颗粒、
-  浮雕虫纹、纸纹或重复生成噪点。
+- Both themes share one composition: between Light and Dark photo assets no element disappears, moves, floats, interpenetrates or changes layout;
+  only time, lamp state, exposure and the matching shadows change; switching never exposes the other theme or the base color.
+- Headings, body, secondary info and separators form a clear hierarchy through font size, weight, contrast and whitespace, not by stacking new backing panels or decorative labels.
+- Red is only a sparing accent; ordinary buttons, links and long text are not dyed red wholesale, and no cinnabar, seal or annotation meaning is attached.
+- The room's main light, object contact shadows and UI shadows share one direction, with no contradictory floating effects.
+- The homepage name, component titles, navigation, TOC and body all use normal readable fonts; the visible interface has no QiuBrush, calligraphy or seals.
+- Copy matches `f6ed8fd`, with exceptions only for the existing four-item allowlist and the identity anchor, developer/contact entries and VeriSilo archive explicitly approved on 2026-07-29;
+  the generated 「题跋」 ("colophon") is removed; the visible 「授权协议 · 文末记」 ("License · end note") block is removed. The theme button is still 「昼 / 夜」 (Day / Night) and `Day / Night`.
+- If `data-reveal` is kept, it only does a slight, brief fade/shift; the first screen and body never wait for animation to be readable.
+- The theme transition is short and stable, with no leftover overlay after rapid clicks; copy and implementation notes do not package it as a traditional-medium effect;
+  it switches instantly under `prefers-reduced-motion`.
+- DOM and screenshots contain no petals, ink fluff, floating dust or replacement purely decorative particles.
+- Scene images blend into the layout with ordinary gradients/masks, with no xuan-paper, ink-splash or antique-painting edge effects.
+- Room walls keep the physical feel of snow-white matte paint; wall, wood, metal, fabric, leather and rubber share no grain,
+  embossed worm-like squiggles, paper texture or repeated generated noise.
 
 ## Homepage
 
-- 第一眼只有千秋的姓名/简短介绍、吉他和极少的生活气息承担视觉焦点；完整导航、书桌、工作台和内容数量没有同时抢出来。
-- 初始背景在 Light/Dark 两态下由文章与作品左右两块遮光区域完整覆盖，只留下人物介绍、位于遮光层上方的吉他与必要控件；
-  桌面端停留/聚焦会让文章或作品所属的整块黑幕缓慢淡去，互不串光，没有圆形聚光灯或瞬时跳亮。
-- 从近景或具体文章返回后，所有已访问区域累计保持明亮；依次访问文章与作品后黑幕完全消失，
-  刷新或跨文章返回仍在当前会话内保留累计状态。
-- 移动端首次进入时底部 dock 已完整、稳定显示文章/作品/生活三个入口，无需先进入生活再返回。
-- 渐进发现没有被做成步骤条、进度状态、说明面板或显眼的 onboarding 按钮。
-- 中文首屏显示「学生开发者 · 独立构建者」「我是千秋。」与批准的新自述；英文首屏显示
-  `CS student · indie developer`、`I'm Qiu.` 与批准的新自述；其他首页文案保持基线。
-- 生活近景与页脚的 Developer profile / 开发者主页、Contact / 联系我链接进入相应语言的 `qiu.works`。
-- 首页三台设备仍明确固定为 MealCircuit、Crewlight、Hadoop Lab；VeriSilo 只进入项目档案。
-- 首页没有书法字、印章、宣纸噪点、花瓣、墨絮或其他装饰粒子；文字只按上方四项白名单变化。
+- At first glance only Qianqiu's name/short introduction, the guitar and a little breath of life carry visual focus; full navigation, desk, workbench and content counts do not all jump out at once.
+- In both Light and Dark, the initial background is fully covered by the left and right shaded areas for articles and projects, leaving only the personal introduction, the guitar above the shading layer and necessary controls;
+  on desktop, lingering/focus slowly fades the whole black curtain belonging to articles or projects, without light bleeding between them, and with no circular spotlight or instant brightening.
+- After returning from a close-up or a specific article, all visited areas stay bright cumulatively; after visiting articles and projects in turn the black curtain disappears completely,
+  and the accumulated state is kept within the current session across refreshes and returns from articles.
+- On first mobile entry, the bottom dock already shows the articles/projects/life entries fully and stably, without needing to enter life and return first.
+- Progressive discovery is not turned into a step bar, progress state, explanation panel or prominent onboarding button.
+- The Chinese first screen shows 「学生开发者 · 独立构建者」 ("CS student · indie developer"), 「我是千秋。」 ("I am Qianqiu.") and the approved new self-description; the English first screen shows
+  `CS student · indie developer`, `I'm Qiu.` and the approved new self-description; other homepage copy stays at the baseline.
+- The Developer profile / 开发者主页 and Contact / 联系我 links in the life close-up and footer go to `qiu.works` in the matching language.
+- The three homepage devices remain explicitly fixed as MealCircuit, Crewlight and Hadoop Lab; VeriSilo only enters the project archive.
+- The homepage has no calligraphy, seals, xuan-paper noise, petals, ink fluff or other decorative particles; text changes only per the four-item allowlist above.
 - Header brand, nav, and theme toggle fit without wrapping awkwardly.
 - The first viewport reads as Qiu's personal rehearsal room rather than a product landing page or metrics dashboard.
 - The room, title, three hotspots, and guitar identity remain legible without layout-breaking overlap at desktop, tablet, and mobile widths.
@@ -74,22 +74,22 @@ Always check **Light** and **Dark** mode for changed routes.
 - Article and project hotspots keep the visitor on `/`, update only the hash, and finish with real article/project data aligned to the physical monitor or drafting mat.
 - At an early, middle, and late transition sample, the room, curtain, guitar, focus plate, and exposure move at different rates without a hard cut or a frozen loading interval.
 - Scene rows and “all” links still navigate to the existing article and project routes normally.
-- Guitar & Life focuses the guitar and reveals the life note in place; Escape and “回到房间” restore the overview.
+- Guitar & Life focuses the guitar and reveals the life note in place; Escape and “回到房间” ("back to the room") restore the overview.
 - At 375px the hotspots form a usable bottom dock after discovery, the title stays readable, and no page-level horizontal scroll appears.
 - At exactly 375 × 667px, the three project devices retain natural vertical breathing room; no title, status, control,
   footswitch, return control, or bottom dock is clipped or overlapped.
 - At 768px portrait, focus content stays fully inside the viewport rather than being cropped with the 16:9 scene.
-- 全景与近景均从当前 1672 × 941 母图生成响应式衍生图；宽屏无放大造成的明显糊化、噪点或接缝。
-- Light/Dark 全景、电脑近景和工作台近景均使用对应主题资产；电脑 UI 落在显示器内；三个项目严格落在
-  作者标注的左上桌面、左下机架、右下桌沿三个区域，没有擅自重组、倾斜或通栏 HUD。
-- 三张项目入口仍位于作者标注的左上、左下、右下位置，并且结构一眼可区分：MealCircuit 是深色木盒、
-  左侧三枚纵列实木旋钮、中部放大的现代 maker-style 设备铭牌和金属彩钉；Crewlight 是放大的皮革箱头、奶油六旋钮面板、
-  青灯、蜂窝网罩和彩钉；其奶油面板约止于机身上方三分之一，网罩占至少六成。项目名、旋钮标签、状态和入口
-  必须在 1440px 全场截图的正常观看距离下直接辨认，不得用局部放大图验收；项目名约不低于 24px、控制标签
-  约不低于 11px、次要状态约不低于 9px；
-  Docker-Hadoop 是蓝色双层机箱、顶部信号栏、纵向金色旋钮和大黑踏板，未退化成同模板换色。
-  所有旋钮可由拖动/点击/方向键调节，灯可切换，脚踏按下有位移并进入正确项目；窄屏标题/状态/入口
-  不截断、每个主要触控区至少 44 × 44px 且无水平滚动。
+- Overview and close-ups all generate responsive derivatives from the current 1672 × 941 master; wide screens show no obvious blur, noise or seams from upscaling.
+- Light/Dark overview, computer close-up and workbench close-up each use their theme's assets; the computer UI lands inside the monitor; the three projects land strictly in
+  the author's annotated upper-left desktop, lower-left rack and lower-right desk edge regions, with no unauthorized regrouping, tilting or full-width HUD.
+- The three project entries stay in the author's annotated upper-left, lower-left and lower-right positions, and their structures are distinguishable at a glance: MealCircuit is a dark wooden box with
+  three solid-wood knobs in a left column, an enlarged modern maker-style device nameplate in the middle and metal colored studs; Crewlight is an enlarged leather amp head with a cream six-knob panel,
+  cyan light, honeycomb grille and colored studs, its cream panel ending at about the top third of the body and the grille taking at least 60%. Project names, knob labels, status and entries
+  must be directly legible at normal viewing distance in a full-scene 1440px screenshot, never accepted from a zoomed crop; project names no smaller than about 24px, control labels
+  no smaller than about 11px, secondary status no smaller than about 9px;
+  Docker-Hadoop is a blue two-tier enclosure with a top signal strip, vertical gold knobs and a large black footswitch, not degraded into a recolored template.
+  All knobs adjust by drag/click/arrow keys, lights toggle, footswitches move when pressed and enter the correct project; on narrow screens titles/status/entries
+  are not truncated, every primary touch area is at least 44 × 44px, and there is no horizontal scrolling.
 - With JavaScript disabled, `#writing-desk`, `#project-workbench`, and `#life-corner` expose their content and the return link works without script.
 
 ## Blog Index
@@ -109,7 +109,7 @@ Always check **Light** and **Dark** mode for changed routes.
 - Every article exposes the same TOC control at the viewport's left-middle; one click opens it and the next click closes it.
 - The drawer overlays without reflowing the article or causing page-level horizontal scroll, and remains usable at 375px.
 - TOC links scroll to the correct headings, headings are not hidden behind the sticky header, and the active entry follows reading position.
-- A post without section headings still has the fallback entry 「文章开头」 and that link returns to the article masthead.
+- A post without section headings still has the fallback entry 「文章开头」 ("Start of article") and that link returns to the article masthead.
 - Inline images have useful alt text, preserve aspect ratio, and do not cause visible layout jumps.
 - Long code blocks and tables scroll inside their own containers instead of causing page-level horizontal scroll.
 - Article `license` frontmatter remains intact, while the visible 「授权协议 · 文末记」 block is not rendered.
@@ -117,7 +117,7 @@ Always check **Light** and **Dark** mode for changed routes.
 ## Projects Page
 
 - Hero copy and note remain balanced at desktop, 768px, and 375px.
-- VeriSilo is first, uses the stable `#project-verisilo` anchor, and states Public pre-release · v0.1.0-rc4 / 公开预发布 · v0.1.0-rc4 while naming the installer as unsigned.
+- VeriSilo is first, uses the stable `#project-verisilo` anchor, and states Public pre-release · v0.1.0-rc4 / 公开预发布 · v0.1.0-rc4 (Chinese label) while naming the installer as unsigned.
 - Every featured case uses a stable `project-{key}` anchor rather than its array position.
 - Featured project dossiers keep ordinal, title, repo slug, links, summary, case study, boundaries, and tags readable.
 - External project links are clearly focusable and tappable.
@@ -126,23 +126,23 @@ Always check **Light** and **Dark** mode for changed routes.
 
 ## Developer Profile
 
-- 自托管字体加载后中英文正文、衬线标题与 700 等宽标签使用固定字形；箭头、镜片手柄、展开与关闭图标均为静态 SVG 且不进入读屏名称。字体 404 时文字仍可读，320 宽度无新增溢出。
-- `/` 与 `/zh/` 静态输出对应语言的完整内容；canonical、hreflang 和 sitemap 指向 `qiu.works`。
-- 首屏第一眼先读到「Q Studio」及其工作内容「本地优先的软件产品与开发者工具」；VeriSilo 明确标为当前产品及浏览器身份空间。真实官网画面和可拖动证据镜片承接这层身份，不抢掉工作室名称；初始镜片呈现完整观察值，最左端证据标题完整可读。
-- 鼠标、触控拖动圆镜与原生滑条、键盘方向键都能移动证据；镜片内截图随位置平移，不变成固定说明文字。
-- VeriSilo、MealCircuit、Crewlight、Hadoop Lab 按顺序呈现；教学实验不被写成产品。原生 `details` 能用键盘展开并保留受众、边界与真实来源。
-- `Me` 锚点到创始人段落，对应语言的「千秋」与吉他预览完整可见，链接到 `me.qiu.works`。写作链接与联系方式可用。
-- 截图可放大，Escape 或关闭按钮返回原链接；禁用 JavaScript 时图片链接仍可直接打开。
-- 在 1440、768、375、375 × 667、320 宽度检查首屏与各章节，没有页面级水平滚动或遮挡；减少动态设置不隐藏内容。
-- 中英文 1200 × 630 OG 图使用新首屏构图；检查图片无旧版工具栏、裁切标题或坏链。
+- After self-hosted fonts load, Chinese and English body, serif headings and 700-weight mono labels use the pinned glyphs; arrows, the lens handle and the expand and close icons are all static SVG and do not enter accessible names. When fonts 404, text stays readable and there is no new overflow at 320 width.
+- `/` and `/zh/` statically output complete content in the matching language; canonical, hreflang and sitemap point to `qiu.works`.
+- At first glance the first screen reads 「Q Studio」 and its work 「本地优先的软件产品与开发者工具」 ("local-first software products and developer tools"); VeriSilo is clearly labeled as the current product and browser identity space. The real product-site image and the draggable evidence lens carry this identity without overshadowing the studio name; the initial lens shows the full observation value, and at the far left the evidence title is fully readable.
+- Mouse and touch dragging of the round lens, the native slider and keyboard arrow keys all move the evidence; the screenshot inside the lens pans with position and never becomes fixed explanatory text.
+- VeriSilo, MealCircuit, Crewlight and Hadoop Lab appear in order; the teaching lab is not written as a product. Native `details` expand by keyboard and keep audience, boundaries and real sources.
+- The `Me` anchor goes to the founder section; the 「千秋」 and guitar preview in the matching language is fully visible and links to `me.qiu.works`. Writing links and contact details work.
+- Screenshots can be enlarged; Escape or the close button returns to the original link; with JavaScript disabled the image link still opens directly.
+- Check the first screen and each section at widths 1440, 768, 375, 375 × 667 and 320, with no page-level horizontal scrolling or occlusion; the reduced-motion setting does not hide content.
+- Chinese and English 1200 × 630 OG images use the new first-screen composition; check the images have no old toolbar, cropped title or broken links.
 
 ## Light / Dark Themes
 
 - Toggle updates the visible state and persists across reloads.
-- 转场平稳且不残留遮罩；切换后 header、热点、人物介绍在两态下均可读。
+- Transitions are smooth with no leftover overlay; after switching, the header, hotspots and personal introduction are readable in both states.
 - Page background, surfaces, borders, text, links, tags, and code blocks keep adequate contrast.
-- 首页 Light 与 Dark 共用舞台、人物介绍、热点和控件材质，只切换严格配准的白天/夜晚背景图；
-  Light 首页没有宣纸纹理、独立浅色浮层或另一套前景滤镜。
+- Homepage Light and Dark share the stage, personal introduction, hotspots and control materials, switching only the strictly registered day/night background images;
+  the Light homepage has no xuan-paper texture, separate light floating layer or another set of foreground filters.
 - Images and cover scrims do not make white text unreadable.
 - Native browser color scheme follows the active theme.
 - Directional surface and note shadows remain visible without turning into bright halos or crushed black blocks.

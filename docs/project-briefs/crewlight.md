@@ -37,7 +37,7 @@ Do not present it as a cloud observability service, agent orchestrator, permissi
 
 ## Display Copy Guidance
 
-- Use the visible status `v0.5.0 已发布 / Windows 优先候选版本` and the subtitle `本地优先的 AI Agent 活动雷达`.
+- Use the visible status `v0.5.0 已发布 / Windows 优先候选版本` ("v0.5.0 released / Windows-first candidate") and the subtitle `本地优先的 AI Agent 活动雷达` ("local-first AI agent activity radar").
 - State that Windows x64 is the planned Supported platform and that its artifacts are unsigned.
 - Keep the platform boundary explicit: Linux and macOS publish no native v0.5 binaries and remain source-validation targets; Remote remains Beta.
 - Name the NSIS graphical install path as unverified rather than implying the installer was fully accepted.

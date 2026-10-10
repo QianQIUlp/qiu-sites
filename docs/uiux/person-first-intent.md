@@ -1,213 +1,213 @@
-# 先认识一个活生生的人
+# First, Get to Know a Living Person
 
-## 2026-09-22 · 已确认的实现边界
+## 2026-09-22 · Approved implementation boundaries
 
-个人站目标域名改为 `me.qiu.works`；`qiu.works` 由 QStudio 表达工作。用户确认以「千秋」、本人吉他及音乐互动组成新的空间首页。当前实施规则见 [`ink-and-light-study.md`](./ink-and-light-study.md) 最新补充；下文原话、旧版文案冻结与 PR 审计记录保留为历史，不覆盖本次明确批准的新首页。既有文章与项目档案内容不变。
+The personal site's target domain changes to `me.qiu.works`; `qiu.works` presents the work through QStudio. The user approved a new spatial homepage built from 「千秋」 (Qianqiu, the Chinese name), their own guitar and music interaction. The current implementation rules are in the latest addendum to [`ink-and-light-study.md`](./ink-and-light-study.md); the original words, the old copy freeze and the PR audit records below are kept as history and do not override this explicitly approved new homepage. Existing article and project archive content is unchanged.
 
-> 首页的上位创作原点见 [`homepage-art-direction.md`](./homepage-art-direction.md)。
-> 本文件只保存由它推导出的长期意图、内容边界与 PR #66 审计，不替代感性构图判断。
-> `ink-and-light-study.md` 描述当前视觉实现；三者冲突时，先回到创作原点。
+> For the homepage's higher creative origin, see [`homepage-art-direction.md`](./homepage-art-direction.md).
+> This file only stores the long-term intent, content boundaries and PR #66 audit derived from it, and does not replace intuitive compositional judgment.
+> `ink-and-light-study.md` describes the current visual implementation; when the three conflict, go back to the creative origin first.
 
-## 2026-07 用户校正
+## 2026-07 user correction
 
-当前实现以现代、真实的个人房间为视觉基础。继续保留人物优先、吉他、三台项目设备、暖光、克制红色、
-渐进发现和长文可读性；移除书法/QiuBrush、印章、宣纸噪点、花瓣与墨絮等视觉装饰。
-文档与 QA 使用 **Light / Dark** 指代主题，可见按钮仍保留「昼 / 夜」与「Day / Night」。既有转场与
-reveal 可以保留，但只按中性界面反馈描述。
+The current implementation uses a modern, realistic personal room as its visual base. It keeps person first, the guitar, the three project devices, warm light, restrained red,
+progressive discovery and long-form readability; it removes visual decoration such as calligraphy/QiuBrush, seals, xuan-paper noise, petals and ink fluff.
+Docs and QA refer to themes as **Light / Dark**; the visible button keeps 「昼 / 夜」 (Day / Night) and 「Day / Night」. Existing transitions and
+reveals may stay but are described only as neutral interface feedback.
 
-文案不随视觉校正一起改写。唯一允许的文字变更是：删除「展开卷宗」及英文对应项；博客计数
-「卷 / 题」改为「篇 / 标签」；删除「题跋」；删除可见的「授权协议 · 文末记」区块。其他首页、
-共享界面、文章和项目文案保持校正前原文。
+Copy is not rewritten along with the visual correction. The only permitted text changes are: removing 「展开卷宗」 ("open the dossier") and its English counterpart; changing the blog counts
+「卷 / 题」 ("volumes / topics") to 「篇 / 标签」 ("articles / tags"); removing 「题跋」 ("colophon"); removing the visible 「授权协议 · 文末记」 ("License · end note") block. All other homepage,
+shared interface, article and project copy keeps its pre-correction original text.
 
-这次校正改变当前视觉表面，不改下文的人本意图。后文 PR #66 审计与当时的完成判据保留为历史记录，
-其中出现的旧术语只说明当时的实现与判断，不构成今天的强制规则。
+This correction changes the current visual surface, not the person-first intent below. The PR #66 audit and the completion criteria of that time are kept as historical records;
+old terms appearing there only explain the implementation and judgment of that time and are not mandatory rules today.
 
-## 2026-07-29 双主页校正
+## 2026-07-29 dual-homepage correction
 
-个人表达与职业识别现在由两个入口协作完成：
+Personal expression and professional identification are now handled by two cooperating entry points:
 
-- `room.qiu.works` 继续回答“Qiu 是怎样一个人”，保留先见人、再探索写作/工程/生活的节奏；
-- `qiu.works` 回答“Qiu 在构建什么、如何工作、怎样联系”，默认英文并采用独立的编辑工作台设计；
-- `verisilo.qiu.works` 只回答产品问题，不把个人主页或 Room 的内容复制过去。
+- `room.qiu.works` continues to answer "what kind of person is Qiu", keeping the rhythm of meeting the person first and then exploring writing/engineering/life;
+- `qiu.works` answers "what is Qiu building, how do they work, how to get in touch", defaulting to English with its own editorial workbench design;
+- `verisilo.qiu.works` only answers product questions and does not copy content from the personal homepage or Room.
 
-Room 获得一次逐项批准的文案扩展：中英文身份锚点和首屏自述、开发者主页与联系入口、VeriSilo 项目档案。
-这项批准取代上段“本次校正没有提供广泛授权”的适用范围，但仍然不是广泛改写授权。原始引语、历史审计、
-其余共享界面和文章文字保持不变。
+Room received one item-by-item approved copy extension: Chinese and English identity anchors and first-screen self-description, developer homepage and contact entries, and the VeriSilo project archive.
+This approval supersedes the scope of the earlier statement that "this correction does not grant broad authorization", but it is still not a broad rewrite authorization. The original quote, historical audits,
+other shared interface and article text remain unchanged.
 
-## 为什么要有这份文件
+## Why this file exists
 
-本站不是附带个人简介的工程师作品集，也不是把千秋包装成某种审美人格的品牌页。
-它要让一个原本不认识千秋的人，在不被迫读完履历的前提下，逐渐认识同一个人的多个侧面，
-并保有自己选择靠近哪一面的自由。
+This site is not an engineer's portfolio with a bio attached, nor a brand page packaging Qianqiu as some aesthetic persona.
+It should let someone who does not know Qianqiu gradually get to know several sides of the same person without being forced to read a résumé,
+while keeping the freedom to choose which side to approach.
 
-视觉方案会继续变化。房间是当前保留的真实空间；宣纸、界画、卷轴、朱砂、书法与装饰粒子则是已经退出
-当前方案的旧表达工具。它们都不是千秋这个人的定义。应长期保存的是下面的阅读关系：
+The visual scheme will keep changing. The room is the real space currently kept; xuan paper, ruled-line architectural painting, scrolls, cinnabar, calligraphy and decorative particles are old expressive tools that have left
+the current scheme. None of them define Qianqiu as a person. What should be kept long-term is the following reading relationship:
 
-1. **先见人，再见分类。** 第一屏先回答“这里是谁”，而不是先回答“这里有哪些栏目”。
-2. **逐渐发现，不一次说明。** 工程、写作、生活与未完成的判断分别提供入口；读者决定探索顺序。
-3. **允许矛盾同时存在。** 温和与锐利、务实与热烈、确定与迟疑，不必被压成一个统一人设。
-4. **让隐喻先说话，让内容随后落地。** 光、阴影、吉他和空间先形成感受；文章、项目、具体选择与日常痕迹在探索后让感受变得可信。
-5. **让内容能被照看。** 设计决策要写明“为什么”，使未来的人或 AI 能判断什么可换、什么不可丢。
+1. **The person first, then categories.** The first screen answers "who is here", not "what sections are here".
+2. **Gradual discovery, not one explanation.** Engineering, writing, life and unfinished judgments each provide an entry; the reader decides the order of exploration.
+3. **Allow contradictions to coexist.** Gentle and sharp, pragmatic and passionate, certain and hesitant need not be compressed into one unified persona.
+4. **Let metaphor speak first, and let content land afterward.** Light, shadow, the guitar and the space form the feeling first; articles, projects, concrete choices and everyday traces make that feeling credible after exploration.
+5. **Let the content be cared for.** Design decisions should state "why", so future people or AI can judge what may be swapped and what must not be lost.
 
-## 人格如何进入页面
+## How personality enters the page
 
-“热烈、锐利、真实生活”不是三个等待配图的标签，但这不意味着视觉隐喻应当退场。
-恰恰相反：第一层认识应由光、阴影、吉他与空间远近来代言；真实内容在读者靠近后出现，
-让隐喻不沦为空洞人设。不要把它们直译成火焰、刀锋、心电图、更多红色或一组人格徽章。
+"Passionate, sharp, real life" are not three labels waiting for illustrations, but that does not mean visual metaphor should step aside.
+Quite the opposite: the first layer of understanding should be spoken for by light, shadow, the guitar and spatial depth; real content appears after the reader approaches,
+so the metaphor does not decay into a hollow persona. Do not translate them literally into flames, blades, heart-rate lines, more red, or a set of personality badges.
 
-### 热烈不是一种颜色
+### Passion is not a color
 
-热烈由**持续投入和主动选择**显现：愿意维护一个项目、把一个问题想到底、继续练琴、
-认真对待关系和游戏留下的经验。页面应让读者看见这些正在被做、被写、被保存的事情，
-而不是直接宣称“我是一个热烈的人”。
+Passion shows through **sustained commitment and active choice**: being willing to maintain a project, think a problem through to the end, keep practicing guitar,
+and take seriously the experience left by relationships and games. The page should let readers see the things being done, written and kept,
+rather than directly declaring "I am a passionate person".
 
-可用证据：
+Usable evidence:
 
-- 仓库中真实存在且仍可访问的项目、文章与外部创作链接；
-- 对一件事投入了什么、为什么继续、哪里仍未完成；
-- 来自生活的具体对象与行动，例如练琴，而不是泛化的“兴趣爱好”图标。
+- projects, articles and external creative links that really exist in the repository and are still reachable;
+- what was invested in something, why it continues, and where it is still unfinished;
+- concrete objects and actions from life, such as guitar practice, rather than generic "hobby" icons.
 
-### 锐利不是攻击性
+### Sharpness is not aggression
 
-锐利由**问题、判断和边界**显现：追问一条规则是否合理，区分工具与目的，
-说明一个项目不解决什么，也保留对自己判断的修正空间。标题、摘要、项目边界和正文原句
-可以承担这种力量；视觉上不需要尖角、警示色或高对比口号。
+Sharpness shows through **questions, judgments and boundaries**: asking whether a rule is reasonable, separating tools from purposes,
+stating what a project does not solve, and leaving room to correct one's own judgments. Titles, summaries, project boundaries and original sentences from the body
+can carry this force; visually it needs no sharp corners, warning colors or high-contrast slogans.
 
-可用证据：
+Usable evidence:
 
-- 已发表文章中真实的问题意识与判断，例如资源使用规则、LLM 元认知盲点、
-  “liar game / role game”的区分；
-- 项目档案中的约束、取舍、失败条件和“不做什么”；
-- 对不确定性的如实陈述，而不是把所有事情包装为成功案例。
+- real problem awareness and judgment in published articles, such as resource usage rules, LLM metacognitive blind spots,
+  and the distinction between "liar game / role game";
+- constraints, trade-offs, failure conditions and "what we don't do" in project archives;
+- honest statements of uncertainty, rather than packaging everything as a success story.
 
-### 真实生活不是装饰性私密
+### Real life is not decorative intimacy
 
-生活由**具体但有边界的痕迹**显现：练琴、游戏、关系、日常经验如何进入思考，
-以及哪些部分选择不公开。吉他可以是一个真实入口，但不能独自充当“生活”的代名词；
-房间场景也只是气氛化界面，不声称是现实住处。
+Life shows through **concrete but bounded traces**: how guitar practice, games, relationships and everyday experience enter thinking,
+and which parts are chosen not to be made public. The guitar can be a real entry, but it cannot alone stand in for "life";
+the room scene is also just an atmospheric interface and does not claim to be a real residence.
 
-可用证据：
+Usable evidence:
 
-- 已有生活侧记、反思文章和真实外部主页；
-- 一段第一人称、自我限度明确的介绍；
-- 内容缺席时诚实留白，不生成照片、经历、状态或情绪来补齐版面。
+- existing life side notes, reflective articles and real external profiles;
+- a first-person introduction with explicit self-limits;
+- honest blank space when content is absent, never generating photos, experience, status or emotions to fill the layout.
 
-## 三个入口，仍是同一个人
+## Three entries, still one person
 
-首页可以用书桌、工作台、吉他与生活作为渐进式入口，但它们不是三套人格：
+The homepage may use the desk, workbench, guitar and life as progressive entries, but they are not three personas:
 
-- **写作**让读者看见判断如何形成，而不只是文章数量；
-- **工程**让读者看见能力、约束与取舍，而不只是技术栈；
-- **生活**让读者看见这些判断从怎样的日常经验里长出，而不只是联系方式。
+- **Writing** lets readers see how judgments form, not just the number of articles;
+- **Engineering** lets readers see capability, constraints and trade-offs, not just a tech stack;
+- **Life** lets readers see from what everyday experience these judgments grow, not just contact details.
 
-三个入口都应回到真实内容。任何一个入口都不得吞没其他入口，也不得把千秋概括成
-“写作者”“工程师”或“吉他手”中的任意一个标签。
+All three entries should lead back to real content. No entry may swallow the others, nor summarize Qianqiu as any single label among
+"writer", "engineer" or "guitarist".
 
-## 首页与内页为何必须是同一世界
+## Why the homepage and inner pages must be one world
 
-“同一世界”不是把首页截图搬到每一页，而是让空间与阅读遵循同一组现代、克制的规则：
+"One world" does not mean carrying the homepage screenshot onto every page; it means space and reading follow the same set of modern, restrained rules:
 
-- 同一层级：重要性由字号、字重、对比和留白表达，不靠堆叠卡片或装饰标签；
-- 同一光源：需要投影时延续房间的主光方向，避免互相矛盾的光影；
-- 同一材质：照片保持真实墙面、木、金属、织物与橡胶，不叠宣纸纹理或全局噪点；
-- 同一字体角色：标题、正文与 UI 使用清楚的常规字体，不以 QiuBrush 或书法字建立身份；
-- 同一克制：红色只作少量 accent，不承担印章、朱砂或古籍批注语义；
-- 同一动作：转场和 reveal 只提供必要反馈，不改变构图、信息或阅读顺序。
+- Same hierarchy: importance is expressed by font size, weight, contrast and whitespace, not stacked cards or decorative labels;
+- Same light source: when shadows are needed they follow the room's main light direction, avoiding contradictory lighting;
+- Same materials: photos keep real walls, wood, metal, fabric and rubber, with no overlaid xuan-paper texture or global noise;
+- Same font roles: headings, body and UI use clear regular fonts, without building identity through QiuBrush or calligraphy;
+- Same restraint: red is only a sparing accent and does not carry seal, cinnabar or classical-annotation meaning;
+- Same motion: transitions and reveals only provide necessary feedback and do not change composition, information or reading order.
 
-首页可以更空间化，内页可以更平面、更适合长读；两者的材质、颜色语义、字族角色、
-交互反馈和内容伦理必须一致。读者从房间进入文章或项目时，应感觉是走近同一张桌上的材料，
-而不是从一个沉浸式首页跳进另一套卡片模板。
+The homepage may be more spatial, and inner pages flatter and better suited to long reading; but materials, color semantics, font-family roles,
+interaction feedback and content ethics must be consistent. When readers go from the room into an article or project, it should feel like approaching material on the same desk,
+not jumping from an immersive homepage into another card template.
 
-## 不可变意图与可替换实现
+## Immutable intent and replaceable implementation
 
-### 不可变
+### Immutable
 
-- 先让读者认识人，再让读者消费内容；
-- 多面、渐进、可选择的认识过程；
-- 真实证据优先，不虚构个人经历与项目事实；
-- 中文长文阅读、键盘操作、移动端和减弱动效均可用；
-- 静态站点、低依赖、可长期维护；
-- 文档保留设计缘由与验收问题。
+- Let readers get to know the person first, then consume the content;
+- A multi-faceted, progressive, selectable process of getting to know them;
+- Real evidence first; never fabricate personal experience or project facts;
+- Long Chinese reading, keyboard operation, mobile and reduced motion all work;
+- Static site, few dependencies, maintainable long-term;
+- Docs keep design rationale and acceptance questions.
 
-### 可替换
+### Replaceable
 
-- 房间的呈现方式，以及已退出当前方案的界画、卷轴、乌丝栏、昼宣夜墨等具体比喻；
-- 场景图片、热点位置、动效时长和布局方式；
-- 在不改变内容语义的前提下使用的色值、字号和间距；
-- 取得用户逐项授权后的导航与入口文案；2026-07-29 只批准了身份锚点、开发者/联系入口与 VeriSilo 档案。
+- How the room is presented, and specific metaphors that have left the current scheme, such as ruled-line architectural painting, scrolls, black-silk ruling and "day xuan / night ink";
+- Scene images, hotspot positions, motion durations and layout;
+- Color values, font sizes and spacing used without changing content meaning;
+- Navigation and entry copy after obtaining the user's item-by-item authorization; 2026-07-29 approved only the identity anchor, developer/contact entries and the VeriSilo archive.
 
-替换视觉实现时，不要求复刻旧表面；只要求新实现再次通过本文件的长期验收问题。
+When replacing the visual implementation, there is no requirement to replicate the old surface; only that the new implementation passes this file's long-term acceptance questions again.
 
-## 内容边界
+## Content boundaries
 
-- 只展示仓库或用户提供材料能够证明的文章、项目、状态、链接和图片。
-- 没有可靠时效信息时使用“最近留下的痕迹”，不写成“此刻正在做”。
-- 不生成或虚构个人照片、项目截图、经历、用户规模、性能指标、情绪和维护承诺。
-- 不把推断写成自述；需要新增事实时先取得用户确认。
-- 不为了视觉完整度新增空路由、内容分类、运行时依赖或服务端能力。
-- 私人生活的留白也是内容边界，不以“更真实”为理由要求更多暴露。
+- Show only articles, projects, statuses, links and images that the repository or user-supplied material can prove.
+- Without reliable timeliness information, use 「最近留下的痕迹」 ("traces left recently") rather than 「此刻正在做」 ("doing right now").
+- Do not generate or fabricate personal photos, project screenshots, experience, user counts, performance metrics, emotions or maintenance commitments.
+- Do not write inferences as self-statements; get user confirmation before adding new facts.
+- Do not add empty routes, content categories, runtime dependencies or server capabilities for the sake of visual completeness.
+- Blank space in private life is also a content boundary; do not demand more exposure in the name of being "more real".
 
-## 历史记录：PR #66 实现审计基线
+## Historical record: PR #66 implementation audit baseline
 
-以下审计保持当时原貌。旧视觉名词与状态判断只用于追溯 PR #66，不覆盖 2026-07 用户校正。
+The audit below is kept as it was. Old visual terms and status judgments are only for tracing PR #66 and do not override the 2026-07 user correction.
 
-审计对象：`feat(design): 墨光书房 — 界画视觉系统全站落地 (#66)`，合并提交
-`51ef6d6`。该 PR 让主题、场景、栏线、字体和氛围层形成了可运行系统，但视觉方案的完成度
-高于上位人物意图的完成度。
+Audit subject: `feat(design): 墨光书房 — 界画视觉系统全站落地 (#66)` ("Ink-and-light study — ruled-line painting visual system rolled out site-wide"), merge commit
+`51ef6d6`. That PR made theme, scene, ruling lines, fonts and atmosphere layers into a working system, but the visual scheme's completeness
+was higher than the completeness of the higher-level person intent.
 
-| 需求 | PR #66 状态 | 证据与缺口 |
+| Requirement | PR #66 status | Evidence and gaps |
 | --- | --- | --- |
-| 静态、可构建、无新增运行时依赖 | 基本完成 | Astro 生产构建通过，既有路由可生成 |
-| 昼宣/夜墨与主题转场 | 基本完成 | 主题状态、减弱动效和连点清理已有实现 |
-| 首页渐进探索 | 基本完成 | 三个热点、原地近景、hash 与无 JS 内容存在 |
-| 先认识一个活生生的人 | 部分完成 | 第一屏有名字和真实吉他，但自我介绍过薄，生活入口缺少站内内容证据 |
-| 热烈、锐利、真实生活自然显现 | 未完成 | 主要依赖房间与吉他意象；文章判断、项目边界、生活侧记尚未互相照亮 |
-| 首页与内页属于同一世界 | 部分完成 | 名义上共享“墨光书房”，但首页另有一套硬编码颜色，内页仍保留多层卡片底板与硬边图片 |
-| 朱砂、书体与印章克制 | 部分完成 | 契约已有规则，普通链接/组件题字和多枚印章仍有越界 |
-| 视觉意图可由未来维护者继承 | 部分完成 | 当前契约把具体方案写成最高原则，旧的人本意图被标为废止，缺少稳定/可换分层 |
-| 移动端触控与双主题视觉证据 | 部分完成 | 响应式规则存在，部分触控目标偏小；PR 缺少独立 review/check，旧 QA 证据与现状不一致 |
+| Static, buildable, no new runtime dependencies | Mostly done | Astro production build passes and existing routes generate |
+| Day-xuan/night-ink and theme transitions | Mostly done | Theme state, reduced motion and rapid-click cleanup are implemented |
+| Progressive homepage exploration | Mostly done | Three hotspots, in-place close-ups, hash and no-JS content exist |
+| First, get to know a living person | Partly done | The first screen has the name and the real guitar, but the self-introduction is too thin and the life entry lacks on-site content evidence |
+| Passion, sharpness and real life emerge naturally | Not done | Relies mainly on room and guitar imagery; article judgments, project boundaries and life side notes do not yet illuminate each other |
+| Homepage and inner pages belong to one world | Partly done | Nominally share the "墨光书房" ("ink-and-light study"), but the homepage has its own hard-coded colors and inner pages still keep multi-layer card backgrounds and hard-edged images |
+| Restraint in cinnabar, script fonts and seals | Partly done | The contract has rules, but ordinary links/component inscriptions and multiple seals still overstep |
+| Visual intent can be inherited by future maintainers | Partly done | The current contract writes the specific scheme as the highest principle, the old person-first intent is marked as abolished, and there is no stable/replaceable layering |
+| Mobile touch and dual-theme visual evidence | Partly done | Responsive rules exist, some touch targets are small; the PR lacks independent review/check, and old QA evidence does not match the current state |
 
-审计所用的非视觉验证包括：生产构建、生成路由的 HTTP 冒烟、内部链接、重复 `id`、
-图片尺寸/替代文本和外链 `rel` 检查。浏览器双主题截图应在本轮实现后重新生成，
-不把 PR 前一版截图当作现状证据。
+Non-visual verification used in the audit included: production build, HTTP smoke tests of generated routes, internal links, duplicate `id`s,
+image size/alt text and external-link `rel` checks. Browser dual-theme screenshots should be regenerated after this round's implementation,
+and pre-PR screenshots should not be taken as evidence of the current state.
 
-## 历史记录：当时的本轮完成判据
+## Historical record: completion criteria for that round
 
-本轮不以新增一套解释框架为完成，而以下列可观察结果为准：
+That round was not considered complete by adding another explanatory framework, but by the following observable results:
 
-1. 第一屏保持简约，只让千秋、吉他和极少的生活气息留在光里；书桌、工作台和信息量先退入阴影。
-2. 读者靠近、停留、触摸或作出选择后，其他入口以光影或墨的变化逐渐出现，而不是一次性展开。
-3. 生活入口在展开后连接已有站内文章证据，不再只有吉他图片和外部链接。
-4. 文章与项目标题、摘要、边界在被发现后承担人格表达；首屏不把它们做成解释人物的清单。
-5. 首页颜色映射到全站纸/墨 token；首页与内页不再拥有互不相干的底色系统。
-6. 内页移除不必要的卡片底板、圆角盒和硬边贴图，改用留白、双栏线、缩进和墨化边缘。
-7. 普通链接不用朱砂；QiuBrush 回到两处落款白名单；界面不再显示印章。
-8. 移动端主要导航和主题按钮达到舒适触控尺寸，375px 无页面级横向滚动。
-9. 创作原点、现行视觉契约、设计 skill 与 QA 清单互相引用且不再互相矛盾。
-10. 生产构建、路由/链接静态检查通过；首页、文章索引、文章页、项目页完成昼/夜与桌面/移动验证。
+1. The first screen stays minimal, letting only Qianqiu, the guitar and a little breath of life stay in the light; the desk, workbench and information volume recede into shadow first.
+2. After the reader approaches, lingers, touches or makes a choice, the other entries gradually appear through changes in light, shadow or ink, rather than unfolding all at once.
+3. Once expanded, the life entry links to existing on-site article evidence, no longer just a guitar image and external links.
+4. Article and project titles, summaries and boundaries carry the personality once discovered; the first screen does not turn them into a list explaining the person.
+5. Homepage colors map to the site-wide paper/ink tokens; the homepage and inner pages no longer have unrelated background color systems.
+6. Inner pages remove unnecessary card backgrounds, rounded boxes and hard-edged images, using whitespace, double ruling lines, indentation and ink-faded edges instead.
+7. Ordinary links do not use cinnabar; QiuBrush returns to a two-place signature allowlist; the interface no longer shows seals.
+8. Primary mobile navigation and the theme button reach comfortable touch sizes, with no page-level horizontal scrolling at 375px.
+9. The creative origin, current visual contract, design skill and QA checklist reference each other and no longer contradict each other.
+10. Production build and route/link static checks pass; home, article index, article page and projects page complete day/night and desktop/mobile verification.
 
-## 历史记录：当时的本轮再审计
+## Historical record: re-audit for that round
 
-以下结论只说明 PR #66 中“未完成”或“部分完成”的实现缺口已在当前分支得到可验证的回应，
-不宣称首页的审美从此定稿。感性构图仍以 `homepage-art-direction.md` 和作者的实际观看为准。
+The conclusions below only state that the "not done" or "partly done" implementation gaps from PR #66 received verifiable responses on the branch at that time;
+they do not claim the homepage's aesthetics are now final. Intuitive composition still defers to `homepage-art-direction.md` and the author's actual viewing.
 
-| PR #66 的非基本项 | 当前状态 | 当前证据 |
+| Non-basic item from PR #66 | Status then | Evidence then |
 | --- | --- | --- |
-| 先认识一个活生生的人 | 已落实 | 初见只保留名字、吉他和一句生活气息；完整栏目与内容数量先隐藏 |
-| 热烈、锐利、真实生活自然显现 | 已落实 | 光影与吉他先代言；靠近后由真实文章、项目判断与生活侧记承接，不新增人格标签 |
-| 首页与内页属于同一世界 | 已落实 | 首页改用全站纸/墨 token；内页去除多余卡片底板、圆角纸片与硬边贴图 |
-| 朱砂、书体与印章克制 | 已落实 | 普通链接回到墨色，QiuBrush 只保留空封面落款与目录题字，界面不再显示印章 |
-| 视觉意图可被未来维护者继承 | 已落实 | 创作原点、长期人物意图、可替换视觉契约、设计 skill 与 QA 已分层并互相引用 |
-| 移动端触控与双主题视觉证据 | 已落实 | 主要控件达到 44px；375px 无横向溢出；昼/夜、桌面/移动截图已归档 |
+| First, get to know a living person | Implemented | First sight keeps only the name, the guitar and one line of life; full sections and content counts are hidden at first |
+| Passion, sharpness and real life emerge naturally | Implemented | Light, shadow and the guitar speak first; after approaching, real articles, project judgments and life side notes carry it on, with no new personality labels |
+| Homepage and inner pages belong to one world | Implemented | Homepage switched to site-wide paper/ink tokens; inner pages removed extra card backgrounds, rounded paper slips and hard-edged images |
+| Restraint in cinnabar, script fonts and seals | Implemented | Ordinary links returned to ink color, QiuBrush kept only for the empty-cover signature and TOC inscription, and the interface no longer shows seals |
+| Visual intent can be inherited by future maintainers | Implemented | Creative origin, long-term person intent, replaceable visual contract, design skill and QA are layered and cross-referenced |
+| Mobile touch and dual-theme visual evidence | Implemented | Primary controls reach 44px; no horizontal overflow at 375px; day/night, desktop/mobile screenshots archived |
 
-## 长期验收问题
+## Long-term acceptance questions
 
-每次可见改动都要回答：
+Every visible change must answer:
 
-1. 不点任何入口时，读者先看见的是千秋，还是一种视觉风格或产品模板？
-2. 去掉所有人格形容词后，页面仍能让人感到具体的投入、判断和生活吗？
-3. 工程、写作与生活是否都可发现，同时没有一个侧面吞没其他侧面？
-4. 读者是否能自己选择探索顺序，并随时知道如何回到整体？
-5. 页面是否仍适合长中文内容、键盘操作、移动端、双主题和减弱动效？
-6. 装饰、动效和文案是否来自真实内容关系，而不是为填满版面而生？
-7. 若下一版再次更换房间的视觉表面，仍能说明它如何保留了这里的人本意图吗？
+1. Without clicking any entry, does the reader first see Qianqiu, or a visual style or product template?
+2. After removing all personality adjectives, does the page still convey concrete commitment, judgment and life?
+3. Are engineering, writing and life all discoverable, with no one side swallowing the others?
+4. Can readers choose their own order of exploration and always know how to return to the whole?
+5. Is the page still suitable for long Chinese content, keyboard operation, mobile, both themes and reduced motion?
+6. Do decoration, motion and copy come from real content relationships, rather than existing to fill the layout?
+7. If the next version swaps the room's visual surface again, can it still explain how it keeps the person-first intent here?

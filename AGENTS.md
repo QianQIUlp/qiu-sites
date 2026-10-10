@@ -23,3 +23,6 @@ Personal-site homepage changes follow the 2026-09-22 approved prototype contract
 
 ## Project Copy Notes
 Before editing `/projects/` or project showcase copy, read `src/data/projects.ts` and `docs/project-briefs/docker-hadoop-cluster.md` so project names, URLs, evidence, and positioning stay consistent.
+
+## Language
+All agent-facing text — docs, skills, contracts, QA notes, code comments and agent instructions — must be written in English. Chinese appears only in site copy (content users see on the sites). When a doc must reference an exact Chinese UI string so it can be found in code, quote it verbatim and add an English gloss, e.g. 「我是千秋。」 ("I am Qianqiu.").

@@ -1,91 +1,92 @@
 # Developer Profile · Editorial Workbench
 
-## 2026-09-30 · 字体与控制符号一致性
+## 2026-09-30 · Font and control glyph consistency
 
-- `/`、`/zh/` 使用固定版本、自托管的 Source Sans 3、Source Serif 4、Cousine Bold 与 Noto Sans SC / Serif SC 子集，保留正文 sans、编辑性 serif 标题与粗体 mono 标签的角色。Source Sans 3 提供实际 400–900 字重，Source Serif 4 固定 400 字重和默认光学字号，Cousine 使用实际 700 字重。
-- 链接箭头、镜片双向拖动提示、项目展开加号与图片关闭符号使用构建期内联 SVG，不依赖系统字体；保留原文案、链接、原生 details / dialog、镜片位置及语言锚点。
-- 字体失败时保留可读系统回退。字体许可随源码保存并嵌入 WOFF2；新增中英文文案后按 `developer/src/assets/fonts/README.md` 运行 `scripts/subset-qstudio-fonts.py` 更新独立子集。
-- 保留 Look inside 的深绿首屏、颜色、布局和真实证据图。本次在个人站 PR #80 之上单独交回审核，两个 PR 均不自动合并。
-- 页面宽度跟随可用视口，包含 320px 下滚动条占用的空间；镜片手柄伸出边框的下半圆继续支持拖动。
+- `/` and `/zh/` use pinned-version, self-hosted subsets of Source Sans 3, Source Serif 4, Cousine Bold and Noto Sans SC / Serif SC, keeping the roles of sans body text, editorial serif headings and bold mono labels. Source Sans 3 provides real 400–900 weights, Source Serif 4 is fixed at weight 400 with the default optical size, and Cousine uses a real 700 weight.
+- Link arrows, the lens's two-way drag hint, the project expand plus and the image close glyph use build-time inline SVG and do not depend on system fonts; original copy, links, native details / dialog, lens position and language anchors are kept.
+- When fonts fail, a readable system fallback remains. Font licenses are stored with the source and embedded in the WOFF2; after adding Chinese or English copy, run `scripts/subset-qstudio-fonts.py` per `developer/src/assets/fonts/README.md` to update the separate subsets.
+- The Look inside deep-green first screen, colors, layout and real evidence images are kept. This change is handed back for review separately on top of personal-site PR #80; neither PR is auto-merged.
+- Page width follows the available viewport, including the space taken by the scrollbar at 320px; the lower half of the lens handle that extends past the border continues to support dragging.
 
-## 2026-09-23 · Look inside（当前方向）
+## 2026-09-23 · Look inside (current direction)
 
-`prototypes/qstudio-look-inside.html` 的当前交互稿已进入 `developer/`。本节取代下文旧版编辑工作台的视觉、章节与交互规定；旧版内容仅保留决策记录。工作室的真实身份、产品边界、双语路由、链接与元数据要求继续有效。
+The current interaction draft in `prototypes/qstudio-look-inside.html` has been brought into `developer/`. This section supersedes the visual, section and interaction rules of the older editorial workbench below; the older content is kept only as a decision record. Requirements on the studio's real identity, product boundaries, bilingual routes, links and metadata remain in force.
 
-- 首屏以深绿底和醒目的「Q Studio」名称先确立工作室身份，紧接着用对应语言明确说明「构建本地优先的软件产品与开发者工具」。右侧标明 VeriSilo 是当前产品及浏览器身份空间，真实官网截图是作品证据，不代替工作室介绍。圆形镜片可以直接拖动，也可以通过原生滑条与键盘移动；镜片内显示对应语言的真实证据截图，并随位置平移。初始位置显示完整观察值，滑到最左侧时证据标题完整可见，不用固定文案替代截图。
-- 下方按作品、工作方式、创始人、写作、联系方式形成简洁信息流。四个作品以原生 `details` 展开，包含真实截图、受众、边界与来源链接。`Me` 跳到创始人段落，个人站预览保持矩形全图，链接进入对应语言的 `me.qiu.works`。
-- `/` 英文、`/zh/` 中文都在构建时输出完整正文。语言切换保留当前锚点；截图资源使用正式站点路径。截图放大有原生图片链接作为无 JavaScript 回退。
-- 页面使用原型的固定色彩与布局，不再提供旧版的昼夜主题按钮、滚动章节指示、复制邮箱或额外说明面板。对应语言的 1200 × 630 OG 图跟随新首屏。
-- 检查 1440、768、375 和 320 宽度的阅读与无水平滚动；检查镜片左右端点、直接拖动、滑条键盘操作、项目展开、图像对话框、语言与锚点。
+- The first screen establishes the studio identity first with a deep-green background and a prominent 「Q Studio」 name, immediately followed by a statement in the matching language: 「构建本地优先的软件产品与开发者工具」 ("Building local-first software products and developer tools"). The right side marks VeriSilo as the current product and browser identity space; the real product-site screenshot is work evidence and does not replace the studio introduction. The circular lens can be dragged directly or moved with a native slider and keyboard; inside the lens is the real evidence screenshot in the matching language, panning with the position. The initial position shows the full observation value; at the far left the evidence title is fully visible, and fixed copy never substitutes for the screenshot.
+- Below, a simple information flow covers work, way of working, founder, writing and contact. The four projects expand with native `details`, containing real screenshots, audience, boundaries and source links. `Me` jumps to the founder section; the personal-site preview stays a rectangular full image and links to `me.qiu.works` in the matching language.
+- `/` (English) and `/zh/` (Chinese) both emit complete body text at build time. Language switching keeps the current anchor; screenshot assets use production site paths. Screenshot enlargement has a native image link as the no-JavaScript fallback.
+- The page uses the prototype's fixed colors and layout and no longer offers the old day/night theme button, scroll section indicator, copy-email button or extra explanation panel. A 1200 × 630 OG image per language follows the new first screen.
+- Check reading and no horizontal scrolling at widths 1440, 768, 375 and 320; check the lens's left and right endpoints, direct dragging, slider keyboard operation, project expansion, the image dialog, language and anchors.
 
-`developer/` 是部署到 `https://qiu.works` 的独立 Astro 静态应用，也是独立、自筹软件工作室 Q Studio 的官网，由 Qian Qiu 创建和运营。本契约只约束开发者主页；
-千秋的个人站 `me.qiu.works` 继续由 [`homepage-art-direction.md`](./homepage-art-direction.md)、
-[`person-first-intent.md`](./person-first-intent.md) 与 [`ink-and-light-study.md`](./ink-and-light-study.md) 管理。
+`developer/` is a standalone Astro static app deployed to `https://qiu.works`, and it is the official site of Q Studio, an independent, self-funded software studio founded and operated by Qian Qiu. This contract governs only the developer homepage;
+Qianqiu's personal site `me.qiu.works` continues to be governed by [`homepage-art-direction.md`](./homepage-art-direction.md),
+[`person-first-intent.md`](./person-first-intent.md) and [`ink-and-light-study.md`](./ink-and-light-study.md).
 
-## 职责边界
+## Role boundaries
 
-开发者主页在十秒内回答：Q Studio 是什么、谁在运营、正在构建什么、做过什么、怎样工作、如何联系。它是 GitHub、Discord、
-X、LinkedIn、合作方与未来客户的职业入口，不承担完整人物叙事，也不替 VeriSilo 做产品转化。
+Within ten seconds the developer homepage answers: what Q Studio is, who runs it, what it is building, what it has built, how it works and how to get in touch. It is the professional entry point for GitHub, Discord,
+X, LinkedIn, partners and future clients; it does not carry the full personal narrative, nor does it do product conversion for VeriSilo.
 
-品牌关系是 Q Studio by Qian Qiu：工作室身份优先，创始人身份保留。千秋的个人站是创始人的个人空间，不是工作室产品。
+The brand relationship is Q Studio by Qian Qiu: studio identity comes first, founder identity is kept. Qianqiu's personal site is the founder's personal space, not a studio product.
 
-- `/` 默认英文，`/zh/` 提供完整中文对应；
-- `me.qiu.works` 负责人物、吉他、音乐、写作档案与完整项目档案；
-- VeriSilo 官网负责用户问题、产品能力、下载与反馈；
-- 开发者主页只做可信摘要和导流，不复制两边的全部内容。
+- `/` defaults to English, `/zh/` provides the complete Chinese counterpart;
+- `me.qiu.works` covers the person, guitar, music, writing archive and complete project archive;
+- the VeriSilo site covers user problems, product capabilities, downloads and feedback;
+- the developer homepage only provides credible summaries and routing, without copying all content from either side.
 
-## 视觉方向
+## Visual direction
 
-名称是**编辑工作台**：像一张被认真整理、仍在工作的桌面，而不是简历模板或营销落地页。
+The name is **Editorial Workbench**: like a desk that has been carefully organized and is still in use, not a résumé template or marketing landing page.
 
-- 暖米白与炭黑构成 Light/Dark 基础，左上有轻微暖光，暗红只用于线、状态与小型强调；
-- 系统无衬线承担正文与主信息，serif 只用于姓名和少量编辑性标题，mono 只用于状态、编号与项目元信息；
-- 留白、细线、对齐和明确网格承担分组，不堆通用圆角卡片；Hero 品牌名保持干净的排印、不加计量刻度装饰；当前焦点卡片以 FILE 编号与状态点接入列表编号体系；产品层级用红色描边 chip（Primary / Public / Teaching）表达；Studio 事实表用 01–07 索引与当前焦点方点标记；
-- 使用真实 VeriSilo 页面/应用图与真实个人站预览，不生成虚构产品 UI；VeriSilo 证据图和个人站预览都按语言分别取自对应页面，前者保留完整、自洽的画面构图，后者展示「千秋」与酒红色吉他的当前首屏；- 不使用房间场景作全页背景，不使用技术 Logo 墙、终端皮肤、SaaS 渐变、仪表盘或同模板卡片矩阵；
-- 动效只允许短淡入与必要反馈，`prefers-reduced-motion` 下信息立即呈现；导航通过短红尺条与 `aria-current` 指出正在阅读的章节（JS 滚动感知 + `:target` 兜底），主题切换在支持 View Transitions 的环境中从按钮位置圆形揭示新主题，其余环境保持即时切换。
+- Warm off-white and charcoal form the Light/Dark base, with a slight warm light from the upper left; dark red is used only for lines, status and small accents;
+- System sans-serif carries body text and primary information, serif is used only for the name and a few editorial headings, and mono only for status, numbering and project metadata;
+- Whitespace, hairlines, alignment and a clear grid do the grouping, not stacks of generic rounded cards; the Hero brand name keeps clean typography without measurement-tick decoration; the current-focus card joins the list numbering system with a FILE number and status dot; product tiers are expressed with red-outlined chips (Primary / Public / Teaching); the Studio fact table is marked with 01–07 indexes and a current-focus square dot;
+- Use real VeriSilo page/app images and a real personal-site preview, never generated fictional product UI; the VeriSilo evidence image and the personal-site preview are each taken per language from the matching page, the former keeping a complete, self-consistent composition, the latter showing the current first screen with 「千秋」 (Qianqiu) and the wine-red guitar;
+- Do not use the room scene as a full-page background, and do not use tech-logo walls, terminal skins, SaaS gradients, dashboards or same-template card grids;
+- Motion is limited to short fades and necessary feedback; under `prefers-reduced-motion` information appears immediately; navigation marks the section being read with a short red rule and `aria-current` (JS scroll awareness + `:target` fallback), and theme switching reveals the new theme as a circle from the button position where View Transitions are supported, switching instantly elsewhere.
 
-## 固定信息架构
+## Fixed information architecture
 
-1. **Hero** — Q Studio 身份、创始人 Qian Qiu、local-first / explicit boundaries 主轴、当前重点 VeriSilo、Selected Work / GitHub / Meet 千秋。
-2. **Now Building** — VeriSilo 的真实状态、Windows-first、开源、Chrome/Edge 环境隔离与隐私审计边界。
-3. **Selected Software** — Primary/current product VeriSilo；其他公开软件 Crewlight、MealCircuit；教学实验 Hadoop Lab（明确不是产品）。分别只保留受众、问题、关键设计、状态和链接。
-4. **Studio** — Q Studio、创始人、独立自筹模式、方向、当前重点、联系邮箱、公开源码的可见事实表。
-5. **How I Build** — Local-first、Inspectable systems、Explicit boundaries、Reproducible infrastructure、User-controlled data。
-6. **Selected Writing** — LLM 元认知、Linux 服务器加固、资源使用规则的对应语言 `me.qiu.works` 文章。
-7. **Beyond Work** — 对应语言的「千秋」与吉他首屏预览和 `me.qiu.works` 入口。文案为「工作之外，是千秋 / 千秋, beyond the studio」，介绍拿起吉他、玩音乐、翻散页和留下线条。图片只负责预览，点击进入个人站真实首页。
-8. **Contact** — `qstudio@qiu.works`、GitHub，以及经批准的产品反馈/技术合作 focused software work 文案。
+1. **Hero** — Q Studio identity, founder Qian Qiu, the local-first / explicit boundaries axis, current focus VeriSilo, Selected Work / GitHub / Meet 千秋 (Qianqiu).
+2. **Now Building** — VeriSilo's real status, Windows-first, open source, Chrome/Edge environment isolation and privacy-auditing boundaries.
+3. **Selected Software** — Primary/current product VeriSilo; other public software Crewlight and MealCircuit; teaching lab Hadoop Lab (explicitly not a product). Each keeps only audience, problem, key design, status and links.
+4. **Studio** — a visible fact table of Q Studio, founder, independent self-funded model, direction, current focus, contact email and public source.
+5. **How I Build** — Local-first, Inspectable systems, Explicit boundaries, Reproducible infrastructure, User-controlled data.
+6. **Selected Writing** — `me.qiu.works` articles in the matching language on LLM metacognition, Linux server hardening and resource usage rules.
+7. **Beyond Work** — a first-screen preview of 「千秋」 and the guitar in the matching language, plus the `me.qiu.works` entry. The copy is 「工作之外，是千秋」 ("Beyond work, there is Qianqiu") / "千秋, beyond the studio", describing picking up the guitar, playing music, leafing through loose pages and leaving lines. The image is only a preview; clicking goes to the personal site's real homepage.
+8. **Contact** — `qstudio@qiu.works`, GitHub, and the approved product-feedback / technical-collaboration "focused software work" copy.
 
-个人站的中英文首页、项目记录和文章统一链接到 `https://me.qiu.works`；英文保留姓名「千秋」，不得继续显示旧域名或旧的 Qiu's Room 入口文案。
+The personal site's Chinese and English homepages, project records and articles all link to `https://me.qiu.works`; English keeps the name 「千秋」, and the old domain or the old Qiu's Room entry copy must no longer appear.
 
-不得写价格，不得承诺解决“任何软件问题”，不得虚构用户、指标、经历、界面或产品成熟度。不得添加注册公司、融资、员工、收入、客户、地址、合作伙伴等无法验证的信息；结构化数据只使用真实存在的 Organization 字段。
+Do not list prices, do not promise to solve "any software problem", and do not fabricate users, metrics, experience, interfaces or product maturity. Do not add unverifiable information such as a registered company, funding, employees, revenue, clients, address or partners; structured data uses only Organization fields that really exist.
 
-## 响应式与交互
+## Responsive behavior and interaction
 
-- 1440px 使用非对称编辑网格；768px 收敛列宽；375px 与 375 × 667px 变成清楚的单列；
-- 页面不得水平滚动，主要触控目标至少 44 × 44px；
-- 跳转链接、导航、语言、主题、项目与联系入口均可键盘操作并有可见焦点；
-- Light/Dark 的内容、顺序和证据相同；可见按钮保持 `Day / Night` 与「昼 / 夜」；
-- 图片预留稳定比例，文字和链接不得依赖动画才能出现。
-- VeriSilo 证据图必须来自对应语言的当前产品页面；个人站预览复用已合并的 `public/assets/og/me-{en,zh}.jpg`（1200 × 630），完整显示，不裁去中文姓名或吉他。个人站改版时同步更新副本，不能保留旧房间照片。
-- 证据图当前取自 `verisilo.qiu.works` 的 `.evidence-section`（`Confidence, with a trace.` / 「安心，有迹可循。」），两种语言均为 1440 × 710。换图时必须同步 `developer/src/content.ts` 的 `work.imageHeight` 与 `developer/src/styles/global.css` 的 `.evidence-trigger img` `aspect-ratio`，三者保持一致以免变形。
+- 1440px uses an asymmetric editorial grid; 768px narrows the columns; 375px and 375 × 667px become a clear single column;
+- The page must not scroll horizontally, and primary touch targets are at least 44 × 44px;
+- Skip links, navigation, language, theme, project and contact entries are all keyboard-operable with visible focus;
+- Light/Dark have the same content, order and evidence; visible buttons keep `Day / Night` and 「昼 / 夜」 (Day / Night);
+- Images reserve stable aspect ratios, and text and links must not depend on animation to appear.
+- The VeriSilo evidence image must come from the current product page in the matching language; the personal-site preview reuses the merged `public/assets/og/me-{en,zh}.jpg` (1200 × 630), shown in full without cropping out the Chinese name or the guitar. When the personal site is redesigned, update the copies in sync; old room photos must not remain.
+- The evidence image is currently taken from the `.evidence-section` of `verisilo.qiu.works` (`Confidence, with a trace.` / 「安心，有迹可循。」), 1440 × 710 in both languages. When replacing it, keep `work.imageHeight` in `developer/src/content.ts` and the `.evidence-trigger img` `aspect-ratio` in `developer/src/styles/global.css` in sync, so all three stay consistent and nothing distorts.
 
-## 2026-09-22 · 可翻阅的工作室档案
+## 2026-09-22 · A browsable studio archive
 
-在本地已有的编辑式细节、锚点修正、章节导航和灯光式主题切换提交上继续演进。工作室的辨识度来自排印与真实软件，参与感来自查看证据与理解取舍。
+This continues from the local commits that added editorial details, anchor fixes, section navigation and the light-style theme switch. The studio's distinctiveness comes from typography and real software; engagement comes from inspecting evidence and understanding trade-offs.
 
-- Hero 使用横跨网格的 Q Studio 大字刊头，创始人署名靠右；下方左侧是精简的工作室立场与行动入口，右侧是 FILE 01、真实产品预览及状态。手机端按阅读顺序堆叠。
-- 底部四项项目索引与 Selected Software 使用相同编号。点击直接到达项目；三个次级项目用原生 `details/summary` 展开状态、受众、设计取舍与已有链接。项目层级、摘要与教学性质始终可见，键盘和无 JavaScript 环境仍可阅读。
-- 两处 VeriSilo 证据入口复用同一张对应语言截图。原生 `dialog` 提供适应视窗与原尺寸查看，超出尺寸只在图像区域滚动。关闭或 Escape 返回触发链接；无 JavaScript 时直接打开图片。明确标注截图来源，不冒充可操作的产品审计。
-- 桌面端证据图在对应产品说明旁保持可见；手机端恢复普通文档流。图片完整呈现，不以裁切或悬停放大丢失证据。
-- 导航根据真实章节位置更新，回到 Hero 时清除标记。只在无 JavaScript 时使用 `:target` 样式；锚点仅保留一层偏移，按实际页头高度适配。切换语言保留明确选中的章节或项目锚点。
-- 联系区保留邮件链接，增加复制邮箱及可被辅助技术读取的成功/失败反馈。剪贴板不可用时仍可通过地址联系。
-- 延续暖中性色、克制的红色、昼夜主题与减少动态效果偏好。所有增强使用原生 HTML/CSS/JavaScript，不增加运行依赖。
+- The Hero uses a large Q Studio masthead spanning the grid, with the founder byline on the right; below, the left side holds a condensed studio stance and action entries, and the right side FILE 01, a real product preview and status. On mobile they stack in reading order.
+- The four-item project index at the bottom uses the same numbering as Selected Software. Clicking goes directly to the project; the three secondary projects use native `details/summary` to expand status, audience, design trade-offs and existing links. Project tier, summary and teaching nature are always visible and remain readable by keyboard and without JavaScript.
+- Both VeriSilo evidence entries reuse the same screenshot in the matching language. A native `dialog` offers fit-to-viewport and original-size views, with oversize content scrolling only within the image area. Closing or Escape returns to the triggering link; without JavaScript the image opens directly. Screenshot provenance is clearly labeled and does not pose as an operable product audit.
+- On desktop the evidence image stays visible next to the matching product description; on mobile it returns to normal document flow. Images are shown in full; evidence is never lost to cropping or hover zoom.
+- Navigation updates from real section positions and clears the marker on returning to the Hero. `:target` styling is used only without JavaScript; anchors keep a single offset, adapted to the actual header height. Language switching keeps an explicitly selected section or project anchor.
+- The contact area keeps the mail link and adds copy-email with success/failure feedback readable by assistive technology. When the clipboard is unavailable, the address can still be used to get in touch.
+- Continues the warm neutrals, restrained red, day/night themes and reduced-motion preference. All enhancements use native HTML/CSS/JavaScript with no added runtime dependencies.
 
-## 元数据与部署
+## Metadata and deployment
 
-- canonical、hreflang、Sitemap、robots 与 OG URL 均使用 `https://qiu.works`；
-- title/description/OG 明确关联 Q Studio 与创始人 Qian Qiu；`og:site_name` 使用 `Q Studio`；
-- 页面包含最小 Organization JSON-LD：name `Q Studio`、url、email、founder `Qian Qiu`、sameAs GitHub 与 VeriSilo；不写 founding date、地址、电话、员工与法律实体；
-- 中英文分别使用 1200 × 630 分享卡；
-- Cloudflare Pages 根目录为 `developer`，构建命令 `npm run build`，输出目录 `dist`；
-- 纯静态输出，不引入 SSR、Cloudflare adapter、表单后端或额外前端框架。
+- canonical, hreflang, Sitemap, robots and OG URLs all use `https://qiu.works`;
+- title/description/OG explicitly associate Q Studio with founder Qian Qiu; `og:site_name` is `Q Studio`;
+- the page contains minimal Organization JSON-LD: name `Q Studio`, url, email, founder `Qian Qiu`, sameAs GitHub and VeriSilo; no founding date, address, phone, employees or legal entity;
+- Chinese and English each use a 1200 × 630 share card;
+- Cloudflare Pages root directory is `developer`, build command `npm run build`, output directory `dist`;
+- purely static output, with no SSR, Cloudflare adapter, form backend or additional frontend framework.
