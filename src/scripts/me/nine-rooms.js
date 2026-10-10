@@ -253,12 +253,41 @@ const observations = [
   [localize("03 / 论证的裂缝", "03 / THE CRACK"), localize("连反驳，也被写进了赞美。", "Even disagreement became praise."), localize("点头，印证了作者；没点头，又成了作者赞美的人。这样“两端通吃”的结尾，并不能证明论点。", "Agree, and the author is right. Disagree, and you become someone the author admires. A conclusion that wins either way proves nothing.")],
   [localize("04 / 保留修正", "04 / KEEP THE CORRECTION"), localize("不把裂缝偷偷抹掉。", "Leave the cracks visible."), localize("原表留着，问题也标出来。让人看见判断怎样被修正，比只留下一个整洁的结论更诚实。", "Keep the original table and mark its problems. Showing a judgment being revised is more honest than a tidy conclusion.")]
 ];
-let viewAngle = 0, blindFrame = 0, blindLast = 0, observation = -1;
+let viewAngle = 0, blindFrame = 0, blindLast = 0, observation = -1, blindView = null;
+// Brushed like a window blind, the slices knock against each other and swing back: even from the
+// front, the word turns out to be fragments. A mouse brushing across does it, and so does a tap.
+const slats = Array.from({length: 20}, () => ({y: 0, v: 0}));
+let lastTick = 0, brushCount = 0;
+function knock(index, force, quiet = false) {
+  const slat = slats[index];
+  if (!slat || still()) return;
+  slat.v += force;
+  if (!quiet && performance.now() - lastTick > 34) { lastTick = performance.now(); document.dispatchEvent(new CustomEvent('roomsound', {detail: 'tick'})); }
+  scheduleBlind();
+}
+function swing(dt) {
+  let busy = false;
+  for (const slat of slats) {
+    slat.v += (-slat.y * .02 - slat.v * .085) * dt / 16;
+    slat.y = clamp(slat.y + slat.v * dt / 16, -.22, .22);
+    if (Math.abs(slat.y) > .0015 || Math.abs(slat.v) > .0015) busy = true; else slat.y = slat.v = 0;
+  }
+  return busy;
+}
+function slatAt(event) {
+  if (!blindView) return -1;
+  const box = blindCanvas.getBoundingClientRect(), {width, height, scale, angle} = blindView;
+  const x = event.clientX - box.left, y = event.clientY - box.top;
+  if (Math.abs(y - height * .43) > scale * .8) return -1;
+  const index = Math.floor(((x - width * .51) / (scale * Math.cos(angle)) / 3.65 + .5) * 20);
+  return index >= 0 && index < 20 ? index : -1;
+}
 
 function drawBlind() {
   const {ctx, width, height} = surface(blindCanvas);
   const seen = viewAngle + glance.value, angle = seen / 180 * Math.PI;
   const scale = Math.min(width / 4.4, height / 3.15);
+  blindView = {width, height, scale, angle};
   const project = (x, y, z) => {
     const rx = x * Math.cos(angle) + z * Math.sin(angle);
     const rz = z * Math.cos(angle) - x * Math.sin(angle);
@@ -286,7 +315,7 @@ function drawBlind() {
     return {i, x, z, depth: project(x, 0, z).z};
   }).sort((a, b) => a.depth - b.depth);
   function fragment(piece, depth, image, opacity = 1) {
-    const a = project(piece.x, -.76, depth), b = project(piece.x + 3.65 / count, -.76, depth), c = project(piece.x, .76, depth);
+    const drop = slats[piece.i].y, a = project(piece.x, -.76 + drop, depth), b = project(piece.x + 3.65 / count, -.76 + drop, depth), c = project(piece.x, .76 + drop, depth);
     ctx.save();ctx.globalAlpha = opacity;
     ctx.transform((b.x - a.x) / sw, (b.y - a.y) / sw, (c.x - a.x) / sh, (c.y - a.y) / sh, a.x, a.y);
     ctx.drawImage(image, piece.i * sw, 0, sw, sh, 0, 0, sw + .35, sh);
@@ -333,8 +362,9 @@ function frameBlind(now) {
   const dt = Math.min(64, now - (blindLast || now));blindLast = now;
   viewAngle += (+angleInput.value - viewAngle) * (still() ? 1 : 1 - Math.exp(-dt / 145));
   if (Math.abs(+angleInput.value - viewAngle) < .03) viewAngle = +angleInput.value;
+  const swinging = swing(dt || 16);
   drawBlind();
-  if (viewAngle !== +angleInput.value) scheduleBlind();
+  if (viewAngle !== +angleInput.value || swinging) scheduleBlind();
 }
 function scheduleBlind() {
   if (!blindFrame && !document.hidden && active === 'blindspot') blindFrame = requestAnimationFrame(frameBlind);
@@ -347,6 +377,47 @@ dragInput($('.blind-instrument'), angleInput);
 // It only ever turns away from the front, so the lean follows a mouse on the right half alone.
 const glance = sway($('.blind-instrument'), {reach: 9, demo: 21, room: 'blindspot', span: 3000, floor: 0, redraw: () => drawBlind()});
 document.addEventListener('hint:glance', () => glance.play());
+const blindStage = $('.blind-instrument');
+let brushFrom = -1, pressed = null;
+blindStage.addEventListener('pointermove', event => {
+  if (event.pointerType !== 'mouse' || event.buttons) return;
+  const index = slatAt(event);
+  if (index < 0) { brushFrom = -1; brushCount = 0; return; }
+  if (brushFrom >= 0 && index !== brushFrom) {
+    // Every slat the hand passed over, even in a quick sweep, gets its knock.
+    const step = index > brushFrom ? 1 : -1, force = clamp(Math.abs(event.movementX) * .004, .02, .07) * (event.movementY < 0 ? -1 : 1);
+    for (let i = brushFrom + step; i !== index + step; i += step) knock(i, force);
+    if ((brushCount += Math.abs(index - brushFrom)) >= 4) found('blind-brush');
+  }
+  brushFrom = index;
+});
+blindStage.addEventListener('pointerleave', () => { brushFrom = -1; brushCount = 0; });
+blindStage.addEventListener('pointerdown', event => { pressed = {x: event.clientX, y: event.clientY}; });
+blindStage.addEventListener('pointerup', event => {
+  // A tap knocks one slat; the knock runs outward to its neighbours.
+  if (!pressed || Math.hypot(event.clientX - pressed.x, event.clientY - pressed.y) > 6) return;
+  pressed = null;
+  const index = slatAt(event);
+  if (index < 0) return;
+  for (let k = 0; k < 6; k++) setTimeout(() => { knock(index + k, .075 * (1 - k / 6), k > 0); if (k) knock(index - k, .075 * (1 - k / 6), true); }, k * 38);
+  found('blind-brush');
+});
+document.addEventListener('hint:brush', () => {
+  if (still() || active !== 'blindspot') return;
+  slats.forEach((_, i) => setTimeout(() => knock(i, .034, true), i * 42));
+});
+// A real blind spot: a test card. With the left eye shut, staring at the cross from close enough,
+// the dot falls into the right eye's blind spot and disappears. The back says why.
+const eyeCard = $('.eye-card');
+eyeCard.addEventListener('click', () => {
+  eyeCard.classList.toggle('turned');
+  eyeCard.setAttribute('aria-pressed', eyeCard.classList.contains('turned'));
+  found('blind-eye');
+});
+document.addEventListener('hint:blink', () => {
+  if (still() || active !== 'blindspot') return;
+  eyeCard.querySelector('.eye-dot').animate([{opacity: 1}, {opacity: 1, offset: .2}, {opacity: 0, offset: .38}, {opacity: 0, offset: .66}, {opacity: 1, offset: .84}, {opacity: 1}], {duration: 2600, easing: 'ease-in-out'});
+});
 
 function stopFrames() {
   cancelAnimationFrame(pathFrame);cancelAnimationFrame(blindFrame);

@@ -42,8 +42,12 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
 .note-idle-letgo svg{transform:translateY(.15em) rotate(38deg)}
 .note-paths-bend{left:40%;top:73.5%;--note-angle:-3deg}
 .note-paths-bend svg{transform:translateY(-.35em) rotate(-6deg)}
-.note-blind-angle{left:18%;top:39%;--note-angle:-4deg}
-.note-blind-angle svg{transform:translateY(.1em) rotate(30deg)}
+.note-blind-angle{left:72%;top:47%;--note-angle:-4deg;flex-direction:row-reverse}
+.note-blind-angle svg{transform:translateY(.1em) scaleX(-1) rotate(30deg)}
+.note-blind-brush{left:66%;top:24%;--note-angle:-3deg}
+.note-blind-brush svg{transform:translateY(.7em) scaleX(-1) rotate(-50deg)}
+.note-blind-eye{left:7%;top:45.5%;--note-angle:-3deg}
+.note-blind-eye svg{transform:translateY(-.2em) rotate(-75deg)}
 
 @media(max-width:600px){
   .pencil-note,html[lang=en] .pencil-note{font-size:14px}
@@ -60,8 +64,12 @@ html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
   .note-work-cut svg{transform:translateY(-.5em) scaleX(-1) rotate(-8deg)}
   .note-idle-letgo{left:5%;top:52%}
   .note-paths-bend{left:30%;top:56.5%}
-  .note-blind-angle{left:30%;top:31.5%}
+  .note-blind-angle{left:30%;top:31.5%;flex-direction:row}
   .note-blind-angle svg{transform:translateY(.5em) rotate(100deg)}
+  .note-blind-brush{left:52%;top:57%;flex-direction:row-reverse}
+  .note-blind-brush svg{transform:translateY(-.4em) scaleX(-1) rotate(-20deg)}
+  .note-blind-eye{left:4%;top:75.2%;font-size:13px;flex-direction:row-reverse}
+  .note-blind-eye svg{transform:translateY(.45em) rotate(48deg)}
 }
 
 /* The pencil's own demonstration in 留一笔: drawn by itself, shivered by an invisible finger. */

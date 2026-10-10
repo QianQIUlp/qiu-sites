@@ -13,6 +13,8 @@ const snipNote = t('沿着线，剪一刀', 'now cut along the line');
 const cutNote = t('换你来，上下拖', 'your turn: drag up and down');
 const threadsNote = t('拨开它，换条路走', 'part the threads');
 const glanceNote = t('换个角度，再看看', 'look again, from the side');
+const brushNote = t('用手拂过去', 'brush a hand across it');
+const eyeNote = t('闭上左眼，盯住十字，慢慢凑近', 'shut your left eye, stare at the +, lean in');
 // hand-font:end
 const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
 ---
@@ -51,7 +53,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
     <span class="field-index">09 / AN INCOMPLETE CERTAINTY</span><span class="blind-bearing"><output id="blind-degrees" for="blind-angle">00°</output><span>VIEWPOINT</span></span>
     <span class="blind-guide">{t('文字没有消失。只是终于看见了间隙。', 'The word is still here. Now you can see its gaps.')}</span>
   </div>
-  <p class="pencil-note note-blind-angle" data-note="blind-angle" aria-hidden="true"><span>{glanceNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
+  <button class="eye-card" type="button" aria-pressed="false" aria-label={t('一张盲点测试卡，点一下翻面', 'A blind-spot test card. Click to turn it over')}><span class="eye-face eye-front"><span class="eye-marks"><b>+</b><i class="eye-dot"></i></span><small>FIG. 9 · VISUAL FIELD</small></span><span class="eye-face eye-back"><b>{t('每只眼睛都有一个盲点。', 'Every eye has a blind spot.')}</b><small>{t('你从没察觉，因为大脑悄悄把那一块补上了。确定感，有时也是这样补出来的。', 'You never notice, because your brain quietly fills it in. Certainty is sometimes filled in the same way.')}</small></span></button><p class="pencil-note note-blind-brush" data-note="blind-brush" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{brushNote}</span></p><p class="pencil-note note-blind-eye" data-note="blind-eye" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{eyeNote}</span></p><p class="pencil-note note-blind-angle" data-note="blind-angle" aria-hidden="true"><span>{glanceNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
   <div class="blind-controls" data-room-control><button id="blind-turn" class="small-action" type="button">{t('换个角度', 'Another angle')} <span><Icon name="northeast" /></span></button><label><span>{t('正面', 'Front')}</span><input id="blind-angle" type="range" min="0" max="60" value="0" step="1" aria-label={t('观看确定的角度', 'Viewpoint on certainty')}><span>{t('侧面', 'Side')}</span></label></div>
   <div class="extra-footer"><a href="/blog/posts/2026-05-26-llm-metacog-blindspot/#八写到这里给自己泼一盆冷水" target="_blank" rel="noopener noreferrer">{t('看《LLM 元认知盲点》里留下的自我修正', 'Read my correction · In Chinese')} <Icon name="northeast" /></a><button data-place="rethink">{t('也去翻翻另一面', 'Turn a thought over, too')} <span><Icon name="southwest" /></span></button></div>
 </section>

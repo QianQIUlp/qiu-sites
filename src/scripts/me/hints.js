@@ -58,7 +58,11 @@ const lessons = {
     {key: 'idle-letgo', after: 2200, demo: 'hint:breeze', note: 'idle-letgo', write: 1500, when: () => document.querySelector('[data-slip]:not([hidden])')},
   ],
   paths: [{key: 'paths-bend', after: 2200, demo: 'hint:threads', note: 'paths-bend', write: 1700}],
-  blindspot: [{key: 'blind-angle', after: 2200, demo: 'hint:glance', note: 'blind-angle', write: 1900}],
+  blindspot: [
+    {key: 'blind-angle', after: 2200, demo: 'hint:glance', note: 'blind-angle', write: 1900},
+    {key: 'blind-brush', after: 2400, demo: 'hint:brush', note: 'blind-brush', write: 1300},
+    {key: 'blind-eye', after: 2800, demo: 'hint:blink', note: 'blind-eye', write: 1900},
+  ],
 };
 const current = place => (lessons[place] || []).find(lesson => !known.has(lesson.key) && (!lesson.when || lesson.when()));
 

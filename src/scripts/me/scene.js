@@ -422,7 +422,7 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
   }
   soundButton.addEventListener('click',()=>setSound(!enabled));
   // Small sounds from the rooms themselves, heard only when sound is on.
-  document.addEventListener('roomsound',event=>{if(!enabled||!rig||document.hidden)return;if(event.detail==='lamp')rig.click(.55,.58);if(event.detail==='crumple')rig.crumple?.();});localSound.addEventListener('click',()=>setSound(!enabled));
+  document.addEventListener('roomsound',event=>{if(!enabled||!rig||document.hidden)return;if(event.detail==='lamp')rig.click(.55,.58);if(event.detail==='crumple')rig.crumple?.();if(event.detail==='tick')rig.click(.16,1.7);});localSound.addEventListener('click',()=>setSound(!enabled));
   function frequencyFor(index){const fret=active==='music'?chords[chord][index]:0;return fret<0?null:frequencies[index]*2**(fret/12);}
   function pluck(index,strength=1,fromLoop=false){
     const frequency=frequencyFor(index);if(!frequency)return;
