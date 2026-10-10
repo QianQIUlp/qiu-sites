@@ -1,0 +1,26 @@
+/* Pencil notes: Qiu's own hand, left beside what a newcomer would miss (hints.js). Written in
+   stroke by stroke when the room has shown its trick; rubbed out once the visitor has done it. */
+@font-face{font-family:"Me Hand";src:url("../../assets/me/fonts/caveat-hand.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0020-02FF,U+2000-206F}
+@font-face{font-family:"Me Hand";src:url("../../assets/me/fonts/long-cang-hand.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+3000-9FFF,U+FF00-FFEF}
+.pencil-note{position:absolute;z-index:4;margin:0;display:flex;align-items:flex-end;gap:.25em;font-family:"Me Hand","Me CJK Serif",var(--serif);font-size:clamp(15px,1.3vw,21px);font-weight:400;line-height:1;letter-spacing:0;color:rgba(58,60,54,.76);text-shadow:0 0 .5px rgba(58,60,54,.4);white-space:nowrap;pointer-events:none;opacity:0;transform:rotate(var(--note-angle,-4deg));transform-origin:0 100%;transition:opacity .3s}
+html[lang=en] .pencil-note{font-size:clamp(17px,1.5vw,24px)}
+.pencil-note span{display:block;padding:.15em 0;clip-path:inset(-40% 100% -40% -6%)}
+.pencil-note svg{width:2.3em;height:1.45em;flex:none;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+.pencil-note path{stroke-dasharray:1;stroke-dashoffset:1}
+.pencil-note.written{opacity:1}
+.pencil-note.written span{clip-path:inset(-40% -6% -40% -6%);transition:clip-path 1.6s cubic-bezier(.42,.08,.58,.94) .1s}
+.pencil-note.written path{stroke-dashoffset:0;transition:stroke-dashoffset .75s cubic-bezier(.3,.1,.4,1) 1.6s}
+.pencil-note.instant span,.pencil-note.instant path{transition:none}
+.pencil-note::after{content:"";position:absolute;inset:-25% -8%;border-radius:45%;background:radial-gradient(closest-side,rgba(96,94,86,.2),rgba(96,94,86,0));opacity:0}
+.pencil-note.erased{opacity:0;filter:blur(1.8px);translate:4px 1px;transition:opacity 1.3s ease .15s,filter 1.3s ease .15s,translate 1.3s ease .15s}
+.pencil-note.erased::after{animation:pencil-smudge 1.4s ease-out}
+@keyframes pencil-smudge{18%{opacity:1}100%{opacity:0}}
+
+.note-papers{left:37%;top:6.5%;--note-angle:-3deg}
+.note-papers svg{transform:translateY(-.25em) rotate(12deg)}
+
+@media(max-width:600px){
+  .pencil-note,html[lang=en] .pencil-note{font-size:14px}
+  .note-papers{left:7%;top:29.5%}
+  .note-papers svg{transform:translateY(-.45em) rotate(-6deg)}
+}

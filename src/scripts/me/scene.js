@@ -204,7 +204,10 @@ import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from '
       schedule();
     }
   });
-  function endPan(event){if(!contacts.has(event.pointerId))return;contacts.delete(event.pointerId);if(room.hasPointerCapture(event.pointerId))room.releasePointerCapture(event.pointerId);if(contacts.size===1){const p=[...contacts.values()][0];pan={x:p.x,y:p.y,camera:{...target}};pinch=null;}else if(!contacts.size){if(pan&&event.type==='pointerup')throwCamera(event.timeStamp);pan=null;pinch=null;room.classList.remove('dragging');classify();}schedule();}
+  function endPan(event){if(!contacts.has(event.pointerId))return;contacts.delete(event.pointerId);if(room.hasPointerCapture(event.pointerId))room.releasePointerCapture(event.pointerId);if(contacts.size===1){const p=[...contacts.values()][0];pan={x:p.x,y:p.y,camera:{...target}};pinch=null;}else if(!contacts.size){if(pan&&event.type==='pointerup'){throwCamera(event.timeStamp);if(Math.hypot(event.clientX-pan.x,event.clientY-pan.y)>40)document.dispatchEvent(new CustomEvent('found',{detail:'wander'}));}pan=null;pinch=null;room.classList.remove('dragging');classify();}schedule();}
+  // The newcomer's lesson (hints.js): the room drifts a breath toward the pages and settles back,
+  // the same coast a released drag makes, so the world shows that it moves before anyone is told.
+  document.addEventListener('hint:nudge',()=>{if(!motion||active!=='home'||pan||pinch||fling)return;target={...camera};fling={vx:-.00017,vy:.00002};schedule();});
   room.addEventListener('pointerup',endPan);room.addEventListener('pointercancel',endPan);
   room.addEventListener('pointerleave',()=>{pointer={x:0,y:0};schedule();});
   document.addEventListener('keydown',event=>{

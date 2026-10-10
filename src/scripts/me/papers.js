@@ -25,8 +25,9 @@ const MAX_SPEED = .0036;
 
 const state = papers.map((paper, index) => ({
   paper, index, x: 0, y: 0, vx: 0, vy: 0, spin: 0, vr: 0, lift: 0, glow: 0, sunlit: 0,
-  room: 'papers', drag: null, homing: false, base: null,
+  room: 'papers', drag: null, homing: false, base: null, hover: false, stir: null,
 }));
+const HOVER = .13;         // a page under the mouse rises a little: it can be picked up
 let top = 4, frame = 0, last = 0;
 
 function measure() {
@@ -110,6 +111,14 @@ function step(now) {
       s.spin += s.vr * ms; s.vr *= Math.pow(.86, f);
       const held = clamp(s.spin, s.drag.spin - 30, s.drag.spin + 30);
       if (held !== s.spin) { s.spin = held; s.vr = 0; }
+    } else if (s.stir) {
+      // A draught from the window lifts the page into the light for a moment, then lets it down.
+      const t = clamp((now - s.stir.t) / 1900, 0, 1), up = Math.min(1, t / .28), down = Math.min(1, (1 - t) / .38);
+      const bump = Math.min(up * up * (3 - 2 * up), down * down * (3 - 2 * down));
+      s.x = s.stir.x + s.stir.dx * bump; s.y = s.stir.y + s.stir.dy * bump;
+      s.spin = s.stir.spin + Math.sin(t * Math.PI * 2.2) * 2.4 * bump;
+      s.lift = .74 * bump;
+      if (t >= 1) { s.x = s.stir.x; s.y = s.stir.y; s.spin = s.stir.spin; s.lift = 0; s.stir = null; }
     } else if (s.homing) {
       const k = calm ? 1 : 1 - Math.pow(.88, f);
       s.x += -s.x * k; s.y += -s.y * k; s.spin += -s.spin * k;
@@ -127,8 +136,9 @@ function step(now) {
       walls(s);
       const speed = Math.hypot(s.vx, s.vy);
       // A gliding page stays a little airborne, then settles as it slows.
-      const aloft = clamp(speed / .0016, 0, 1) * .75;
+      const aloft = Math.max(clamp(speed / .0016, 0, 1) * .75, s.hover && !calm ? HOVER : 0);
       s.lift += (aloft - s.lift) * (calm ? 1 : 1 - Math.pow(aloft > s.lift ? .7 : .84, f));
+      if (!speed && Math.abs(aloft - s.lift) < .003) s.lift = aloft;
       if (speed < .00002) { s.vx = s.vy = 0; }
       if (Math.abs(s.vr) < .0005) s.vr = 0;
       if (s.vx || s.vy) s.room = roomAt(centre(s));
@@ -142,9 +152,11 @@ function step(now) {
     s.sunlit += (smooth - s.sunlit) * ease;
     if (Math.abs(glowTarget - s.glow) < .002) s.glow = glowTarget;
     if (Math.abs(smooth - s.sunlit) < .002) s.sunlit = smooth;
-    if (!s.drag && !s.homing && !s.vx && !s.vy && s.lift < .004) s.lift = 0;
+    if (s.drag && s.glow > .5) document.dispatchEvent(new CustomEvent('found', {detail: 'papers-light'}));
+    const resting = !s.drag && !s.homing && !s.stir && !s.vx && !s.vy;
+    if (resting && !s.hover && s.lift < .004) s.lift = 0;
     paint(s);
-    busy ||= Boolean(s.drag || s.homing || s.vx || s.vy || s.vr || s.lift || Math.abs(glowTarget - s.glow) > 0 || Math.abs(smooth - s.sunlit) > 0);
+    busy ||= Boolean(!resting || s.vr || (s.lift && s.lift !== (s.hover && !calm ? HOVER : 0)) || Math.abs(glowTarget - s.glow) > 0 || Math.abs(smooth - s.sunlit) > 0);
   }
   updateAccess();
   if (busy) schedule();
@@ -175,6 +187,7 @@ for (const s of state) {
     if (event.button !== 0 || event.target.closest('a,button')) return;
     event.stopPropagation();
     paper.style.zIndex = ++top;
+    s.stir = null;
     const scale = world.getBoundingClientRect(), rect = paper.getBoundingClientRect();
     s.homing = false; s.vx = s.vy = 0;
     s.drag = {
@@ -231,6 +244,8 @@ for (const s of state) {
   };
   paper.addEventListener('pointerup', event => release(event));
   paper.addEventListener('pointercancel', event => release(event, true));
+  paper.addEventListener('pointerenter', event => { if (event.pointerType === 'mouse') { s.hover = true; schedule(); } });
+  paper.addEventListener('pointerleave', () => { s.hover = false; schedule(); });
   paper.addEventListener('keydown', event => {
     if (event.target === paper && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); flip(paper); }
   });
@@ -243,6 +258,23 @@ reset.addEventListener('click', () => {
     s.homing = true; s.vx = s.vy = s.vr = 0;
     if (s.paper.classList.contains('flipped')) flip(s.paper);
   }
+  schedule();
+});
+
+// The newcomer's lesson (hints.js): the page that lies nearest the window light stirs.
+document.addEventListener('hint:stir', () => {
+  if (still() || room.dataset.place !== 'papers') return;
+  const box = sun.getBoundingClientRect(), mid = {x: box.left + box.width / 2, y: box.top + box.height / 2};
+  const area = layer.getBoundingClientRect();
+  const home = state.filter(s => s.room === 'papers' && !s.drag && !s.homing && !s.vx && !s.vy && !s.paper.classList.contains('flipped'));
+  const pick = home.sort((a, b) => b.sunlit - a.sunlit || distance(a) - distance(b))[0];
+  function distance(s) { const r = s.paper.getBoundingClientRect(); return Math.hypot(r.left + r.width / 2 - mid.x, r.top + r.height / 2 - mid.y); }
+  if (!pick) return;
+  // Already in the light it rises where it lies; otherwise the draught carries it partway in.
+  const r = pick.paper.getBoundingClientRect(), reach = pick.sunlit > .3 ? .04 : .3;
+  pick.paper.style.zIndex = ++top;
+  pick.stir = {t: performance.now(), x: pick.x, y: pick.y, spin: pick.spin,
+    dx: (mid.x - (r.left + r.width / 2)) / area.width * reach, dy: (mid.y - (r.top + r.height / 2)) / area.height * reach};
   schedule();
 });
 

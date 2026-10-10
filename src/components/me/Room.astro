@@ -30,6 +30,7 @@ const paperDrafts = [
   { struck: t('有条件的善意不是善意，是定价。', 'Conditional kindness is a price.'), kept: t('一个我以为很贵的信号，被证明很便宜。', 'A costly signal, proven cheap.'), note: t('混合态', 'mixed, mostly') },
   { struck: t('我学完 GitHub 了。', 'Done learning GitHub.'), kept: t('知道该从哪里开始。', 'I know where to start.'), note: t('git revert，安全', 'git revert = safe') },
 ];
+const papersNote = t('举起来，对着光看看', 'hold one up to the light');
 // hand-font:end
 ---
 <a class="skip-link" href="#room">{t("跳到小屋", "Skip to the room")}</a>
@@ -56,6 +57,7 @@ const paperDrafts = [
       <section class="place papers" data-scene="papers" aria-labelledby="paper-title" inert>
         <div class="place-heading"><span class="eyebrow">{t("散落在这里的几句话", "THINGS I’VE WRITTEN DOWN")}</span><h2 id="paper-title"><Fragment set:html={t("拿起来，<br>翻到另一面。", "Pick a page.<br>Turn it over.")} /></h2><p>{t("随手扔开也行。把一张举到窗边的光里看看。", "Toss them around. Hold one up to the window light.")}</p></div>
         <div class="paper-sun" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <p class="pencil-note note-papers" data-note="papers-light" aria-hidden="true"><span>{papersNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
         <nav class="archive-links" aria-label={t('继续阅读', 'Keep reading')}>
           <a href={localizedPath('/blog/', lang)}>{t('所有文章', 'All writing')} <Icon name="northeast" /></a>
           <a href={localizedPath('/projects/', lang)}>{t('项目档案', 'Project archive')} <Icon name="northeast" /></a>

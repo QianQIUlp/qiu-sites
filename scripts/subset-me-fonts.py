@@ -53,10 +53,11 @@ assert {ord(c) for c in cjk} <= cjk_font.getBestCmap().keys(), "Missing homepage
 assert {ord(c) for c in cjk} <= serif_cjk.getBestCmap().keys(), "Missing homepage serif CJK glyphs"
 assert {ord(c) for c in "千秋确定空"} <= display.getBestCmap().keys()
 
-# Pencil handwriting for the loose pages' drafts: only the quoted strings between the markers.
-room = (root / "src/components/me/Room.astro").read_text(encoding="utf-8")
-drafts = room.split("// hand-font:start", 1)[1].split("// hand-font:end", 1)[0]
-hand = set("".join(re.findall(r"'([^']*)'", drafts)))
+# Pencil handwriting (page drafts, pencil notes): only the quoted strings between the
+# `// hand-font:start` / `// hand-font:end` markers of the homepage components.
+blocks = [text.split("// hand-font:end", 1)[0] for path in (root / "src/components/me").glob("*.astro")
+          for text in path.read_text(encoding="utf-8").split("// hand-font:start")[1:]]
+hand = set("".join(re.findall(r"'([^']*)'", "".join(blocks))))
 hand_cjk = {c for c in hand if 0x3000 <= ord(c) <= 0x9FFF or 0xFF00 <= ord(c) <= 0xFFEF}
 hand_cjk_font = save("long-cang.ttf", "long-cang-hand.woff2", hand_cjk)
 save("caveat.ttf", "caveat-hand.woff2", hand - hand_cjk, 450)
