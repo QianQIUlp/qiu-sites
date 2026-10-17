@@ -10,6 +10,10 @@
 .trace-footer p{font-size:12px;line-height:1.8;margin:0}
 .trace-footer p>span{font-size:9px;color:var(--muted)}
 .trace-footer>div{display:flex;gap:30px}
+/* What the strings room's pedals are doing to these lines (sound.js board): the first engaged pedal's colour, darkened to read. */
+.trace-footer p{position:relative}
+.trace-footer p>.trace-through{position:absolute;left:0;top:100%;margin-top:4px;white-space:nowrap;font:8px var(--mono);letter-spacing:.06em;color:color-mix(in srgb,var(--through,#73756b) 55%,#2e302c)}
+.trace-footer p>.trace-through[hidden]{display:none}
 @media(max-width:600px){.draw-area{inset:32% 7% 21%}.drawing-hint{left:19%;font-size:9px}.trace-footer{left:7%;right:7%;bottom:5%;gap:20px}.trace-footer p{font-size:10px}.trace-footer p>span{display:block;font-size:8px;max-width:110px}.trace-footer>div{display:block}.trace-footer .small-action{display:block;font-size:10px;padding:9px 0;margin:3px 0}}
 .trace-footer{opacity:var(--detail,1)}
 

@@ -10,7 +10,7 @@
 .hole-rim{position:absolute;inset:0;border-radius:50%;box-shadow:inset 4px 12px 27px #080e0973,inset -3px -3px 5px #9aa58940;border:1px solid #737c6250}
 .hole-bottom{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at 64% 90%,#81866c2b,transparent 65%)}
 .hole-bottom span{font-size:16px;color:#eeede7;opacity:0;transition:opacity 1s}
-.hole-cross{position:absolute;left:28%;top:35%;font:18px var(--mono);color:var(--red)}
+.hole-cross{position:absolute;left:28%;top:35%;font:18px var(--mono);color:var(--red-ink)}
 .obligation-slips{position:absolute;inset:0;pointer-events:none}
 .obligation{position:absolute;width:16%;height:27%;min-height:105px;max-height:178px;padding:15px 18px;display:flex;flex-direction:column;text-align:left;background:#faf8ec;border:1px solid #777d6240;box-shadow:8px 15px 19px #26321c0d;pointer-events:auto;touch-action:none;cursor:grab;transform:rotate(var(--slip-angle));z-index:2}
 .obligation:active{cursor:grabbing}
@@ -24,7 +24,7 @@
 .idle-sentence{position:absolute;left:6%;top:54%;max-width:28%}
 .idle-sentence>span{font-size:9px;line-height:1.9;color:var(--muted)}
 .idle-sentence p{font-size:clamp(22px,2.3vw,38px);line-height:1.6;font-weight:400;margin:14px 0;letter-spacing:-.035em}
-.idle-sentence p em{font-style:normal;color:var(--red)}
+.idle-sentence p em{font-style:normal;color:var(--red-ink)}
 #restore-slips{position:absolute;left:6%;bottom:15%;font-size:10px;color:var(--muted)}
 .idle.unburdened .idle-outline{color:var(--ink);-webkit-text-stroke-color:var(--ink);opacity:.08}
 .idle.unburdened .paper-hole{background:#59634b;transform:rotate(0deg);width:46%;left:28%}
@@ -110,6 +110,8 @@ html[lang=en] .idle-sentence p { font-family: var(--serif); line-height: 1.3; }
 .idle-lamp.lit .lamp-bulb{fill:#fff7e0;stroke:rgba(150,100,40,.3);filter:drop-shadow(0 0 5px rgba(255,206,130,.95))}
 .idle-lamp.lit .lamp-pool{opacity:1}
 .idle-lamp.lit:not(.steady) .lamp-shade,.idle-lamp.lit:not(.steady) .lamp-pool{animation:lamp-strike .7s linear}
+@media(prefers-reduced-motion:reduce){.idle-lamp.lit:not(.steady) .lamp-shade,.idle-lamp.lit:not(.steady) .lamp-pool{animation:none}}
+body[data-motion=off] .idle-lamp.lit:not(.steady) .lamp-shade,body[data-motion=off] .idle-lamp.lit:not(.steady) .lamp-pool{animation:none}
 @keyframes lamp-strike{0%{opacity:.2}9%{opacity:1}16%{opacity:.35}27%{opacity:.95}36%{opacity:.7}100%{opacity:1}}
 /* The evening line takes the slips' sentence place, lit by the lamp. */
 .idle-sentence{transition:opacity 1.2s ease}

@@ -1,5 +1,26 @@
 # 现代房间 · Modern Room
 
+## 2026-10-17 · Polish and launch checks (open-world step 6, pending Qiu's review)
+
+No new rooms or mechanics; the homepage was audited and tightened (`docs/me-home.md` has the checks and budgets).
+
+- **Contrast.** `--muted` `#73756b` → `#5f6157` (4.0 → 5.0:1 on the paper); small red text uses `--red-ink` `#c02b18` instead of `--red` (3.5:1); in the dark strings room the muted ink is `#c4bcab`, red text `#ff7a59`, chord chips have a dark backing over the lit photo and the string letters a stronger shadow; faint index numerals (paths, blind-spot card) are raised from 0.62–0.7 to 0.88 opacity. `--red` itself, the room's colours and compositions are unchanged.
+- **Reduced motion.** The 不赶时间 ("No hurry") lamp no longer flickers when it lights under `prefers-reduced-motion` or Motion off (a flashing flicker); everything else already stopped. `tests/home/motion.mjs` proves it for every room.
+- **Share images.** `me-zh.jpg` / `me-en.jpg` (and the copies on QStudio) are recaptured from the current home (window light, tilted guitar); the old ones showed the pre-light composition. `twitter:title`, `twitter:description` and `twitter:image` were added.
+- **Budgets and audits.** First-load and idle budgets are enforced by `weight.mjs`; `a11y.mjs` covers names, Tab order, focus rings and contrast.
+
+## 2026-10-17 · One world, not nine rooms (open-world step 5, pending Qiu's review)
+
+The rooms now answer each other. Every connection goes through the room contract's `ctx` (`sound`, `light`, `use(place)`, `link`); no room reaches into another's DOM.
+
+- **A route becomes a line.** In 未走之路 ("Paths untaken") the footer button 「把走过的，留成一笔」 ("Leave a line of your own") hands the chosen thread (or the route as it stands) to the trace room (`ctx.use('trace').receive(...)`). If the camera has not arrived, it waits for `enter()`. The line writes itself with the pencil over about 1.5 s, is tagged 「↳ 未走之路」 ("↳ Paths untaken"), is tuned by its length like any line, and rings. It does not retire the "draw a line yourself" lesson.
+- **The board is in the house.** The pedals set in 琴弦之间 ("Between the Strings") already coloured every sound (one shared rig); now they show. In the trace room the ringing envelope takes the first engaged pedal's colour (Centaur gold, BD-2 blue, Harmonist silver, After Hours teal) with a faint glow; After Hours shivers the line again with each repeat you can hear, as loud as the feedback; the Harmonist adds its second note to the line's label (「B2 + D3」); a caption under the footer says 「经过 Centaur · After Hours」 ("Through Centaur · After Hours"). The path threads take the same colour when they ring. Nothing shows with every pedal off. `sound.board` is the shared read of the pedals.
+- **Evening softens the sound.** The 不赶时间 ("No hurry") afternoon already dims every room's light; `sound.js` now also warms the rig from `dusk` (`rig.warm`: cabinet low-pass 6.6 kHz → 3.2 kHz, presence 2.5 → 1.1 dB, room send 0.20 → 0.35). The strings room's board label adds 「· 晚了，声音也软了」 ("· It's late; the sound has softened") once dusk passes 0.45. Desktop only (the phone's pedal pager needs the space).
+- **Things that travel leave a thread.** A page that comes to rest in another room, and a route turned into a line, are remembered by the scene (`ctx.link(key, from, to)`, `ctx.unlink(key)`); from the overview each shows as a dashed red pencil thread from where it left to where it landed, with a bead at the landing. Putting the pages back, or "Start again" in the trace room, erases the threads. The keys are readable as `#room[data-links]`.
+- **Rough edges fixed in the walk-through.** The paths room's route buttons (「穿过去 / 绕一段 / 停一下」, "Through / Around / A pause") sat under the thread instrument at desktop size and could not be clicked; on phones the Motion toggle covered every room's bottom-right footer link and now sits in the room bar.
+
+Left as it was on purpose: every room's idea and copy; free dragging and the coast; nothing reacts to mere mouse movement; the home guitar stays silent; the paths sphere and the portfolio room's content are untouched.
+
 ## 2026-10-10 · Leave a line, the other side, blind spots and paths (open-world step 3, rounds 3–6, pending Qiu's review)
 
 Qiu approved rounds 1–2 and asked for the remaining rooms in the same PR without a stop after each one. Every new mechanic comes with its own lesson in `hints.js`.

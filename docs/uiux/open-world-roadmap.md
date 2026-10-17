@@ -10,15 +10,15 @@
 | 1 · Guitar | Done, merged | PR #84 |
 | 2 · Pedalboard room 琴弦之间 ("Between the Strings") | Done, merged | PR #85 |
 | 3 · Every room gets its own idea | Done, merged (rounds 3–6 merged without Qiu's review; treated as accepted) | PR #86 |
-| 4 · Solid ground | Done: one module + one stylesheet per room behind the room contract, `npm run test:home` smoke test, parity screenshots and computed styles identical; first load `/` 1808 → 529 KB (20 → 9 requests), `/en/` 1617 → 359 KB | branch `feat/me-open-world-foundation`, PR #87 |
-| 5 · One world, not nine rooms | Not started | same branch |
-| 6 · Polish and launch checks | Not started | same branch |
+| 4 · Solid ground | Done, merged: one module + one stylesheet per room behind the room contract, `npm run test:home` smoke test, parity screenshots and computed styles identical; first load `/` 1808 → 529 KB (20 → 9 requests), `/en/` 1617 → 359 KB | PR #87 |
+| 5 · One world, not nine rooms | Done: four connections (a route becomes a line in the trace room; the pedals show in the trace room and the path threads; evening softens the sound in every room; thrown pages and routes leave threads on the overview), two rough edges fixed; `npm run test:home` covers each (8/8) | branch `feat/me-open-world-foundation`, PR #88 |
+| 6 · Polish and launch checks | Done: contrast fixed (muted ink, red text, dark strings room), idle lamp flicker stopped under reduced motion, every control named in zh/en and reachable by Tab with a visible ring, share images recaptured, load budgets set and enforced, checklist run and updated; `a11y.mjs`, `motion.mjs`, `weight.mjs`, `phone.mjs` and `npm run test:home` pass | same branch, PR #88 (ready for Qiu's review) |
 
 ## How we work (Qiu's rule, 2026-10-17)
 
 Qiu's energy is limited and decisions are more tiring than execution. So:
 
-- **One branch, one PR** for steps 4–6 (`feat/me-open-world-foundation`). Each step is a series of small commits; push as work lands and keep the PR body current.
+- **One branch, one PR** for steps 4–6 (`feat/me-open-world-foundation`; #87 was merged after step 4, so steps 5–6 continue in draft PR #88). Each step is a series of small commits; push as work lands and keep the PR body current.
 - **No approval stops between steps.** Qiu reviews once, at the very end.
 - **Decide by default.** When a choice has a sensible, reversible default that fits the brief, take it and record it in the Decisions log below. Ask Qiu only when a choice is irreversible or outward-facing, or is a genuine taste fork with no defensible default; even then, pick a reversible default meanwhile, and batch the questions into the final hand-off.
 - **Final hand-off to Qiu** is short: what changed in a few lines, at most ten "try this" items, and any batched questions. No screenshot floods mid-way.
@@ -75,6 +75,23 @@ Qiu's energy is limited and decisions are more tiring than execution. So:
 - Found by the smoke test, left for step 5 because step 4 changes no behaviour: at desktop size the paths room's three route buttons (「穿过去 / 绕一段 / 停一下」, "Through / Around / A pause") sit under `.path-instrument` and cannot be clicked (same before step 4). The smoke test uses "Listen to this path" there until it is fixed; switch it back to a route button then.
 - Run `node tests/home/parity.mjs capture <dir>` before changing a room and `compare` after; a deliberate change should show only in the rooms it meant to touch. Reference screenshots from before step 4 are in the shared session notes folder (`step4-parity-before/`), not in the repo.
 
+## Notes for step 6 (from step 5)
+
+- Reduced motion: the new threads and the written line need nothing animated (the line commits at once, the threads are drawn statically); the echo shivers are skipped when motion is off. Throwing a page needs motion (it only moves under reduced motion), so keep the smoke test's motion toggle.
+- Keyboard and screen readers: the paths footer button and the pedal switches are ordinary buttons; the line tag `↳ …` is drawn on the canvas, so the trace caption `.trace-through` (aria-live) is the screen-reader side of the board connection. The overview threads have no text alternative yet (decorative).
+- Contrast: the evening label in the strings room is `#f2ebdcb3` on near-black; the trace caption mixes the pedal colour 55% into ink. Check both in step 6.
+- Performance: the overview adds a few dashed lines at most; trace imports `audio-engine.js` (already in the music chunk) for the harmony note name.
+- Step 5 changed no room's resting look except the phone Motion toggle's position (now in the room bar); use `tests/home/parity.mjs` if a visual regression is suspected.
+
+## Step 6 results (2026-10-17)
+
+- **Keyboard / screen readers:** `a11y.mjs` found every control named in both languages (proper names such as pedal and project names and chord letters are allowed on the zh page), Tab reaches every control in every room (the loop's Overdub and Clear are disabled until a loop exists), every focused control shows a ring, no pointer-only objects. Nothing needed changing. The overview threads stay decorative (no text alternative); the trace caption already speaks the board connection.
+- **Contrast:** fixed the real misses (see `ink-and-light-study.md`, 2026-10-17 step 6). Remaining `a11y.mjs` hits are measured against pixels that include the afternoon light and ink lines, 4.2–4.5:1 on 6–8 px mono labels, left as they are; the pedal faceplate print is object art.
+- **Reduced motion:** one fix (lamp flicker); `motion.mjs` clean in every room, zh and en.
+- **Performance:** budgets in `docs/me-home.md`. Mid-range phone profile: usable ~2.9 s, 3D guitar swaps in ~15 s with one ~1.7 s long task under software WebGL; the photograph is interactive meanwhile. Not improved further (no real GPU to measure against); see the batched question in the hand-off.
+- **Metadata:** copy still describes the home; share images were stale (pre-light composition) and are replaced, twitter tags added.
+- **Docs:** `ink-and-light-study.md`, `me-home.md`, the skill, the checklist updated; the brief's Branch state table is marked historical.
+
 ## Decisions log
 
 Record defaults taken without asking Qiu, one line each: date, step, decision, why.
@@ -85,3 +102,12 @@ Record defaults taken without asking Qiu, one line each: date, step, decision, w
 - 2026-10-17 · 4 · The lessons table stays in `hints.js` (a shared system per this roadmap) instead of moving into each room module.
 - 2026-10-17 · 4 · The smoke test runs on a production build with reduced motion and the installed Chrome (`PW_CHANNEL` overrides): software rendering is too slow for eased camera travel. It takes about 1.5 minutes including the build, so it is not in CI.
 - 2026-10-17 · 4 · Added `@playwright/test` as a dev dependency; deleted `src/styles/home-room.css`, which nothing imported.
+- 2026-10-17 · 5 · PR #87 had been squash-merged after step 4, so steps 5–6 continue on `feat/me-open-world-foundation` (fast-forwarded to main) in draft PR #88, worked in a separate git worktree to leave the shared checkout alone.
+- 2026-10-17 · 5 · The walk-through found few real problems; fixes were limited to the two above. Every room keeps its idea and copy.
+- 2026-10-17 · 5 · Connections chosen: route → line, the board shown in the trace room and path threads, evening warms the sound, threads on the overview. Left out on purpose: pages thrown into the idle hollow (they would vanish and could block reading), more links per pedal (clutter on the overview), a visited-rooms checklist (reads as a game and boxes the visitor in).
+- 2026-10-17 · 5 · Evening softening is a fixed, gentle curve (cabinet −3.4 kHz, room +0.15 at full dusk) with a desktop-only label; reversible in `audio-engine.js` `warm` and `music.css`.
+- 2026-10-17 · 5 · The route you send is the thread you chose, or the red route as it stands when none is chosen, so the footer button always does something. The received line does not retire the "draw a line yourself" lesson.
+- 2026-10-17 · 6 · Darkened `--muted` and added `--red-ink` for small red text rather than changing `--red`: fills and large display keep Qiu's red; only text moved. Reversible in `base.css`.
+- 2026-10-17 · 6 · Audits are local scripts under `tests/home/` (not CI), like the smoke test: they need a production build and Chrome, and contrast hits need a human eye.
+- 2026-10-17 · 6 · Load budgets set to ~15% above the step-4 measurements, the same for `/` and `/en/` at load (en varies 360–530 KB with whether the first idle font lands before `load`).
+- 2026-10-17 · 6 · Recaptured the share images from the current home and updated the QStudio evidence copies too, as `developer-workbench.md` requires them in sync.

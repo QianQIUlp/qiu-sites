@@ -47,9 +47,11 @@ Check each step yourself in the browser, show Qiu screenshots, and only commit, 
 
 **Update 2026-10-10 (Qiu):** step 3 goes into one PR (#86) for all rooms. Keep moving without stopping for approval after each room; push as work lands, send screenshots, and ask Qiu only when a decision is genuinely theirs.
 
-**Next (2026-10-17):** steps 4–6 and the current status live in `open-world-roadmap.md`. Read it after this file.
+**Next (2026-10-17):** steps 4–6 and the current status live in `open-world-roadmap.md`. Read it after this file. (Steps 4–6 are done and waiting for Qiu's single review in PR #88.)
 
 ## Branch state (`feat/me-living-rooms`, commit ec12233, not pushed) — historical
+
+> **Historical (2026-10-17).** This table recorded the 2026-10-09 branch at the start of the round. Every row has since been resolved in steps 1–6 (the guitar restored, the pedalboard redone, every room given its own idea, the code reorganised, the rooms connected, the launch checks run). Read it only to understand the past mistakes above; the current state is in `open-world-roadmap.md`.
 
 | Change | Disposition |
 | --- | --- |

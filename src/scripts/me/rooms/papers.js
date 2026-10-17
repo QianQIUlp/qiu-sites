@@ -1,12 +1,13 @@
 // 几张散页 ("Loose pages"): pages behave like paper. They carry a throw, glide on the air and land; a hard
 // throw can carry one out of its corner into the next room, where it waits for the rest
-// of the visit. Held up into the window light, a page turns translucent: its back and an
-// erased pencil draft show through. All of it stays in this visit.
+// of the visit; from far away the overview shows the thread it travelled along (ctx.link). Held up into
+// the window light, a page turns translucent: its back and an erased pencil draft show through. All of
+// it stays in this visit.
 import {places, rooms} from '../places.js';
 
 export default {
   place: 'papers',
-  mount() {
+  mount(ctx) {
     const room = document.querySelector('#room');
     const world = document.querySelector('#world');
     const layer = document.querySelector('.paper-layer');
@@ -171,6 +172,9 @@ export default {
     function updateAccess() {
       const place = room.dataset.place;
       for (const s of state) {
+        // A page that has come to rest in another room leaves a thread from here to where it lies.
+        if (s.room !== 'papers' && !s.drag && !s.homing && !s.vx && !s.vy) { const c = centre(s); ctx.link(`page-${s.index}`, 'papers', {x: origin.x - .5 + c.x, y: origin.y - .5 + c.y}); }
+        else ctx.unlink(`page-${s.index}`);
         const away = s.room !== place;
         if (s.paper.inert !== away) s.paper.inert = away;
         s.paper.classList.toggle('strayed', s.room !== 'papers');

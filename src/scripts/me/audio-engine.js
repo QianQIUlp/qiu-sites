@@ -183,8 +183,14 @@ export function createAudioRig(context,destination=context.destination){
       source.connect(band).connect(amount).connect(clickLevel);source.start(when);source.onended=()=>{source.disconnect();band.disconnect();amount.disconnect();};
     }
   }
+  // The house's evening (afternoon.js): as the day goes the cabinet darkens and the little room gets louder,
+  // for every sound in every room. 0 is the bright afternoon, 1 is dusk.
+  function warm(evening){
+    const k=clamp(evening,0,1);
+    smooth(cabinet.frequency,6600-k*3400);smooth(presence.gain,2.5-k*1.4);smooth(roomSend.gain,.2+k*.15);
+  }
   function stopLoop(){for(const v of voices)if(v.kind==='loop'){v.source.stop();voices.delete(v);}}
   function meter(){analyser.getFloatTimeDomainData(meterData);let sum=0;for(const n of meterData)sum+=n*n;return Math.sqrt(sum/meterData.length);}
   apply();
-  return{input,set,play,click,crumple,stopLoop,meter,get active(){return voices.size>0;}};
+  return{input,set,warm,play,click,crumple,stopLoop,meter,get active(){return voices.size>0;}};
 }
