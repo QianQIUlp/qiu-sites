@@ -79,6 +79,8 @@
   #zoom-out,
   #overview,
   #zoom-in{display:none}
+  /* The only tool left sits in the bar, not over the rooms' footer links. */
+  .view-tools #motion{position:static}
 }
 
 /* — English (html[lang=en]) — */
