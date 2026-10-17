@@ -1,0 +1,159 @@
+/* 小屋中央 ("At home"): the name, the guitar and the doors out. Behaviour: scripts/me/rooms/home.js. */
+
+/* — Composition and controls — */
+.home{left:0;top:0;width:100%;height:100%}
+.home-meta{position:absolute;left:4.3%;right:4.3%;top:25px;display:flex;justify-content:space-between;font-size:11px;letter-spacing:.025em}
+.home-meta>span:last-child{color:var(--muted)}
+.name{position:absolute;inset:8% 5% auto;display:flex;justify-content:space-between;margin:0;font-family:"Me Display",var(--sans);font-size:min(30.5vw,69vh);font-weight:900;line-height:1.1;letter-spacing:-.11em;pointer-events:none}
+.name span:first-child{transform:rotate(-3deg)}
+.name span:last-child{color:transparent;-webkit-text-stroke:1.4px var(--ink);transform:rotate(3deg);margin-right:.08em}
+.art-caption{position:absolute;left:40%;top:8%;display:flex;gap:8px;align-items:flex-start;pointer-events:none}
+.art-caption>span{font-size:22px;color:var(--red);line-height:1}
+.art-caption>p{font:8px/1.7 var(--mono);color:var(--muted);margin:0}
+.enter{position:absolute;right:16%;top:65%;padding:7px;display:flex;align-items:center;gap:12px;text-align:left}
+.round-arrow{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--red);color:var(--paper);font-size:27px;box-shadow:0 0 0 7px #eeede766;transition:transform .25s}
+.enter:hover .round-arrow{transform:rotate(-15deg) scale(1.06)}
+.enter>span:last-child{font-size:14px}
+.enter small{display:block;font-size:10px;margin-top:5px;color:var(--muted)}
+.home-bottom{position:absolute;left:4.3%;right:4.3%;bottom:7%;display:flex;align-items:end;justify-content:space-between;pointer-events:none}
+.home-bottom>p{font-size:12px;line-height:1.9;margin:0}
+.home-bottom .welcome{font-size:28px;text-align:right;line-height:1.5;letter-spacing:-.03em}
+.welcome em{font-family:var(--serif);font-weight:400}
+.door{position:absolute;top:54%;display:flex;align-items:center;gap:13px;font-size:10px;padding:12px 0}
+.door>span:first-child,.door-right>span:last-child{font-size:23px}
+.door-left{left:4.3%}
+.door-right{right:4.3%}
+.door-right>span:first-child{font-size:10px}
+.door:hover{color:var(--red)}
+@media(max-width:950px){.home-meta{font-size:10px}.home-bottom .welcome{font-size:24px}.name{font-size:min(31vw,62vh)}.enter{right:13%;top:65%}}
+@media(max-width:600px){.home-meta{left:6%;right:6%;top:20px;display:block;font-size:10px}.home-meta>span:last-child{display:block;font-size:9px;margin-top:6px}.name{font-size:45vw;top:15%;left:2%;right:6%}.name span:last-child{margin-top:70px;margin-right:0;-webkit-text-stroke:1px var(--ink)}.art-caption{display:none}.enter{right:8%;top:64%;gap:8px}.round-arrow{width:45px;height:45px;font-size:22px}.enter>span:last-child{font-size:12px}.enter small{font-size:8px}.door{top:58%;padding:10px 0;font-size:8px;gap:6px}.door-left{left:6%}.door-right{right:6%;top:43%}.door-right>span:first-child{font-size:8px}.door>span:first-child,.door-right>span:last-child{font-size:17px}.home-bottom{left:6%;right:6%;bottom:6%}.home-bottom>p{font-size:10px}.home-bottom .welcome{font-size:22px}}
+.home-meta,.home-bottom,.art-caption,.enter,.door{opacity:var(--detail,1)}
+@media(max-width:600px){.door-left{top:45%}.door-right{top:29%}.door-right>span:first-child{font-size:10px}}
+@media(max-height:570px) and (min-width:601px){.home-meta{top:14px}.home-bottom>p{font-size:10px}.home-bottom .welcome{font-size:22px}}
+/* The guitar uses an unaltered product photograph, shared by the room and close view. */
+.art-caption{pointer-events:auto;text-align:left;padding:8px;margin:-8px;z-index:3}
+.art-caption:hover p{color:var(--red)}
+.guitar-touch{position:absolute;left:42%;top:3%;width:17%;height:87%;transform:rotate(18.3deg);cursor:zoom-in;z-index:2;border-radius:45%}
+#guitar-closeup{width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;overflow:hidden;background:#171a18;color:#e8e5db;color-scheme:dark}
+#guitar-closeup::backdrop{background:#171a18}
+#guitar-closeup button:focus-visible,#guitar-closeup a:focus-visible{outline-color:#dfa581}
+#close-guitar{position:absolute;right:4.5%;top:30px;z-index:5;display:flex;align-items:center;gap:24px;font-size:11px;padding:10px 0;color:#e8e5db}
+#close-guitar span{font-size:23px}
+.guitar-view{height:100%;display:grid;grid-template-columns:32% 68%}
+.guitar-notes{padding:14vh 0 7vh 14%;position:relative;z-index:2;display:flex;flex-direction:column;pointer-events:none}
+.guitar-kicker{font-size:10px;color:#a3a69a;letter-spacing:.12em;margin:0 0 35px}
+#guitar-title{font:400 clamp(28px,4.1vw,66px)/1.12 var(--serif);letter-spacing:-.055em;margin:0}
+#guitar-title em{font-size:1.55em;font-weight:400;color:#dda88f}
+.guitar-edition{font:10px/1.9 var(--mono);letter-spacing:.06em;color:#a3a69a;margin:28px 0}
+#guitar-status{font-size:12px;line-height:2;max-width:185px;color:#c5c6ba;min-height:65px;margin:0}
+.guitar-views{display:flex;flex-direction:column;margin-top:auto;gap:5px;max-width:190px;pointer-events:auto;padding-top:24px}
+.guitar-views button{padding:11px 0;display:flex;gap:25px;align-items:center;color:#929a90;text-align:left;font:9px var(--mono);border-bottom:1px solid #e8e5db19}
+.guitar-views button span{font:12px var(--sans)}
+.guitar-views button[aria-pressed=true]{color:#e9b094;border-color:#e9b0947a}
+.guitar-views button:hover{color:#eee7dc}
+.guitar-stage{position:relative;overflow:hidden;background:radial-gradient(ellipse at 55% 48%,#38403588 0,transparent 67%)}
+#guitar-photo{position:absolute;left:50%;top:var(--photo-top,0px);height:var(--photo-size,100%);width:var(--photo-size,auto);max-width:none;transform:translateX(-50%) rotate(-7deg);transform-origin:50% var(--photo-pivot,79%);filter:drop-shadow(14px 22px 19px #0008);user-select:none;pointer-events:none;transition:top .85s cubic-bezier(.2,.7,.2,1),height .85s cubic-bezier(.2,.7,.2,1),width .85s cubic-bezier(.2,.7,.2,1),transform-origin .85s cubic-bezier(.2,.7,.2,1)}
+.guitar-credit{position:absolute;right:4.5%;bottom:25px;z-index:3;font-size:9px;color:#969d91;padding:8px 0}
+@media(max-width:600px){.guitar-touch{left:34%;width:31%;top:5%;height:77%}.art-caption{display:flex;left:7%;top:84%;gap:6px}.art-caption>span{font-size:17px}.art-caption>p{font-size:7px}.guitar-view{display:block}.guitar-stage{position:absolute;inset:15% 0 25%}.guitar-notes{position:absolute;inset:0;padding:30px 6% 60px;z-index:2;display:block}.guitar-kicker{font-size:8px;margin-bottom:16px}#guitar-title{font-size:25px;line-height:1}#guitar-title em{font-size:1.3em}.guitar-edition{position:absolute;right:6%;top:70px;text-align:right;font-size:8px;line-height:1.9;margin:0}#close-guitar{top:20px;right:6%;font-size:10px;gap:14px}#close-guitar span{font-size:19px}#guitar-status{position:absolute;left:6%;bottom:126px;font-size:11px;max-width:none;min-height:0;margin:0;right:6%}.guitar-views{position:absolute;left:6%;right:6%;bottom:75px;flex-direction:row;max-width:none;padding:0;gap:16px;justify-content:space-between}.guitar-views button{gap:7px;padding:12px 0;flex:1;font-size:8px}.guitar-views button span{font-size:11px}.guitar-credit{right:6%;bottom:25px;font-size:8px}}
+@media(prefers-reduced-motion:reduce){#guitar-photo{transition:none}}
+#guitar-model{display:none;position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;outline-offset:-6px}
+.guitar-model-ready #guitar-model{display:block}
+.guitar-model-ready #guitar-photo{visibility:hidden}
+#guitar-model.turning{cursor:grabbing}
+#guitar-model.moving{cursor:move}
+.guitar-handling{position:absolute;left:38%;bottom:25px;z-index:3;display:flex;gap:28px;align-items:center;font-size:11px;color:#a5ac9e}
+.guitar-controls{display:flex;gap:20px;margin:0;padding:8px 16px;list-style:none;border-radius:999px;background:#171a18c7;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.guitar-controls li{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.guitar-controls svg{width:12px;height:16px;flex:none;fill:none;stroke:#a5ac9e;stroke-width:1}
+.guitar-controls .for-touch svg{width:16px}
+.guitar-controls .lit{fill:#deb094;stroke:none}
+.guitar-controls b{margin-right:5px;font-weight:500;color:#e8e5db}
+.guitar-controls .for-touch{display:none}
+@media(hover:none) and (pointer:coarse){.guitar-controls .for-mouse{display:none}.guitar-controls .for-touch{display:flex}}
+.guitar-handling button{font-size:10px;color:#deb094;padding:8px 0}
+#guitar-status{white-space:pre-line}
+.guitar-notes{pointer-events:none}
+.guitar-stage{background:radial-gradient(ellipse at 52% 49%,#30372f99 0,transparent 70%)}
+@media(max-width:600px){.guitar-stage{inset:16% 0 25%}.guitar-handling{left:6%;right:6%;bottom:34px;font-size:10px;gap:16px}.guitar-controls{gap:14px;padding:7px 13px}.guitar-controls .for-mouse{display:none}.guitar-controls .for-touch{display:flex}.guitar-handling button{font-size:9px}.guitar-credit{bottom:9px;font-size:7px}.guitar-edition{max-width:185px;font-size:7px}#guitar-status{line-height:1.7;bottom:125px}}
+@media(max-width:600px){
+  .door,.enter{min-height:44px}
+  #close-guitar{min-height:44px}
+  .guitar-views button{min-height:44px}
+}
+.guitar-caption-portrait{display:none}
+@media(max-width:600px) and (orientation:portrait){
+  .home-meta>span:last-child,
+  .home-bottom,
+  .enter small,
+  .guitar-caption-default{display:none}
+
+  .guitar-caption-portrait{display:inline}
+  .enter{top:auto;right:6%;bottom:12%}
+  .art-caption{top:auto;bottom:4%;left:6%}
+  .art-caption>span{font-size:15px}
+  .art-caption>p{font-size:9px;line-height:1.5}
+}
+
+/* — English (html[lang=en]) — */
+html[lang=en] .home-meta{font-size:11px;letter-spacing:.01em}
+html[lang=en] .home-meta>span:last-child{font:italic 12px var(--serif)}
+html[lang=en] .home-bottom>p{font-size:12px;line-height:1.85}
+html[lang=en] .home-bottom{bottom:3.5%}
+html[lang=en] .home-bottom .welcome{font:400 clamp(36px,3.3vw,48px)/.97 var(--serif);letter-spacing:-.055em;text-align:left;min-width:15%;padding-right:2%}
+html[lang=en] .home-bottom .welcome em{display:inline-block;font-weight:400;line-height:1.2}
+html[lang=en] .enter{right:25%;gap:15px}
+html[lang=en] .enter>span:last-child{font-size:14px}
+html[lang=en] .enter small{font-size:9px}
+html[lang=en] .guitar-kicker{font:8px var(--mono);letter-spacing:.09em}
+html[lang=en] #guitar-status{font:italic 15px/1.6 var(--serif);max-width:215px}
+html[lang=en] .guitar-views button span{font-size:11px}
+@media(max-width:600px){
+  html[lang=en] .home-meta{font-size:10px}
+  html[lang=en] .home-meta>span:last-child{font-size:11px;margin-top:7px}
+  html[lang=en] .enter{right:7%;top:64%;gap:10px}
+  html[lang=en] .enter>span:last-child{font-size:12px}
+  html[lang=en] .enter small{font-size:8px}
+  html[lang=en] .home-bottom>p{font-size:11px}
+  html[lang=en] .home-bottom{bottom:4%}
+  html[lang=en] .home-bottom .welcome{font-size:43px;padding-right:3%}
+  html[lang=en] .door{font-size:9px}
+  html[lang=en] .door-right>span:first-child{font-size:10px}
+  html[lang=en] .art-caption>p{font-size:7px}
+  html[lang=en] .art-caption .guitar-follow{display:none}
+  html[lang=en] #guitar-status{font-size:13px;max-width:none}
+  html[lang=en] .guitar-handling{gap:14px;font-size:8px}
+  html[lang=en] .guitar-handling button{font-size:8px}
+  html[lang=en] .guitar-credit{font-size:7px}
+}
+
+/* — Composition and controls — */
+.deeper-door{position:absolute;bottom:4%;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:13px;padding:12px 0;font-size:9px;color:var(--muted);white-space:nowrap}
+.deeper-door span{font-size:20px;color:var(--red)}
+.deeper-door:hover{color:var(--red)}
+.overviewing .deeper-door{opacity:0}
+@media(max-width:700px){.deeper-door{font-size:8px;bottom:2%;left:58%;gap:8px}}
+
+/* — Before the renderer is ready — */
+/* This is the same neutral model frame, ready before its renderer is available. */
+.home-guitar-preview{position:absolute;left:50.5%;top:47.5%;width:83%;height:91%;object-fit:contain;transform:translate(-50%,-50%) rotate(.32rad);filter:drop-shadow(-24px 32px 26px rgba(74,50,26,.24)) drop-shadow(-5px 7px 5px rgba(46,28,12,.26));pointer-events:none;user-select:none}
+.guitar-home-ready .home-guitar-preview{visibility:hidden}
+@media(max-width:679px){.home-guitar-preview{width:130%}}
+
+/* — English (html[lang=en]) — */
+@media(max-width:700px) {
+  html[lang=en] .deeper-door { font-size: 7px; }
+}
+
+/* — Light and shadow — */
+/* Things cast shadows away from the window. */
+.name span:first-child{filter:drop-shadow(-12px 16px 16px var(--cast))}
+.name span:last-child{filter:drop-shadow(-6px 9px 6px rgba(70,48,24,.14))}
+
+/* — Pencil notes — */
+/* One note per room, each beside the thing it is about. The arrow is drawn pointing up and to the
+   right; each note turns it toward its object (and `row-reverse` puts it in front of the words). */
+.note-wander{left:4.5%;top:72.5%;--note-angle:-2deg}
+.note-wander svg{transform:translateY(-.2em) scaleX(-1) rotate(-14deg)}
+@media(max-width:600px){
+  .note-wander{left:6%;top:83.5%}
+}

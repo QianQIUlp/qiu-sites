@@ -1,0 +1,380 @@
+/* 琴弦之间 ("Between the Strings"): the lamp-lit strings, four pedals, looper and VU meter. Behaviour: scripts/me/rooms/music.js. */
+
+/* — Composition and controls — */
+.music{left:113%;top:0;width:100%;height:100%}
+.music .place-heading{top:9%;left:6%}
+.string-bed{position:absolute;left:32%;right:5%;top:17%;bottom:23%;display:flex;flex-direction:column;justify-content:space-between;pointer-events:auto}
+.string{width:100%;height:16.66%;position:relative;display:flex;align-items:center;justify-content:space-between;cursor:crosshair;touch-action:none;padding:0}
+.string:before{content:"";position:absolute;left:3%;right:2%;top:50%;height:1px;background:#767e6315}
+.string>span{font:italic 16px var(--serif);color:#626c51}
+.string small{font:8px var(--mono);color:#939985}
+.string:hover>span,.string:focus-visible>span{color:var(--red)}
+.string:focus-visible{outline-offset:0}
+.music-footer{position:absolute;left:6%;right:6%;bottom:7%;display:flex;justify-content:space-between;align-items:end;gap:30px}
+.sound-local{color:var(--red);font-size:12px}
+.loop-controls{width:33%;min-width:225px}
+.loop-progress{height:2px;background:var(--line);margin-bottom:15px}
+.loop-progress>i{display:block;width:0;height:100%;background:var(--red)}
+#loop{font-size:12px;padding:0;display:inline-flex;gap:32px;align-items:center}
+#loop>span{font-size:21px;color:var(--red)}
+#loop-caption{display:block;font-size:9px;color:var(--muted);margin-top:11px}
+#loop-clear{font-size:10px;color:var(--muted);margin-left:22px}
+@media(max-width:950px){.loop-controls{min-width:200px}}
+@media(max-width:600px){.music .place-heading{top:7%;left:7%}.music .place-heading h2{font-size:31px}.string-bed{left:8%;right:8%;top:36%;bottom:24%}.string>span{font-size:15px}.string small{font-size:8px}.music-footer{left:7%;right:7%;bottom:5%;align-items:start;gap:20px}.sound-local{font-size:10px}.loop-controls{min-width:0;width:52%}#loop{font-size:10px;gap:15px}#loop-caption{font-size:8px;line-height:1.7}#loop-clear{font-size:9px;margin-left:10px}}
+.music-footer{opacity:var(--detail,1)}
+
+/* — The playable pedalboard — */
+/* A small playable pedalboard. Each control is an actual audio parameter. */
+.music{--gold:#baa064;--blue:#2875b4;--night:#244846}
+.music .place-heading{left:5.5%;top:7%;width:24%}
+.music .place-heading h2{font-size:clamp(25px,3.2vw,49px);line-height:1.38;margin:18px 0 13px}
+.music .place-heading>p{font-size:11px;line-height:1.9}
+.music .eyebrow{font-size:9px;letter-spacing:.12em}
+.music input{pointer-events:auto;accent-color:var(--red)}
+.tone-presets{position:absolute;left:5.5%;top:37%;width:22%;pointer-events:auto}
+.tone-presets>span{font-size:10px;color:var(--muted)}
+.tone-presets>div{display:flex;gap:5px;margin:12px 0 10px;flex-wrap:wrap}
+.tone-presets button{border:1px solid #25282533;border-radius:3px;font-size:11px;padding:8px 10px;background:#ffffff1a}
+.tone-presets button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.tone-presets button:hover{border-color:var(--red)}
+#tone-caption{font-size:9px;line-height:1.8;color:var(--muted);display:block}
+.playing-strip{position:absolute;left:34%;right:5.5%;top:4.5%;display:flex;justify-content:space-between;align-items:center;pointer-events:auto}
+.chord-picker{display:flex;gap:6px}
+.chord-picker button{font:11px var(--mono);min-width:34px;min-height:34px;border-radius:50%;color:var(--muted)}
+.chord-picker button:first-child{font:10px var(--sans);margin-right:5px;min-width:40px}
+.chord-picker button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.chord-picker button:hover{color:var(--red)}
+#strum{font-size:10px;padding:9px 0 9px 14px;border-bottom:1px solid #25282555}
+#strum span{font-size:18px;margin-left:13px;color:var(--red)}
+.music .string-bed{left:34%;right:5.5%;top:13%;bottom:66%}
+.music .string{min-height:0}
+.music .string>span{font-size:14px}
+.music .string:before{display:none}
+.music .string[data-muted=true]{opacity:.28}
+.music .string[data-playing=true]>span{color:var(--red)}
+.music .music-footer{left:5.5%;right:auto;top:58%;bottom:5%;width:23%;display:flex;flex-direction:column;align-items:stretch;gap:20px}
+.music .loop-controls{width:100%;min-width:0}
+.looper-top{display:flex;justify-content:space-between;font:8px var(--mono);letter-spacing:.08em;color:var(--muted)}
+.loop-beats{display:flex;gap:5px;margin-top:12px}
+.loop-beats i{height:15px;flex:1;background:#d9dbd1;border:1px solid #25282510;border-radius:2px}
+.loop-beats i:nth-child(4n+1){border-color:#25282550}
+.loop-beats i.lit{background:#8a957a}
+.loop-controls[data-state=recording] .loop-beats i.lit,.loop-controls[data-state=overdub] .loop-beats i.lit{background:var(--red)}
+.music .loop-progress{height:2px;margin:6px 0 12px}
+.loop-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.music #loop{font-size:11px;gap:14px;min-height:28px}
+.music #loop>span{font-size:14px}
+#loop-overdub{font-size:10px;padding:5px 0}
+#loop-overdub[aria-pressed=true]{color:var(--red)}
+.music #loop-clear{margin:0;font-size:9px;padding:5px 0}
+.loop-actions button:disabled{opacity:.33;cursor:default}
+.music #loop-caption{margin-top:8px;font-size:9px;line-height:1.7}
+.output-strip{margin-top:auto}
+.output-strip>div:first-child{display:flex;align-items:center;justify-content:space-between}
+.music .sound-local{font-size:10px;padding:5px 0;border:0}
+#output-level{font:8px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.output-meter{height:4px;margin:10px 0 12px;background:repeating-linear-gradient(90deg,#b6bdaf 0 5px,transparent 5px 7px)}
+.output-meter i{display:block;height:100%;width:var(--level,0%);background:repeating-linear-gradient(90deg,#647b50 0 5px,transparent 5px 7px);max-width:100%}
+.master-control{display:flex;gap:12px;align-items:center;font:8px var(--mono);color:var(--muted);pointer-events:auto}
+.master-control input{width:100%;min-width:0;height:14px;margin:0;cursor:pointer;accent-color:#657053}
+.master-control output{min-width:20px;text-align:right}
+.master-control>span{white-space:nowrap}
+.board-heading .board-hint-mobile{display:none}
+.board-heading{position:absolute;left:34%;right:5.5%;top:39%;display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:9px}
+.board-heading>span:first-child{color:var(--ink);font-size:11px}
+.board-heading small{font-size:8px}
+.board-heading .signal-label{display:none;font:7px var(--mono);letter-spacing:.04em}
+.board-caption{position:absolute;left:34%;right:5.5%;bottom:2%;display:flex;justify-content:space-between;color:var(--muted);font:8px var(--mono)}
+.board-caption>span:first-child{font:9px var(--sans)}
+@media(min-width:1450px){.board-heading .signal-label{display:block}.board-heading small{margin-left:auto;margin-right:24px}.music .music-footer{top:57%;bottom:8%}}
+@media(max-width:1000px){.music .place-heading h2{font-size:28px}.music .place-heading>p{font-size:10px}.tone-presets{top:36%;width:24%}.tone-presets button{font-size:10px;padding:7px}.music .music-footer{width:24%}.loop-actions{gap:10px}.music #loop{font-size:10px;gap:6px}#loop-overdub{font-size:9px}.board-heading small{font-size:7px}.board-caption{font-size:7px}.board-caption>span:first-child{font-size:8px}}
+@media(max-height:720px) and (min-width:701px){.music .place-heading h2{font-size:28px;margin:12px 0}.music .place-heading>p{font-size:10px}.music .music-footer{top:58%;gap:8px}.tone-presets{top:36%}.tone-presets>div{margin:9px 0}.loop-beats{margin-top:8px}.loop-beats i{height:10px}.music .loop-progress{margin:5px 0 7px}.music #loop-caption{margin-top:4px;font-size:8px}.output-meter{margin:7px 0}.board-caption{bottom:1%}}
+@media(max-width:700px){
+  .board-heading .board-hint-desktop{display:none}.board-heading .board-hint-mobile{display:block}
+  .music .place-heading{left:7%;top:3%;width:86%;display:flex;justify-content:space-between;align-items:baseline}
+  .music .eyebrow{font-size:7px;letter-spacing:.07em;max-width:80px;line-height:1.6}
+  .music .place-heading h2{font-size:22px;margin:0;line-height:1.4;letter-spacing:-.06em}.music .place-heading h2 br{display:none}
+  .music .place-heading>p{display:none}
+  .tone-presets{top:10%;left:7%;width:86%;display:flex;align-items:center;gap:12px}
+  .tone-presets>span{display:none}.tone-presets>div{margin:0;gap:5px}.tone-presets button{padding:6px 9px;font-size:10px}
+  #tone-caption{font-size:8px;line-height:1.5;max-width:130px}
+  .playing-strip{left:7%;right:7%;top:17%}.chord-picker{gap:3px}.chord-picker button{min-height:29px;min-width:29px;font-size:10px}
+  #strum{font-size:9px;padding:5px 0 5px 10px}
+  .music .string-bed{left:7%;right:7%;top:24%;bottom:57%}.music .string>span{font-size:12px}.music .string small{font-size:7px}
+  .board-heading{left:7%;right:7%;top:45%;font-size:9px}.board-heading>span:first-child{font-size:10px}.board-heading small{font-size:7px}
+  .music .music-footer{left:7%;right:7%;top:auto;bottom:1.5%;width:auto;height:12%;display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:22px;align-items:start}
+  .music .loop-controls{width:auto;min-width:0}.looper-top{font-size:6px}.loop-beats{margin-top:5px;gap:3px}.loop-beats i{height:5px}.music .loop-progress{height:1px;margin:3px 0 4px}.loop-actions{gap:12px;flex-wrap:nowrap}.music #loop{font-size:9px;min-height:21px;gap:7px}#loop-overdub{font-size:8px;white-space:nowrap}.music #loop-clear{font-size:8px;white-space:nowrap}.music #loop-caption{font-size:7px;line-height:1.3;margin-top:3px}
+  .output-strip{margin-top:0}.music .sound-local{font-size:8px;padding:0}#output-level{font-size:6px}.output-meter{height:3px;margin:9px 0}.master-control{gap:4px;font-size:7px}.master-control input{height:12px}.master-control output{min-width:15px}.master-control>span{display:none}
+  .board-caption{display:none}
+}
+@media(max-width:700px) and (max-height:750px){.music .place-heading h2{font-size:19px}.music .eyebrow{font-size:6px}.music .music-footer{height:13%}.music #loop-caption{max-width:205px}.loop-beats{margin-top:4px}}
+
+/* — English (html[lang=en]) — */
+html[lang=en] .music .place-heading h2{font:400 clamp(30px,3.6vw,55px)/1.05 var(--serif);letter-spacing:-.035em}
+html[lang=en] .music .place-heading h2 em{font-style:italic}
+html[lang=en] .music .place-heading>p{font-size:10px}
+html[lang=en] .tone-presets button{font-size:10px;padding:8px 9px}
+html[lang=en] .tone-presets{top:40%}
+html[lang=en] .music .music-footer{width:24%}
+html[lang=en] .loop-actions{gap:10px}
+html[lang=en] #loop-overdub{font-size:9px}
+html[lang=en] .music #loop{font-size:10px;gap:9px}
+html[lang=en] .board-heading small{font:8px var(--mono);max-width:56%;text-align:right}
+@media(max-width:1000px) and (min-width:701px){
+  html[lang=en] .music .place-heading h2{font-size:34px}
+  html[lang=en] .tone-presets>div{gap:4px}
+  html[lang=en] .tone-presets button{padding:7px 6px;font-size:9px}
+  html[lang=en] .loop-actions{gap:7px}
+  html[lang=en] .music #loop{font-size:9px;gap:7px}
+  html[lang=en] #loop-overdub{font-size:8px}
+  html[lang=en] .music #loop-clear{font-size:8px}
+  html[lang=en] .board-caption{font-size:7px}
+}
+@media(max-width:700px){
+  html[lang=en] .tone-presets{top:10%}
+  html[lang=en] .music .place-heading{align-items:center}
+  html[lang=en] .music .place-heading h2{font-size:25px;white-space:nowrap;letter-spacing:-.045em}
+  html[lang=en] .music .place-heading h2 br{display:none}
+  html[lang=en] .music .place-heading h2 em:before{content:" "}
+  html[lang=en] .music .eyebrow{max-width:70px;font-size:6px;letter-spacing:.06em}
+  html[lang=en] .tone-presets{gap:8px}
+  html[lang=en] .tone-presets button{font-size:9px;padding:6px 7px}
+  html[lang=en] #tone-caption{font-size:7px;max-width:106px}
+  html[lang=en] .music .music-footer{width:auto;grid-template-columns:minmax(0,1fr) 90px;gap:15px}
+  html[lang=en] .music #loop{font-size:9px;gap:5px}
+  html[lang=en] #loop-overdub,html[lang=en] .music #loop-clear{font-size:8px}
+  html[lang=en] .loop-actions{gap:9px}
+  html[lang=en] .board-heading small{font-size:6px;max-width:54%}
+}
+@media(max-width:370px){
+  html[lang=en] .music .place-heading h2{font-size:21px}
+  html[lang=en] .music .eyebrow{max-width:60px}
+  html[lang=en] #tone-caption{font-size:6px;max-width:85px}
+  html[lang=en] .tone-presets button{padding:6px;font-size:8px}
+  html[lang=en] .music .music-footer{grid-template-columns:minmax(0,1fr) 82px;gap:12px}
+}
+@media(max-height:720px) and (min-width:701px){
+  html[lang=en] .music .place-heading h2{font-size:clamp(26px,5vh,42px)}
+  html[lang=en] .tone-presets{top:39%}
+}
+
+/* — Light and shadow — */
+#room[data-place=music] .day-sun,#room[data-place=music] .day-blinds,#room[data-place=music] .day-leaves,#room[data-place=music] .day-vignette,#room[data-place=music] .day-ember,#room[data-place=music] .day-dusk{opacity:0}
+/* A little jam: a dark corner under one lamp ------------------------------ */
+.music{--ink:#f2ebdc;--muted:#a69e8d;--line:#f2ebdc24;--paper:#1b1815;color:var(--ink);overflow:hidden;border-radius:3px}
+.music:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(58% 70% at 64% 30%,#4a3a2c 0,#2a231d 46%,#161310 100%);box-shadow:inset 0 0 0 1px #0000004d}
+.music:after{content:"";position:absolute;inset:0;pointer-events:none;background:var(--grain),radial-gradient(130% 120% at 62% 28%,transparent 40%,rgba(0,0,0,.42));background-size:180px,auto;mix-blend-mode:normal;opacity:.75}
+.music .place-heading h2 em{color:#ff7a59}
+.music .eyebrow{color:#a69e8d}
+.tone-presets button{border-color:#f2ebdc30;background:#ffffff08;color:#e6dfcf}
+.tone-presets button[aria-pressed=true]{background:#f2ebdc;border-color:#f2ebdc;color:#1b1815}
+#strum{border-color:#f2ebdc55}
+.loop-beats i{background:#ffffff0d;border-color:#ffffff12}
+.loop-beats i:nth-child(4n+1){border-color:#ffffff30}
+.loop-beats i.lit{background:#c9b27a}
+.board-heading>span:first-child{color:#f2ebdc}
+.music .string>span{color:#f6efe0;text-shadow:0 1px 3px #000c;font-size:13px}
+.music .string small{color:#d8ceba99;text-shadow:0 1px 2px #000c}
+.music .string[data-playing=true]>span{color:#ff8a66}
+.jam-guitar{position:absolute;left:35%;width:60%;top:-26%;aspect-ratio:860/620;transform:rotate(-2.4deg);transform-origin:50% 58%;pointer-events:none;
+  -webkit-mask:linear-gradient(90deg,transparent 0,#000 16%,#000 100%),linear-gradient(180deg,#000 0,#000 64%,transparent 92%);-webkit-mask-composite:source-in;
+  mask:linear-gradient(90deg,transparent 0,#000 16%,#000 100%) intersect,linear-gradient(180deg,#000 0,#000 64%,transparent 92%)}
+.jam-photo,#jam-strings{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;user-select:none}
+.jam-photo{filter:drop-shadow(14px 24px 26px rgba(0,0,0,.55)) saturate(1.06) brightness(.96)}
+.music .jam-guitar .string-bed{position:absolute;left:0;right:19.8%;top:45.8%;bottom:auto;height:25.4%;pointer-events:auto}
+.music .jam-guitar .string{cursor:pointer}
+.music .jam-guitar .string>span{padding-left:21%}
+.jam-label{position:absolute;right:21%;top:76%;font:7px var(--mono);letter-spacing:.18em;color:#f2ebdc66}
+/* Below a lamp, the guitar's lower body dissolves into the room and the board sits in front of it. */
+.music .board-heading{top:41%}
+.music .playing-strip{z-index:2}
+/* VU meter: the needle has weight. */
+.music .output-meter{display:none}
+@media(min-width:701px){
+  .music .tone-presets{top:40.5%}
+  .music .output-strip{display:grid;grid-template-columns:minmax(120px,148px) 1fr;grid-template-rows:auto auto;column-gap:18px;row-gap:10px;align-items:center}
+  .music .output-strip .vu-meter{grid-column:1;grid-row:1/3;margin:0}
+  .music .output-strip>div:first-child{grid-column:2;grid-row:1;flex-direction:column;align-items:flex-start;gap:6px}
+  .music .output-strip .master-control{grid-column:2;grid-row:2}
+}
+.vu-meter{position:relative;width:100%;max-width:190px;aspect-ratio:160/96;margin:10px 0 12px;border-radius:7px;padding:6px;background:linear-gradient(160deg,#3a342d,#191613);box-shadow:inset 0 1px 0 #ffffff1c,0 10px 18px #0008,0 2px 0 #0b0a09;--vu:-48deg}
+.vu-meter svg{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);border-radius:4px;background:radial-gradient(90% 120% at 50% 100%,#f3e6c4,#d9c79c 70%,#b8a47a);box-shadow:inset 0 2px 6px #0007;transition:filter .4s;filter:brightness(.62) saturate(.7)}
+.vu-meter[data-on=true] svg{filter:brightness(1) saturate(1);background:radial-gradient(90% 120% at 50% 100%,#fff2cf,#ecd6a0 65%,#c9ac70)}
+.vu-scale{fill:none;stroke:#2b2520;stroke-width:1.2}
+.vu-hot{fill:none;stroke:#d23a22;stroke-width:4}
+.vu-ticks path{fill:none;stroke:#2b2520;stroke-width:1.1}
+.vu-meter text{font:7px var(--mono);fill:#2b2520;text-anchor:middle}
+.vu-meter .vu-unit{font:600 11px var(--serif);letter-spacing:.06em}
+.vu-needle{position:absolute;left:calc(50% - .75px);bottom:13%;width:1.5px;height:68%;background:linear-gradient(#1b1714,#1b1714 70%,#3b332b);transform-origin:50% 100%;transform:rotate(var(--vu));border-radius:1px;box-shadow:1px 2px 2px #0005}
+.vu-meter[data-hot=true] .vu-needle{background:#b8261a}
+.vu-pivot{position:absolute;left:calc(50% - 6px);bottom:calc(13% - 6px);width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7b7065,#1d1915);box-shadow:0 1px 2px #000a}
+.vu-lamp{position:absolute;right:11px;top:10px;width:5px;height:5px;border-radius:50%;background:#4b2414;box-shadow:inset 0 1px 1px #000}
+.vu-meter[data-on=true] .vu-lamp{background:#ff8a52;box-shadow:0 0 8px #ff7a3faa}
+/* Into the red: the hot arc lights up behind the glass and the PEAK lamp flashes. */
+.vu-hot{transition:stroke .15s,filter .15s}
+.vu-meter[data-hot=true] .vu-hot{stroke:#ff4a24;filter:drop-shadow(0 0 3px #ff3a1c)}
+.vu-meter[data-hot=true] .vu-lamp{background:#ff3a1c;box-shadow:0 0 10px 2px #ff3a1ccc;animation:vu-peak .22s steps(2) infinite}
+.vu-meter[data-hot=true] svg{filter:brightness(1.06) saturate(1.1)}
+.vu-peak-label{position:absolute;right:19px;top:8.5px;font:5px var(--mono);letter-spacing:.12em;color:#f2ebdc55;transition:color .15s}
+.vu-meter[data-hot=true] .vu-peak-label{color:#ff8a66}
+@keyframes vu-peak{50%{opacity:.55}}
+.music .board-caption{color:#a69e8d}
+/* Phones: the close-up keeps the pickups and bridge in view; the neck runs off the left edge. */
+@media(max-width:700px){
+  .jam-guitar{left:-56%;width:184%;top:-8%;transform:rotate(-2deg)}
+  .jam-guitar{-webkit-mask:linear-gradient(180deg,transparent 0,transparent 31%,#000 44%,#000 70%,transparent 90%);mask:linear-gradient(180deg,transparent 0,transparent 31%,#000 44%,#000 70%,transparent 90%)}
+  .music .tone-presets button,.music .chord-picker button{background:#15120fcc;border-color:#f2ebdc38;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  .music .tone-presets button[aria-pressed=true],.music .chord-picker button[aria-pressed=true]{background:#f2ebdc;border-color:#f2ebdc;color:#1b1815}
+  .music .board-heading{text-shadow:0 1px 3px #000,0 0 10px #000c}
+  .music .place-heading{z-index:2}
+  .music .jam-guitar .string>span{padding-left:34%}
+  .jam-label{display:none}
+  .place.music{overflow:clip}
+  .vu-meter{max-width:120px;margin:6px 0 8px}
+}
+
+/* — The pedals — */
+.pedal-defs{position:absolute;width:0;height:0;overflow:hidden}
+.pedal-deck{position:absolute;left:33%;right:4%;top:45.5%;bottom:6.5%;container-type:size;pointer-events:auto}
+.pedal-rig{--u:min(calc(100cqw / 396),calc(100cqh / 146));position:absolute;left:50%;bottom:calc(var(--u) * 3);width:calc(var(--u) * 382);height:calc(var(--u) * 140);transform:translateX(-50%)}
+/* A Pedaltrain-style board: aluminium rails over loop fabric. */
+.pedal-rig:before{content:"";position:absolute;left:calc(var(--u) * -6);right:calc(var(--u) * -6);top:calc(var(--u) * 14);bottom:calc(var(--u) * -3);border-radius:calc(var(--u) * 2.4);z-index:-2;
+  background:repeating-linear-gradient(180deg,#7e7a72 0,#c9c5bb calc(var(--u) * .7),#8b877f calc(var(--u) * 1.6),#57544e calc(var(--u) * 15),#2d2b28 calc(var(--u) * 16.2),#161412 calc(var(--u) * 16.6),#1b1917 calc(var(--u) * 24),#121110 calc(var(--u) * 24.6));
+  box-shadow:inset 0 0 0 calc(var(--u) * .4) #00000055,0 calc(var(--u) * 2) 0 #0c0b0a,0 calc(var(--u) * 10) calc(var(--u) * 16) #000c;filter:brightness(.62) saturate(.6)}
+.pedal-rig:after{content:"";position:absolute;inset:calc(var(--u) * 14) calc(var(--u) * -6) calc(var(--u) * -3);border-radius:calc(var(--u) * 2.4);z-index:-2;pointer-events:none;background:radial-gradient(70% 90% at 62% 0,#ffd9a01f,transparent 70%)}
+.pedal{position:absolute;left:calc(var(--u) * var(--px));bottom:calc(var(--u) * 4);width:calc(var(--u) * var(--w));height:calc(var(--u) * var(--h));border-radius:calc(var(--u) * 5);z-index:1;
+  transition:transform .09s ease-out,filter .4s ease;
+  /* The enclosure's side, then the lamp's shadow falling down and to the left. */
+  box-shadow:0 calc(var(--u) * 2.2) 0 var(--side,#0008),calc(var(--u) * -1) calc(var(--u) * 3.2) calc(var(--u) * 1.4) #000a,calc(var(--u) * -6) calc(var(--u) * 10) calc(var(--u) * 12) #0009}
+.pedal-face{position:absolute;inset:0;width:100%;height:100%;overflow:visible;border-radius:inherit}
+.pedal-gold{--side:#6a552c}
+.pedal-blue{--side:#123a5d}
+.pedal-harm{--side:#5a6a73}
+.pedal-echo{--side:#0f1f1c}
+.pedal.stomping{transform:translateY(calc(var(--u) * .8))}
+.pedal.stomping{box-shadow:0 calc(var(--u) * 1.4) 0 var(--side,#0008),calc(var(--u) * -1) calc(var(--u) * 2.2) calc(var(--u) * 1) #000a,calc(var(--u) * -5) calc(var(--u) * 8) calc(var(--u) * 10) #0009}
+.pedal[data-on=true]{filter:drop-shadow(0 0 calc(var(--u) * 9) var(--spill,#ff4a2a2e))}
+.pedal-echo{--spill:#ffa23c2b}
+/* Faces: print, metal and paint. */
+.face-bevel{fill:none;stroke:#fff;stroke-opacity:.28;stroke-width:.5}
+.face-brush{opacity:.55;mix-blend-mode:overlay}
+.face-speckle{opacity:.22;mix-blend-mode:overlay}
+.face-hammer{opacity:.5;mix-blend-mode:overlay}
+.pedal-face text{font-family:var(--sans);text-anchor:middle}
+.gold-title{font:700 7.6px var(--serif);letter-spacing:1.6px;fill:#2e2414;paint-order:stroke;stroke:#f7e6b455;stroke-width:.35}
+.gold-sub{font:600 2.3px var(--mono);letter-spacing:.7px;fill:#3b2f1a}
+.centaur path,.centaur circle{fill:#2a2012;stroke:none}
+.centaur .centaur-far{fill:#3d3019}
+.centaur .centaur-arm,.centaur .centaur-bow,.centaur .centaur-string,.centaur .centaur-arrow,.centaur .centaur-ground,.centaur .centaur-hatch{fill:none;stroke:#2a2012;stroke-linecap:round;stroke-linejoin:round}
+.centaur .centaur-arm{stroke-width:2.4}
+.centaur .centaur-bow{stroke-width:1.5}
+.centaur .centaur-string{stroke-width:.45}
+.centaur .centaur-arrow{stroke-width:.8}
+.centaur .centaur-ground{stroke-width:.6;stroke-dasharray:2.2 1.8;stroke-opacity:.6}
+.centaur .centaur-hatch{stroke:#d9c182;stroke-width:.5;stroke-opacity:.45}
+.compact-check{font:700 2.1px var(--sans)!important;letter-spacing:.2px;fill:#111}
+.compact-name{font:italic 800 7.2px var(--sans)!important;letter-spacing:-.25px;text-anchor:start!important;fill:#0e1418}
+.pedal-blue .compact-name{fill:#0c1a26}
+.compact-model{font:800 4.2px var(--sans)!important;fill:#f2f2ec}
+.compact-plate-print{font:700 2.6px var(--sans)!important;letter-spacing:.9px;fill:#0e1418;opacity:.8}
+.compact-badge{font:900 6.2px var(--sans)!important;letter-spacing:.35px;fill:url(#pg-badge)}
+.compact-ribs-hi{stroke:#ffffff10;stroke-width:.35}
+.thumbscrew{fill:#1d1f1e;stroke:#3a3d3b;stroke-width:.4}
+.compact-plate{transform-box:fill-box;transform-origin:50% 0;transition:transform .08s ease-out}
+.pedal-compact.stomping .compact-plate{transform:scaleY(.988) translateY(.4px)}
+.echo-title{font:600 6.2px var(--serif)!important;letter-spacing:1.4px;fill:#ecdfb2}
+.echo-sub{font:italic 2.7px var(--serif)!important;letter-spacing:.5px;fill:#cbbf91;opacity:.85}
+.face-fine{font:1.9px var(--mono)!important;letter-spacing:.55px;fill:#cfc49a;opacity:.65}
+.tape-ribbon{fill:none;stroke:#3a2a1b;stroke-width:.9}
+.reel-pack{fill:#3b2a1c;stroke:#22180f;stroke-width:.4}
+.reel-flange{fill:#c4c0b0;fill-opacity:.22;stroke:#d9d3bd;stroke-opacity:.55;stroke-width:.5}
+.reel-spoke{stroke:#ddd6be;stroke-width:1.6;stroke-linecap:round;opacity:.8}
+.reel-hub{fill:#d9d3bd}
+.reel-spin{transform-box:fill-box;transform-origin:center;animation:reel-turn var(--reel,2.6s) linear infinite;animation-play-state:paused}
+.pedal-echo[data-on=true] .reel-spin{animation-play-state:running}
+.reel:nth-of-type(2) .reel-spin{animation-duration:calc(var(--reel,2.6s) * .78)}
+@keyframes reel-turn{to{transform:rotate(360deg)}}
+.echo-digits{font:500 4.4px var(--mono)!important;letter-spacing:.2px;fill:#6d6a3e;transition:fill .3s}
+.echo-unit{font-size:2.6px}
+.pedal-echo[data-on=true] .echo-digits{fill:#ffc768;filter:drop-shadow(0 0 .8px #ffb34799)}
+/* LEDs: dark red glass when off; on, they light the paint around them. */
+.led-lens{fill:#4a120a;transition:fill .18s ease}
+.led-lens.led-amber{fill:#4a2a08}
+.led-glow{opacity:0;transition:opacity .35s ease;mix-blend-mode:screen;pointer-events:none}
+[data-on=true] .led-lens{fill:#ff4426;filter:drop-shadow(0 0 1.2px #ff3a1c)}
+[data-on=true] .led-lens.led-amber{fill:#ffb23e;filter:drop-shadow(0 0 1.2px #ff9a2a)}
+[data-on=true] .led-glow{opacity:1}
+/* The chrome stomp switch: the cap sinks into its collar under your foot. */
+.stomp-cap{transform-box:fill-box;transform-origin:center;transition:transform .07s ease-out}
+.pedal.stomping .stomp-cap{transform:translateY(.7px) scale(.94)}
+.footswitch{position:absolute;left:calc(var(--u) * (var(--fx) - var(--fs) / 2));top:calc(var(--u) * (var(--fy) - var(--fs) / 2));width:calc(var(--u) * var(--fs));height:calc(var(--u) * var(--fs));border-radius:50%;z-index:3;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.footswitch.compact-switch{left:calc(var(--u) * 2.6);top:calc(var(--u) * 46.5);width:calc(var(--u) * 67.8);height:calc(var(--u) * 79);border-radius:calc(var(--u) * 3)}
+.footswitch:focus-visible{outline:2px solid #ffcf9a;outline-offset:calc(var(--u) * 1)}
+/* Knobs: placed and sized in pedal units; skirt and pointer turn, sheen and shadow stay with the lamp. */
+.pedal .dial{position:absolute;left:calc(var(--u) * (var(--x) - var(--s) / 2));top:calc(var(--u) * (var(--y) - var(--s) / 2));width:calc(var(--u) * var(--s));height:calc(var(--u) * var(--s));z-index:2;display:block;font-family:var(--mono)}
+.dial-control{position:absolute;inset:0;display:block;touch-action:none}
+.knob{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.knob-turn{transform-box:fill-box;transform-origin:center;transform:rotate(var(--angle));transition:transform .05s linear}
+.dial.dragging .knob-turn{transition:none}
+.knob-cast{fill:#000;opacity:.45;filter:url(#pg-soft)}
+.knob-knurl{stroke:#3c3a35;stroke-width:.7}
+.dial-boss .knob-knurl{stroke:#2c2c2a}
+.knob-line{fill:#f3ecd6}
+.dial-boss .knob-line{fill:#f6f6f2}
+.knob-scale{fill:none;stroke:currentColor;stroke-width:.9;opacity:.7}
+.knob-head{stroke:#7f6f4f;stroke-width:.35}
+.knob-groove{stroke:#5d5038;stroke-width:1;stroke-linecap:round;opacity:.65}
+.dial-label{position:absolute;left:50%;bottom:calc(100% - var(--u) * 1.8);transform:translateX(-50%);white-space:nowrap;font:700 calc(var(--u) * 3.1)/1 var(--sans);letter-spacing:.06em;pointer-events:none}
+.pedal-gold .dial{color:#2c2214}
+.pedal-gold .dial-label{font:700 calc(var(--u) * 3.3)/1 var(--serif);letter-spacing:.12em;bottom:calc(100% - var(--u) * 2.4)}
+.pedal-compact .dial{color:#0e1418}
+.pedal-compact .dial-label{font-size:calc(var(--u) * 2.7);bottom:calc(100% - var(--u) * 1.4)}
+.pedal-echo .dial{color:#d9cda0}
+.pedal-echo .dial-label{font:600 calc(var(--u) * 2.8)/1 var(--serif);letter-spacing:.14em;bottom:calc(100% - var(--u) * .6)}
+.dial input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:grab;touch-action:none;-webkit-appearance:none;appearance:none}
+.dial.dragging input{cursor:grabbing}
+.dial:has(input:focus-visible) .knob{outline:2px solid #ffcf9a;outline-offset:calc(var(--u) * .5);border-radius:50%}
+/* While turning, a small paper tag says where the knob is. */
+.dial-readout{position:absolute;left:50%;top:calc(100% + var(--u) * .5);transform:translate(-50%,-4px);padding:3px 6px;border-radius:3px;background:#17130fe8;color:#f2ebdc;font:10px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s,transform .15s;z-index:5;box-shadow:0 4px 10px #0008}
+.dial:hover .dial-readout,.dial.dragging .dial-readout,.dial:has(input:focus-visible) .dial-readout{opacity:1;transform:translate(-50%,0)}
+/* Patch cables and right-angle plugs; the guitar comes in on the left and the signal leaves on the right. */
+.patch-cables{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
+.cable{fill:none;stroke:#0d0d0c;stroke-width:2.6;stroke-linecap:round;filter:drop-shadow(-1px 2px 1.4px #000a)}
+.cable-shine{fill:none;stroke:#ffffff26;stroke-width:.5;stroke-linecap:round;transform:translate(-.5px,-.3px)}
+.plug-nut{fill:#8d8b83}
+.plug-ferrule{fill:#c7c5bb}
+.plug-body{fill:#151514;stroke:#000;stroke-width:.3}
+.plug-shine{fill:#ffffff1c}
+/* Phones: the board slides sideways, starting from the first pedal in the chain, the Centaur. */
+@media(max-width:700px){
+  .pedal-deck{left:0;right:0;top:48.5%;bottom:14.5%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;touch-action:pan-x}
+  .pedal-deck::-webkit-scrollbar{display:none}
+  .pedal-rig{--u:calc(100cqh / 146);left:calc(50cqw - var(--u) * 55);transform:none}
+  .pedal-rig>.pedal:last-of-type:after{content:"";position:absolute;left:100%;width:calc(50cqw - var(--u) * 42);height:1px}
+  .pedal-deck[data-paged] .pedal:not([data-current]){filter:brightness(.62) saturate(.8)}
+  .pedal-deck[data-paged] .pedal[data-on=true]:not([data-current]){filter:brightness(.62) saturate(.8) drop-shadow(0 0 calc(var(--u) * 9) var(--spill,#ff4a2a2e))}
+  .dial-readout{font-size:9px}
+}
+/* Pedal tabs: phones only, they replace the long signal label. */
+.board-heading .pedal-pager{display:none}
+@media(max-width:700px){
+  .music .board-heading{gap:8px}
+  .board-heading .board-hint-mobile{display:none}
+  .board-heading .pedal-pager{display:flex;gap:2px;margin-left:auto;padding:2px;border-radius:5px;background:#15120fd9;border:1px solid #f2ebdc24;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);text-shadow:none}
+  .pedal-pager button{min-height:34px;padding:0 8px;border-radius:3px;font:600 8px var(--mono);letter-spacing:.06em;color:#f2ebdc99}
+  .pedal-pager button[aria-current=true]{color:#1b1815;background:#f2ebdc}
+}
+@media(prefers-reduced-motion:reduce){.reel-spin{animation:none}.pedal,.knob-turn,.stomp-cap,.compact-plate{transition:none}}
+body[data-motion=off] .reel-spin{animation:none}
+/* Five starting tones keep to one row so the caption never runs into the looper. */
+.music .tone-presets>div{flex-wrap:nowrap;gap:4px}
+.music .tone-presets button{padding:7px 8px;white-space:nowrap}
+@media(max-width:700px){.music #tone-caption{display:none}.music .tone-presets button{padding:6px 7px}}
+
+/* — Pencil notes — */
+.note-music-strings{left:52%;top:4.5%;--note-angle:-3deg;color:rgba(246,236,214,.84);text-shadow:0 0 .6px rgba(246,236,214,.4)}
+.note-music-strings svg{transform:translateY(.55em) rotate(104deg)}
+@media(max-width:600px){
+  .note-music-strings{left:5%;top:50.2%}
+  .note-music-strings svg{transform:translateY(-.35em) rotate(-12deg)}
+}

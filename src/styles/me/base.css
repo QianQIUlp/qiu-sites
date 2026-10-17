@@ -1,0 +1,93 @@
+/* Shared base: tokens, reset, the world and what every room has in common (headings, small actions). */
+
+/* — Composition and controls — */
+:root{--paper:#eeede7;--ink:#252825;--muted:#73756b;--red:#e83d27;--line:#25282530;--sans:"Me Sans","Me CJK",Arial,"Microsoft YaHei",sans-serif;--serif:"Me Serif","Me CJK Serif",Georgia,"Times New Roman","SimSun",serif;--mono:"Me Mono","Me CJK","Courier New",Consolas,monospace}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;display:grid;grid-template-rows:90px minmax(0,1fr) 72px}
+button,a,input{-webkit-tap-highlight-color:transparent}
+button{border:0;background:none;cursor:pointer;color:inherit;font:inherit}
+a{color:inherit;text-decoration:none}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--red);outline-offset:5px}
+::selection{background:var(--red);color:var(--paper)}
+#room{position:relative;overflow:hidden;isolation:isolate;touch-action:none;user-select:none;cursor:grab;outline:none}
+#room.dragging{cursor:grabbing}
+#instrument{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none}
+.world{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform;pointer-events:none}
+.place{position:absolute;inset:0;pointer-events:none}
+.place button,.place a,.place [tabindex]{pointer-events:auto}
+.place-heading{position:absolute;left:6%;top:8%;pointer-events:none}
+.eyebrow{font:10px var(--mono);color:var(--muted);letter-spacing:.05em}
+.place-heading h2{font-size:clamp(25px,3.6vw,58px);font-weight:400;line-height:1.3;letter-spacing:-.045em;margin:19px 0 12px}
+.place-heading h2 em{font-weight:400;color:var(--red);font-style:normal}
+.place-heading>p{font-size:11px;line-height:1.8;color:var(--muted);margin:0}
+.small-action{font-size:11px;border-bottom:1px solid;padding:10px 0;display:inline-block}
+.small-action:hover{color:var(--red)}
+.sound-caption{display:block;font:8px var(--mono);color:var(--muted);margin-top:10px}
+body[data-motion=off] *,body[data-motion=off] *:before,body[data-motion=off] *:after{transition:none!important}
+@media(max-width:950px){body{grid-template-rows:80px minmax(0,1fr) 68px}.place-heading h2{font-size:34px}.place-heading>p{font-size:10px;max-width:200px}}
+@media(max-width:600px){body{grid-template-rows:72px minmax(0,1fr) 74px}.place-heading{left:7%;top:7%}.place-heading h2{font-size:31px;line-height:1.35;margin:14px 0 10px}.eyebrow{font-size:8px}.place-heading>p{font-size:9px;max-width:270px}.sound-caption{font-size:7px;line-height:1.7;max-width:110px}}
+html,body,#room{overflow:clip}
+.place-heading{opacity:var(--detail,1)}
+@media(max-height:570px) and (min-width:601px){body{grid-template-rows:62px minmax(0,1fr) 55px}.place-heading h2{font-size:27px;margin-top:12px}}
+@media(max-width:600px){
+  body{grid-template-rows:72px minmax(0,1fr) 92px}
+}
+
+/* — Icons — */
+/* UI symbols are geometry, independent of the visitor's font coverage. */
+.ui-icon{display:inline-block;width:1em;height:1em;flex-shrink:0;vertical-align:-.15em;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.ui-icon[hidden]{display:none}
+.ui-icon[data-icon=record] path,.ui-icon[data-icon=point] path{fill:currentColor}
+
+/* — English (html[lang=en]) — */
+html[lang=en] .place-heading h2{font:400 clamp(30px,3.7vw,56px)/1.1 var(--serif);letter-spacing:-.035em}
+html[lang=en] .place-heading>p{max-width:250px;font-size:11px;line-height:1.75}
+@media(max-width:600px){
+  html[lang=en] .place-heading h2{font-size:34px;margin:14px 0 11px}
+  html[lang=en] .place-heading>p{font-size:10px;max-width:260px}
+}
+
+/* — Composition and controls — */
+.extra-footer{position:absolute;left:6%;right:6%;bottom:4%;display:flex;align-items:center;justify-content:space-between;gap:22px;font-size:9px;color:var(--muted)}
+.extra-footer>a,.extra-footer>button{padding:12px 0;line-height:1.8}
+.extra-footer>button{display:flex;gap:17px;align-items:center}
+.extra-footer>button span{font-size:20px;color:var(--red)}
+.extra-footer>a:hover,.extra-footer>button:hover{color:var(--red)}
+.overviewing .extra-footer{opacity:0}
+@media(max-height:760px) and (min-width:701px){.extra-footer{bottom:2%;font-size:8px}}
+@media(max-width:1000px){.extra-footer{font-size:8px}}
+@media(max-width:700px){.extra-footer{left:7%;right:7%;bottom:2%;display:flex;gap:12px;align-items:flex-end;font-size:8px}.extra-footer>a{max-width:55%;line-height:1.7}.extra-footer>button{font-size:8px;gap:8px;max-width:44%;text-align:right;justify-content:flex-end}}
+@media(max-width:700px) and (max-height:740px){.extra-footer{font-size:7px}.extra-footer>button{font-size:7px}}
+@media(max-width:700px){
+  .extra-footer>a,.extra-footer>button{padding:6px 0;line-height:1.5}
+  .extra-footer>button span{font-size:14px;line-height:1;flex-shrink:0}
+}
+
+.field-index{position:absolute;left:5%;top:3%;font:8px var(--mono);letter-spacing:.12em;color:var(--muted);pointer-events:none}
+.overviewing .field-index{opacity:0;pointer-events:none}
+@media(max-width:700px){
+  .field-index{left:6%;font-size:6px;top:0}
+}
+
+/* — English (html[lang=en]) — */
+html[lang=en] .extra-footer { font-size: 8px; }
+@media(max-width:700px) {
+  html[lang=en] .extra-footer,html[lang=en] .extra-footer>button { font-size: 7px; }
+}
+
+/* — The pedals — */
+/* The pedalboard: four pedals drawn in shared units (--u = one "millimetre"), so every pedal, knob,
+   plug and cable scales together and keeps the proportions of the pedals it is a love letter to. */
+/* Registered, so --u is resolved once against the deck and inherited as a plain length. */
+@property --u{syntax:"<length>";inherits:true;initial-value:1px}
+
+/* — Paper that flies and holds the light — */
+/* Loose pages: paper that carries a throw, and a patch of window light to hold it up to.
+   JS sets --dx/--dy/--spin (where it is), --lift (how high it is held), --sunlit (how much of
+   it lies in the light) and --glow (held up in the light: the paper turns translucent). */
+:root{
+  --fibre:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.018 .09' numOctaves='4' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36 0 0 0 0 .27 0 0 0 0 .16 0 0 0 1.7 -.86'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>");
+  --dapple:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><g fill='rgb(52,62,36)'><path d='M400 0C330 60 300 120 236 170' fill='none' stroke='rgb(52,62,36)' stroke-width='5'/><path d='M350 40c22-16 58-14 78 0-20 14-56 16-78 0Z' transform='rotate(132 350 40)'/><path d='M330 70c22-16 58-14 78 0-20 14-56 16-78 0Z' transform='rotate(34 330 70)'/><path d='M296 112c26-18 66-16 90 0-24 16-64 18-90 0Z' transform='rotate(150 296 112)'/><path d='M276 136c22-16 58-14 78 0-20 14-56 16-78 0Z' transform='rotate(44 276 136)'/><path d='M246 170c24-17 62-15 84 0-22 15-60 17-84 0Z' transform='rotate(118 246 170)'/><path d='M226 196c20-14 52-12 70 0-18 12-50 14-70 0Z' transform='rotate(70 226 196)'/></g></svg>");
+}
+@keyframes sun-breathe{0%{opacity:.86}55%{opacity:1}100%{opacity:.9}}
