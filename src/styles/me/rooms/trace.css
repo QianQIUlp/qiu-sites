@@ -1,0 +1,58 @@
+/* 留一笔 ("Leave a line"): the whole room is the sheet. Behaviour: scripts/me/rooms/trace.js. */
+
+/* — Composition and controls — */
+.draw-area{pointer-events:auto}
+.trace{left:6%;top:-111%;width:100%;height:100%}
+.draw-area{position:absolute;inset:15% 5% 17% 33%;cursor:crosshair;touch-action:none}
+.drawing-hint{font:10px var(--mono);position:absolute;left:30%;top:50%;color:#a0a58f;pointer-events:none;transition:opacity .3s}
+.draw-area.has-lines .drawing-hint{opacity:0}
+.trace-footer{position:absolute;left:6%;right:6%;bottom:7%;display:flex;justify-content:space-between;align-items:end;gap:30px}
+.trace-footer p{font-size:12px;line-height:1.8;margin:0}
+.trace-footer p>span{font-size:9px;color:var(--muted)}
+.trace-footer>div{display:flex;gap:30px}
+@media(max-width:600px){.draw-area{inset:32% 7% 21%}.drawing-hint{left:19%;font-size:9px}.trace-footer{left:7%;right:7%;bottom:5%;gap:20px}.trace-footer p{font-size:10px}.trace-footer p>span{display:block;font-size:8px;max-width:110px}.trace-footer>div{display:block}.trace-footer .small-action{display:block;font-size:10px;padding:9px 0;margin:3px 0}}
+.trace-footer{opacity:var(--detail,1)}
+
+/* — English (html[lang=en]) — */
+@media(max-width:600px){
+  html[lang=en] .trace-footer p{font-size:11px;max-width:45%}
+  html[lang=en] .trace-footer .small-action{font-size:9px}
+}
+
+/* — Light and shadow — */
+#room[data-place=trace] .daylight{--sun-x:24%;--sun-y:6%;--blind-op:.55;--leaf-op:.5}
+/* Leave a line: the whole room is the sheet; the title is written down its edge. */
+@media(min-width:701px){
+  .draw-area{inset:7% 21% 17% 5%}
+  .trace .place-heading{left:auto;right:5.5%;top:7%;width:auto;text-align:right}
+  html[lang^=zh] .trace .place-heading{writing-mode:vertical-rl;height:74%;text-align:left}
+  html[lang^=zh] .trace .place-heading h2{font-size:clamp(30px,3.6vw,58px);letter-spacing:.06em;line-height:1.45;margin:0 22px 0 18px}
+  html[lang^=zh] .trace .place-heading .eyebrow{letter-spacing:.2em}
+  html[lang^=zh] .trace .place-heading>p{max-height:100%}
+  .trace .drawing-hint{left:42%;top:46%}
+  .trace-footer{right:21%}
+}
+
+/* — Pencil notes — */
+.note-trace-line{left:48%;top:63%;--note-angle:-4deg}
+.note-trace-line svg{transform:translateY(-.3em) rotate(-8deg)}
+.note-trace-pluck{left:22%;top:71%;--note-angle:-3deg}
+.note-trace-pluck svg{transform:translateY(-.25em) rotate(-4deg)}
+.note-trace-loop{left:43%;top:19%;--note-angle:-3deg}
+.note-trace-loop svg{transform:translateY(.2em) rotate(28deg)}
+.note-trace-cross{left:9%;top:24%;--note-angle:-4deg}
+.note-trace-cross svg{transform:translateY(.9em) rotate(72deg)}
+@media(max-width:600px){
+  .note-trace-line{left:30%;top:66%}
+  .note-trace-pluck{left:8%;top:78%}
+  .note-trace-loop{left:44%;top:27%}
+  .note-trace-cross{left:7%;top:27%}
+}
+/* The pencil's own demonstration in 留一笔: drawn by itself, shivered by an invisible finger. */
+.trace-ghost{position:absolute;left:12%;top:30%;width:70%;height:34%;overflow:visible;pointer-events:none;opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+.trace-ghost path{fill:none;stroke:rgba(58,60,54,.55);stroke-width:1.6;stroke-linecap:round;vector-effect:non-scaling-stroke;clip-path:inset(-20% 100% -20% 0)}
+.trace-ghost-ring{position:absolute;left:70%;top:8%;width:15%;height:30%;overflow:visible;pointer-events:none;opacity:0}
+/* Drawn with a dash, so its strokes scale with it (a non-scaling stroke would break the dash). */
+.trace-ghost-ring path,.trace-ghost-ring circle{fill:none;stroke:rgba(58,60,54,.55);stroke-width:.5;stroke-linecap:round}
+.trace-ghost-ring path{stroke-dasharray:1;stroke-dashoffset:1}
+.trace-ghost-ring circle{stroke-width:.3;opacity:0}

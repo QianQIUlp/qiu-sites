@@ -1,4 +1,0 @@
-/* UI symbols are geometry, independent of the visitor's font coverage. */
-.ui-icon{display:inline-block;width:1em;height:1em;flex-shrink:0;vertical-align:-.15em;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-.ui-icon[hidden]{display:none}
-.ui-icon[data-icon=record] path,.ui-icon[data-icon=point] path{fill:currentColor}

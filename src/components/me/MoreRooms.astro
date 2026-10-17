@@ -19,7 +19,7 @@ const eyeNote = t('闭上左眼，盯住十字，慢慢凑近', 'shut your left 
 // hand-font:end
 const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
 ---
-<section class="place paths" data-scene="paths" aria-labelledby="paths-title" inert>
+<section class="place paths" data-scene="paths" data-asleep aria-labelledby="paths-title" inert>
   <div class="place-heading">
     <span class="eyebrow">{t('未走之路 / SAME END. DIFFERENT WAY.', 'SAME END. DIFFERENT WAY.')}</span>
     <h2 id="paths-title"><Fragment set:html={t('如果结局一样，<br><em>还要选择吗。</em>', 'The same ending.<br><em>Still your choice.</em>')} /></h2>
@@ -42,7 +42,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
   <div class="extra-footer"><a href="/blog/posts/2026-05-17-qiyuniao/" target="_blank" rel="noopener noreferrer">{t('从《启喻鸟之章》的一个问题出发', 'From a question about fate · Read in Chinese')} <Icon name="northeast" /></a><button data-place="trace">{t('把走过的，留成一笔', 'Leave a line of your own')} <span><Icon name="right" /></span></button></div>
 </section>
 
-<section class="place blindspot" data-scene="blindspot" aria-labelledby="blindspot-title" inert>
+<section class="place blindspot" data-scene="blindspot" data-asleep aria-labelledby="blindspot-title" inert>
   <div class="place-heading">
     <span class="eyebrow">{t('盲点 / CERTAINTY HAS A VIEWPOINT', 'CERTAINTY HAS A VIEWPOINT')}</span>
     <h2 id="blindspot-title"><Fragment set:html={t('太完整的答案，<br><em>也许藏着裂缝。</em>', 'A perfect answer.<br><em>Look for the gaps.</em>')} /></h2>
@@ -59,7 +59,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
   <div class="extra-footer"><a href="/blog/posts/2026-05-26-llm-metacog-blindspot/#八写到这里给自己泼一盆冷水" target="_blank" rel="noopener noreferrer">{t('看《LLM 元认知盲点》里留下的自我修正', 'Read my correction · In Chinese')} <Icon name="northeast" /></a><button data-place="rethink">{t('也去翻翻另一面', 'Turn a thought over, too')} <span><Icon name="southwest" /></span></button></div>
 </section>
 
-<section class="place rethink" data-scene="rethink" aria-labelledby="rethink-title" inert>
+<section class="place rethink" data-scene="rethink" data-asleep aria-labelledby="rethink-title" inert>
   <div class="place-heading">
     <span class="eyebrow">{t('另一面 / A THOUGHT, TURNED OVER', 'A THOUGHT, TURNED OVER')}</span>
     <h2 id="rethink-title"><Fragment set:html={t('翻过来，<br><em>还是我。</em>', 'Turn it over.<br><em>Still me.</em>')} /></h2>
@@ -84,7 +84,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
   <div class="extra-footer"><a href="/blog/posts/2026-05-29-liar-game-role-game/" target="_blank" rel="noopener noreferrer">{t('从《世界不是 liar game，是 role game》里长出来', 'From my essay on roles · Read in Chinese')} <Icon name="northeast" /></a><button data-place="work">{t('去看看，想法怎么变成东西', 'See a thought become a thing')} <span><Icon name="right" /></span></button></div>
 </section>
 
-<section class="place work" data-scene="work" aria-labelledby="work-title" inert>
+<section class="place work" data-scene="work" data-asleep aria-labelledby="work-title" inert>
   <div class="place-heading"><span class="eyebrow">{t('拆开看看 / BENEATH THE SURFACE', 'BENEATH THE SURFACE')}</span><h2 id="work-title"><Fragment set:html={t('表面之下，<br><em>还有做法。</em>', 'Under the surface,<br><em>decisions.</em>')} /></h2><p><Fragment set:html={t('移动这道光。<br>让作品的做法与边界，显出截面。', 'Move this light.<br>Reveal the decisions and limits within.')} /></p></div>
   <div class="project-picker" role="group" aria-label={t('选一件作品', 'Choose a project')} data-room-control>
     <button data-project="verisilo" aria-pressed="true"><i></i>VeriSilo</button>
@@ -115,7 +115,7 @@ const clockTicks = Array.from({ length: 12 }, (_, i) => i * 30);
   <div class="extra-footer"><a href={lang === 'en' ? 'https://qiu.works/' : 'https://qiu.works/zh/'} target="_blank" rel="noopener noreferrer">{t('去 Q Studio，继续看作品', 'More at Q Studio')} <Icon name="northeast" /></a><button data-place="idle">{t('也可以，什么都不做', 'Or do nothing for a while')} <span><Icon name="right" /></span></button></div>
 </section>
 
-<section class="place idle" data-scene="idle" aria-labelledby="idle-title" inert>
+<section class="place idle" data-scene="idle" data-asleep aria-labelledby="idle-title" inert>
   <div class="idle-sun" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="place-heading"><span class="eyebrow">{t('不赶时间 / AN UNPRODUCTIVE CORNER', 'AN UNPRODUCTIVE CORNER')}</span><h2 id="idle-title"><Fragment set:html={t('这里，<br><em>不用有用。</em>', 'Here,<br><em>nothing is due.</em>')} /></h2><p><Fragment set:html={t('把几个「应该」放进去。<br>拖过去，或者点一下纸片。', 'Let go of a few “shoulds”.<br>Drag a slip into the hollow. Or tap it.')} /></p></div>
   <div class="idle-void" aria-hidden="true"><span class="idle-outline" lang="zh-Hans">空</span><div class="paper-hole"><div class="hole-rim"></div><div class="hole-bottom"><span>{t('也没关系。', 'That’s okay.')}</span></div></div><span class="hole-cross"><Icon name="plus" /></span></div>

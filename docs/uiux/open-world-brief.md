@@ -47,7 +47,9 @@ Check each step yourself in the browser, show Qiu screenshots, and only commit, 
 
 **Update 2026-10-10 (Qiu):** step 3 goes into one PR (#86) for all rooms. Keep moving without stopping for approval after each room; push as work lands, send screenshots, and ask Qiu only when a decision is genuinely theirs.
 
-## Branch state (`feat/me-living-rooms`, commit ec12233, not pushed)
+**Next (2026-10-17):** steps 4–6 and the current status live in `open-world-roadmap.md`. Read it after this file.
+
+## Branch state (`feat/me-living-rooms`, commit ec12233, not pushed) — historical
 
 | Change | Disposition |
 | --- | --- |

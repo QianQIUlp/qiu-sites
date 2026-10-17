@@ -1,662 +1,233 @@
-import {t} from './language.js';
-import {setControl} from './icons.js';
-import {createAudioRig,defaultRig,tones,pedalKeys,harmonyShifts,keyNames} from './audio-engine.js';
-(() => {
-  const sans=getComputedStyle(document.documentElement).getPropertyValue('--sans');
-  const room=document.querySelector('#room'),world=document.querySelector('#world');
-  const canvas=document.querySelector('#instrument'),ctx=canvas.getContext('2d');
-  const underlay=document.createElement('div');underlay.className='world underlay';underlay.append(document.querySelector('.name'));room.prepend(underlay);
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  let motion=!reduced.matches,width=1,height=1,dpr=1,lastFrame=0,frameId=0;
-  let tilt={x:0,y:0},pointer={x:0,y:0},guitarInteraction=true;
-  const pulses=Array(6).fill(0),frequencies=[329.63,246.94,196,146.83,110,82.41];
-  const places={home:{x:0,y:0,z:1,name:t("小屋中央","At home")},papers:{x:-1.12,y:.01,z:1,name:t("几张散页","Loose pages")},music:{x:1.13,y:0,z:1,name:t("琴弦之间","A little jam")},trace:{x:.06,y:-1.11,z:1,name:t("留一笔","Leave a line")},rethink:{x:-1.12,y:1.12,z:1,name:t("另一面", "The other side")},work:{x:1.13,y:1.12,z:1,name:t("拆开看看", "Beneath the surface")},idle:{x:0,y:1.12,z:1,name:t("不赶时间", "No hurry")},paths:{x:-1.12,y:-1.11,z:1,name:t("未走之路", "Paths untaken")},blindspot:{x:1.13,y:-1.11,z:1,name:t("盲点", "Blind spots")},overview:{x:.01,y:.035,z:.24,name:t("整间小屋","The whole room")}};
-  let camera={x:0,y:0,z:1},target={...camera},active='home',fling=null;
-  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-  let lines=[],drawing=null,lineContact=null,lastLinePluck=0;
-  let loopNotes=[],recording=false,looping=false,recordStart=0,loopStart=0,lastLoopPosition=-1;
-  const loopButton=document.querySelector('#loop'),loopClear=document.querySelector('#loop-clear'),loopCaption=document.querySelector('#loop-caption');
+// The camera over the house: dragging, coasting, zooming, routing by #hash, the room bar, and the
+// room registry. Every room is a module (rooms/<place>.js) that plugs in through one contract:
+//
+//   export default {
+//     place: 'music',
+//     mount(ctx) {},        // once, the first time the room is needed; ctx is the shared house below
+//     enter() {},           // the camera has arrived here
+//     leave() {},           // the camera has gone somewhere else
+//     frame(now, dt) {},    // every camera frame while mounted; return true to ask for another one
+//     paint(g, now) {},     // draw on the shared world canvas, already in world space (when in view)
+//   };
+//
+// All hooks except `place` are optional. Rooms never reach into each other: anything shared goes
+// through `ctx` (sound, camera state, the other rooms' public parts via ctx.use).
+import {t, english} from './language.js';
+import {places, rooms, wanderHint} from './places.js';
+import {sound} from './sound.js';
 
-  const guitarPhoto=document.querySelector('#guitar-photo');
-  guitarPhoto.addEventListener('load',schedule);
-  window.addEventListener('guitar-model-ready',schedule);
-  guitarPhoto.addEventListener('error',()=>{document.querySelector('#guitar-status').textContent=t("照片未能载入，请刷新页面。","The photograph couldn’t load. Please refresh.");});
-  function line(points,color,lineWidth=.8) {
-    if(!points.length)return;
-    ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
-    for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
-    ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.stroke();
-  }
-  function drawGuitar() {
-    if(document.querySelector('#guitar-closeup').open&&window.qiuGuitar)return;
-    if(!window.qiuGuitar)return;
-    const size=Math.min(height*.91,width*(width<680?1.3:.83));
-    const follow=motion?1:.3;
-    ctx.save();ctx.translate(width*.505+tilt.x*7*follow,height*.475+tilt.y*4*follow);
-    ctx.rotate(.32+tilt.x*.025*follow);
-    window.qiuGuitar.drawHome(tilt.x*follow,tilt.y*follow);
-    // Like everything else in the room, it casts away from the window: a long soft shadow, then a close one.
-    ctx.shadowColor='rgba(74,50,26,.24)';ctx.shadowBlur=size*.032;ctx.shadowOffsetX=-size*.03;ctx.shadowOffsetY=size*.04;
-    ctx.drawImage(window.qiuGuitar.canvas,-size/2,-size/2,size,size);
-    ctx.shadowColor='rgba(46,28,12,.26)';ctx.shadowBlur=size*.006;ctx.shadowOffsetX=-size*.006;ctx.shadowOffsetY=size*.009;
-    ctx.drawImage(window.qiuGuitar.canvas,-size/2,-size/2,size,size);
-    document.body.classList.add('guitar-home-ready');
-    ctx.restore();
-  }
-  function inView(place) {
-    const half=.5/camera.z;
-    return Math.abs(place.x-camera.x)<half+.55&&Math.abs(place.y-camera.y)<half+.55;
-  }
+const sans = getComputedStyle(document.documentElement).getPropertyValue('--sans');
+const room = document.querySelector('#room'), world = document.querySelector('#world');
+const canvas = document.querySelector('#instrument'), g = canvas.getContext('2d');
+const underlay = document.createElement('div'); underlay.className = 'world underlay'; underlay.append(document.querySelector('.name')); room.prepend(underlay);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+let motion = !reduced.matches, width = 1, height = 1, dpr = 1, lastFrame = 0, frameId = 0;
+let camera = {x: 0, y: 0, z: 1}, target = {...camera}, active = 'home', fling = null;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const listeners = {motion: [], resize: []};
 
-  function thread(from,to,color='#e83d2730') {
-    const x1=from[0]*width,y1=from[1]*height,x2=to[0]*width,y2=to[1]*height;
-    ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(x1+(x2-x1)*.3,y1+height*.12,x2-(x2-x1)*.25,y2+height*.19,x2,y2);ctx.strokeStyle=color;ctx.lineWidth=.65;ctx.stroke();
-  }
-  // The strings room is a close-up of the real Rāna. The photograph keeps its strings;
-  // a plucked one blurs into the lens-shaped envelope a ringing string makes.
-  const jamCanvas=document.querySelector('#jam-strings'),jamCtx=jamCanvas.getContext('2d');
-  const jamLines=[[297,293],[322,320],[348,345],[374,373],[399,401],[425,429]],jamGauge=[.7,.85,1.05,1.3,1.6,1.9];
-  function drawJam(now) {
-    const w=jamCanvas.clientWidth,h=jamCanvas.clientHeight;if(!w||!h)return;
-    const scale=Math.min(2.5,dpr*Math.max(1,camera.z));
-    if(jamCanvas.width!==Math.round(w*scale)||jamCanvas.height!==Math.round(h*scale)){jamCanvas.width=Math.round(w*scale);jamCanvas.height=Math.round(h*scale);}
-    jamCtx.setTransform(scale,0,0,scale,0,0);jamCtx.clearRect(0,0,w,h);
-    const sx=w/860,sy=h/620,start=-40,end=690;
-    jamLines.forEach(([a,b],i)=>{
-      const p=pulses[i];if(p<.012)return;
-      const y=u=>(a+(b-a)*(u-320)/350)*sy,amp=motion?p*Math.min(11,4+i*1.4)*sy:0,phase=Math.cos(now*(.06-i*.0055)+i);
-      jamCtx.beginPath();
-      for(let n=0;n<=48;n++){const u=start+(end-start)*n/48,e=Math.sin(Math.PI*n/48);jamCtx.lineTo(u*sx,y(u)-amp*e);}
-      for(let n=48;n>=0;n--){const u=start+(end-start)*n/48,e=Math.sin(Math.PI*n/48);jamCtx.lineTo(u*sx,y(u)+amp*e);}
-      jamCtx.fillStyle=`rgba(236,228,210,${Math.min(.2,p*.22)})`;jamCtx.fill();
-      jamCtx.beginPath();
-      for(let n=0;n<=48;n++){const u=start+(end-start)*n/48,e=Math.sin(Math.PI*n/48);jamCtx.lineTo(u*sx,y(u)+amp*e*phase);}
-      jamCtx.strokeStyle=`rgba(255,247,232,${.35+p*.55})`;jamCtx.lineWidth=jamGauge[i]*Math.max(.7,sx);jamCtx.shadowColor='rgba(255,196,140,.55)';jamCtx.shadowBlur=6*p;jamCtx.stroke();jamCtx.shadowBlur=0;
-    });
-  }
-  // 留一笔: a pencil line becomes a string. Its length tunes it (a monochord's rule, written on the
-  // ruler along the bottom edge); where it is touched shapes the shiver; a line that closes on itself
-  // rings like a bowl and sends out ripples; lines that cross answer each other.
-  const scale=[98,110,123.47,146.83,164.81,196,220,246.94,293.66,329.63,392,440,493.88,587.33,659.25,783.99];
-  const noteNames=['G2','A2','B2','D3','E3','G3','A3','B3','D4','E4','G4','A4','B4','D5','E5','G5'];
-  const SPAN=117.5,graphite='rgba(46,48,44,.84)';
-  const tuneTo=length=>{const raw=SPAN/Math.max(length,.04);let best=0;scale.forEach((f,i)=>{if(Math.abs(Math.log(f/raw))<Math.abs(Math.log(scale[best]/raw)))best=i;});return best;};
-  let crossings=[],ruler={note:-1,amp:0};
-  function drawBounds() {return width<=600?{x:.07,y:.32,w:.86,h:.47}:width<=700?{x:.33,y:.15,w:.62,h:.68}:{x:.05,y:.07,w:.74,h:.76};}
-  function traceFrame(){const b=drawBounds();return{b,x0:(.06+b.x)*width,y0:(-1.11+b.y)*height,bw:b.w*width,bh:b.h*height};}
-  function shapeAt(strand,u){
-    if(strand.loop)return Math.sin(u*Math.PI*4);
-    // A fresh pluck is a bent string, peaked where the finger was; it relaxes into the round mode.
-    const a=clamp(strand.at,.08,.92),bent=u<a?u/a:(1-u)/(1-a),fresh=clamp(strand.amp*1.5-.45,0,1);
-    return bent*fresh+Math.sin(u*Math.PI)*(1-fresh);
-  }
-  function drawRuler(f){
-    const y=f.y0+f.bh+(width<=600?18:12),sparse=width<=600;
-    ctx.save();ctx.strokeStyle='rgba(46,48,44,.26)';ctx.fillStyle='rgba(46,48,44,.42)';ctx.lineWidth=.6;ctx.font=`${sparse?7:8}px ${getComputedStyle(document.body).getPropertyValue('--mono')||'monospace'}`;ctx.textAlign='center';
-    ctx.beginPath();ctx.moveTo(f.x0,y);ctx.lineTo(f.x0+f.bw,y);ctx.moveTo(f.x0,y-4);ctx.lineTo(f.x0,y+4);ctx.stroke();
-    scale.forEach((hz,i)=>{
-      const length=SPAN/hz;if(length>1)return;
-      const x=f.x0+length*f.bw,g=noteNames[i][0]==='G',lit=ruler.note===i?ruler.amp:0,named=!sparse||g||noteNames[i][0]==='D';
-      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+(g?7:4));ctx.strokeStyle=lit>.02?`rgba(232,61,39,${.3+lit*.7})`:'rgba(46,48,44,.3)';ctx.stroke();
-      if(named){ctx.fillStyle=lit>.02?`rgba(232,61,39,${.45+lit*.55})`:'rgba(46,48,44,.4)';ctx.fillText(noteNames[i],x,y-(i%2?12:5));}
-      if(lit>.02){ctx.beginPath();ctx.moveTo(x,y+9);ctx.lineTo(x-3,y+14);ctx.lineTo(x+3,y+14);ctx.closePath();ctx.fillStyle=`rgba(232,61,39,${lit})`;ctx.fill();}
-    });
-    ctx.restore();
-  }
-  function drawTrace(now) {
-    const f=traceFrame(),{b}=f;
-    ctx.strokeStyle='#878e7130';ctx.lineWidth=.6;
-    [[0,0],[1,0],[0,1],[1,1]].forEach(([u,v])=>{const x=f.x0+u*f.bw,y=f.y0+v*f.bh;ctx.beginPath();ctx.moveTo(x-4,y);ctx.lineTo(x+4,y);ctx.moveTo(x,y-4);ctx.lineTo(x,y+4);ctx.stroke();});
-    drawRuler(f);
-    [...lines,...(drawing?[drawing]:[])].forEach((strand,k)=>{
-      const n=strand.points.length;if(n<2)return;
-      const speed=.018+.05*(strand.note??6)/15,swing=motion?Math.sin(now*speed+k*1.7):0,reach=strand.amp*height*(strand.loop?.012:.024);
-      const at=(i,s)=>{
-        const p=strand.points[i],prev=strand.points[Math.max(0,i-1)],next=strand.points[Math.min(n-1,i+1)];
-        const dx=(next.x-prev.x)*f.bw,dy=(next.y-prev.y)*f.bh,len=Math.hypot(dx,dy)||1,d=motion?shapeAt(strand,i/(n-1))*reach*s:0;
-        return{x:f.x0+p.x*f.bw-dy/len*d,y:f.y0+p.y*f.bh+dx/len*d,w:p.w||1.2};
-      };
-      // A ringing string blurs into the lens-shaped envelope; the pencil line itself swings inside it.
-      if(strand.amp>.04&&motion){[1,-1].forEach(s=>line(strand.points.map((_,i)=>at(i,s)),`rgba(232,61,39,${strand.amp*.22})`,.7));}
-      const points=strand.points.map((_,i)=>at(i,swing)),ink=strand.amp>.06?`rgba(${Math.round(46+186*strand.amp)},${Math.round(48+13*strand.amp)},${Math.round(44-5*strand.amp)},.88)`:graphite;
-      ctx.lineCap='round';
-      for(let i=1;i<points.length;i++){ctx.beginPath();ctx.moveTo(points[i-1].x,points[i-1].y);ctx.lineTo(points[i].x,points[i].y);ctx.strokeStyle=ink;ctx.lineWidth=(points[i-1].w+points[i].w)*.5;ctx.stroke();}
-      // Graphite grain: a lighter second pass, a hair off the first.
-      line(points.map(p=>({x:p.x+.45,y:p.y-.35})),'rgba(46,48,44,.16)',.5);
-      ctx.lineCap='butt';
-      if(strand.loop){
-        const c=points.reduce((s,p)=>({x:s.x+p.x/n,y:s.y+p.y/n}),{x:0,y:0}),r=points.reduce((s,p)=>s+Math.hypot(p.x-c.x,p.y-c.y),0)/n;
-        if(strand.amp>.03&&motion)for(let j=0;j<3;j++){const grow=(1-strand.amp)*.75+j*.16;ctx.beginPath();ctx.arc(c.x,c.y,r*(1.06+grow),0,Math.PI*2);ctx.strokeStyle=`rgba(46,48,44,${strand.amp*(.34-j*.1)})`;ctx.lineWidth=.7;ctx.stroke();}
-        if(strand.amp>.05&&strand.note!=null){ctx.font=`9px ${getComputedStyle(document.body).getPropertyValue('--mono')}`;ctx.textAlign='center';ctx.fillStyle=`rgba(232,61,39,${strand.amp})`;ctx.fillText(noteNames[strand.note],c.x,c.y+3);ctx.textAlign='start';}
-      }else if(strand!==drawing||n>3){
-        [points[0],points[points.length-1]].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,2.4,0,Math.PI*2);ctx.fillStyle='#eeede7';ctx.fill();ctx.strokeStyle='#e83d27';ctx.lineWidth=.8;ctx.stroke();});
-        if(strand.amp>.05&&strand.note!=null){const e=points[points.length-1];ctx.font=`9px ${getComputedStyle(document.body).getPropertyValue('--mono')}`;ctx.fillStyle=`rgba(232,61,39,${strand.amp})`;ctx.fillText(noteNames[strand.note],e.x+7,e.y-6);}
-      }
-    });
-    crossings.forEach(c=>{const x=f.x0+c.x*f.bw,y=f.y0+c.y*f.bh,lit=Math.max(c.a.amp,c.b.amp);ctx.beginPath();ctx.arc(x,y,1.7,0,Math.PI*2);ctx.fillStyle=lit>.05?`rgba(232,61,39,${.4+lit*.6})`:graphite;ctx.fill();if(lit>.05){ctx.beginPath();ctx.arc(x,y,4+lit*5,0,Math.PI*2);ctx.strokeStyle=`rgba(232,61,39,${lit*.35})`;ctx.lineWidth=.6;ctx.stroke();}});
-  }
-  function render(now) {
-    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
-    ctx.save();ctx.translate(width/2-camera.x*width*camera.z,height/2-camera.y*height*camera.z);ctx.scale(camera.z,camera.z);ctx.translate(-width/2,-height/2);
-    thread([.39,.77],[-.72,.67]);thread([.86,.93],[1.58,.46]);thread([.61,.15],[.77,-.6]);
-    thread([-.54,.84],[-.62,1.46]);thread([1.67,.85],[1.65,1.48]);thread([.48,.92],[.51,1.55]);
-    thread([-.62,-.16],[-.62,.3]);thread([1.67,-.16],[1.65,.3]);
-    thread([-.3,-.56],[.33,-.5]);thread([.91,-.51],[1.38,-.54]);
-    if(inView(places.home))drawGuitar();
-    if(inView(places.music))drawJam(now);
-    if(inView(places.trace))drawTrace(now);
-    if(camera.z<.65){
-      ctx.globalAlpha=clamp((.65-camera.z)/.18,0,1);ctx.fillStyle='#626b55';ctx.font=`${11/camera.z}px ${sans}`;ctx.textAlign='center';
-      [[-.56,.11,t("几张散页","Loose pages")],[1.74,.12,t("琴弦之间","A little jam")],[.69,-.87,t("留一笔","Leave a line")],[-.62,-.87,t("未走之路", "Paths untaken")],[1.64,-.87,t("盲点", "Blind spots")],[-.62,1.23,t("另一面", "The other side")],[.51,1.23,t("不赶时间", "No hurry")],[1.64,1.23,t("拆开看看", "Beneath the surface")]].forEach(([x,y,label])=>ctx.fillText(label,x*width,y*height));ctx.textAlign='start';
-      if(!lines.length){const marks=[];for(let i=0;i<85;i++){const t=i/84;marks.push({x:(.43+.51*t)*width,y:(-.52+Math.sin(t*Math.PI*2.5)*.12)*height});}line(marks,'#e83d27',1/camera.z);}
-      ctx.globalAlpha=1;
-    }
-    ctx.restore();
-    const transform=`translate(${-camera.x*width*camera.z}px,${-camera.y*height*camera.z}px) scale(${camera.z})`;
-    world.style.transform=transform;underlay.style.transform=transform;world.style.setProperty('--detail',clamp((camera.z-.45)/.35,0,1));
-  }
-  function frame(now) {
-    frameId=0;const dt=Math.min(2.5,(now-(lastFrame||now-16))/16.667);lastFrame=now;
-    const ease=motion?1-Math.pow(.82,dt):1;
-    if(fling)coast(dt);
-    ['x','y','z'].forEach(k=>camera[k]+=(target[k]-camera[k])*ease);
-    const follow=motion&&guitarInteraction&&active==='home',tx=follow?pointer.x:0,ty=follow?pointer.y:0;
-    tilt.x+=(tx-tilt.x)*ease;tilt.y+=(ty-tilt.y)*ease;
-    pulses.forEach((v,i)=>pulses[i]=v*Math.pow(motion?.946:.65,dt));
-    lines.forEach(l=>l.amp*=Math.pow(motion?.95:.65,dt));
-    runLoop(now);updateMeter();render(now);
-    const moving=['x','y','z'].some(k=>Math.abs(camera[k]-target[k])>.0003)||Math.abs(tilt.x-tx)>.004||Math.abs(tilt.y-ty)>.004;
-    if(fling||recording||looping||moving||vu>-47.5||pulses.some(p=>p>.015)||lines.some(l=>l.amp>.015)||(enabled&&audio&&audio.currentTime<audioTailUntil))schedule();
-  }
-  function schedule(){if(!frameId&&!document.hidden)frameId=requestAnimationFrame(frame);}
-  function resize() {
-    const rect=room.getBoundingClientRect();width=rect.width;height=rect.height;dpr=Math.min(devicePixelRatio||1,2);
-    canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
-    setActive(active);schedule();
-  }
-  function setActive(place) {
-    const changed=active!==place;
-    active=place;room.dataset.place=place;if(place!=='home')pointer={x:0,y:0};room.classList.toggle('overviewing',place==='overview');
-    document.querySelectorAll('.language-switch a').forEach(link=>link.hash=place);
-    document.querySelector('#where-name').textContent=places[place].name;
-    document.querySelector('#where-hint').textContent=place==='papers'?t("举到光里看看 · 点一下翻面","Hold a page to the light · Click to turn"):place==='music'?t("划过琴弦 · A S D F G H","Pluck a string · A S D F G H"):place==='trace'?t("画一根弦 · 松手再拨动","Draw a line · Let go, then pluck"):width<=600?t("拖动画面 · 双指缩放","Drag to wander · Pinch to zoom"):t("拖动画面漫游 · 滚轮缩放","Drag to wander · Scroll to zoom");
-    const roomHints={rethink:t("拖动纸带 · 换一面想想", "Turn the ribbon · Think again"),work:t("移动切面 · 看见做法与边界", "Move the section · Reveal decisions"),idle:t("把「应该」放下 · 或者，别动", "Let go of a “should” · Or stay still"),paths:t("拨开线束 · 听一条自己的路", "Bend the threads · Hear your path"),blindspot:t("转动「确定」 · 看见藏住的间隙", "Turn certainty · Find its gaps")};
-    if(roomHints[place])document.querySelector('#where-hint').textContent=roomHints[place];
-    document.querySelectorAll('[data-scene]').forEach(node=>node.inert=node.dataset.scene!==place);
-    document.querySelectorAll('.room-map button').forEach(node=>{const current=node.dataset.place===place;node.classList.toggle('active',current);if(current)node.setAttribute('aria-current','location');else node.removeAttribute('aria-current');});
-    document.querySelectorAll('.portal').forEach(node=>node.hidden=place!=='overview');
-    if(changed)document.dispatchEvent(new CustomEvent('roomchange',{detail:{place}}));
-  }
-  function go(place) {
-    fling=null;const p=places[place];target={x:p.x,y:p.y,z:p.z};
-    setActive(place);history.replaceState(null,'',`#${place}`);schedule();
-  }
-  function classify() {
-    if(target.z<.61){setActive('overview');return;}
-    let best='home',distance=Infinity;
-    Object.entries(places).filter(([k])=>k!=='overview').forEach(([k,p])=>{const d=Math.hypot(target.x-p.x,target.y-p.y);if(d<distance){distance=d;best=k;}});
-    setActive(best);
-  }
-  for(const name of ['home','papers','music','trace','rethink','work','idle','paths','blindspot']) {
-    const portal=document.createElement('button');portal.type='button';portal.className='portal';portal.dataset.place=name;portal.setAttribute('aria-label',t(`走近${places[name].name}`,`Explore: ${places[name].name}`));portal.hidden=true;
-    Object.assign(portal.style,{position:'absolute',left:`${(places[name].x+.04)*100}%`,top:`${(places[name].y+.05)*100}%`,width:'92%',height:'88%',pointerEvents:'auto',zIndex:'30',background:'transparent'});world.append(portal);
-  }
-  document.querySelectorAll('[data-place]').forEach(button=>button.addEventListener('click',()=>go(button.dataset.place)));
-  function zoomAt(factor,x=width/2,y=height/2) {
-    fling=null;
-    const old=target.z,next=clamp(old*factor,.2,1.75);
-    target.x=clamp(target.x+(x-width/2)/width*(1/old-1/next),-1.65,1.72);
-    target.y=clamp(target.y+(y-height/2)/height*(1/old-1/next),-1.5,1.7);target.z=next;classify();schedule();
-  }
-  document.querySelector('#zoom-in').addEventListener('click',()=>zoomAt(1.2));document.querySelector('#zoom-out').addEventListener('click',()=>zoomAt(1/1.2));
-  room.addEventListener('wheel',event=>{if(event.ctrlKey||event.metaKey||event.target.closest('input,.pedal-deck,[data-room-control]'))return;event.preventDefault();const r=room.getBoundingClientRect();zoomAt(Math.exp(-clamp(event.deltaY,-120,120)*.002),event.clientX-r.left,event.clientY-r.top);},{passive:false});
-  const contacts=new Map();let pan=null,pinch=null,trail=[];
-  // Letting go keeps the room moving: the release speed carries on and bleeds away.
-  // Only a camera that drifts to rest beside a corner is drawn the last bit of the way.
-  function throwCamera(now){
-    const recent=trail.filter(p=>now-p.t<90);
-    if(!motion||recent.length<2||now-recent[recent.length-1].t>45)return;
-    const a=recent[0],b=recent[recent.length-1],span=Math.max(16,b.t-a.t);
-    let vx=(b.x-a.x)/span,vy=(b.y-a.y)/span;const speed=Math.hypot(vx,vy),max=.006;
-    if(speed<.00025)return;
-    if(speed>max){vx*=max/speed;vy*=max/speed;}
-    fling={vx,vy};
-  }
-  function coast(dt){
-    const ms=dt*16.667,decay=Math.pow(.945,dt);
-    const nx=target.x+fling.vx*ms,ny=target.y+fling.vy*ms;
-    target.x=clamp(nx,-1.65,1.72);target.y=clamp(ny,-1.5,1.7);
-    if(target.x!==nx)fling.vx*=-.25;if(target.y!==ny)fling.vy*=-.25;
-    fling.vx*=decay;fling.vy*=decay;
-    if(Math.hypot(fling.vx,fling.vy)>.00006)return;
-    fling=null;classify();
-    const p=places[active];if(p&&active!=='overview'&&Math.hypot(target.x-p.x,target.y-p.y)<.14){target.x=p.x;target.y=p.y;}
-  }
-  room.addEventListener('pointerdown',event=>{
-    if(event.button!==0||event.target.closest('button,a,input,label,.pedal-deck,.loose-paper,.draw-area,[data-room-control]'))return;
-    fling=null;contacts.set(event.pointerId,{x:event.clientX,y:event.clientY});room.setPointerCapture(event.pointerId);room.classList.add('dragging');
-    if(contacts.size===1){target={...camera};pan={x:event.clientX,y:event.clientY,camera:{...camera}};trail=[];}
-    else if(contacts.size===2){const [a,b]=[...contacts.values()];pinch={distance:Math.hypot(a.x-b.x,a.y-b.y),z:camera.z};pan=null;}
-  });
-  room.addEventListener('pointermove',event=>{
-    const bounds=room.getBoundingClientRect();if(motion&&guitarInteraction&&active==='home'&&event.pointerType==='mouse'){pointer.x=clamp(((event.clientX-bounds.left)/width-.505)*3,-1,1);pointer.y=clamp(((event.clientY-bounds.top)/height-.475)*2,-1,1);schedule();}
-    if(contacts.has(event.pointerId)) {
-      contacts.set(event.pointerId,{x:event.clientX,y:event.clientY});
-      if(pinch&&contacts.size===2){const [a,b]=[...contacts.values()];const next=clamp(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.distance,.2,1.75);zoomAt(next/target.z,(a.x+b.x)/2-bounds.left,(a.y+b.y)/2-bounds.top);}
-      else if(pan){target.x=clamp(pan.camera.x-(event.clientX-pan.x)/width/pan.camera.z,-1.65,1.72);target.y=clamp(pan.camera.y-(event.clientY-pan.y)/height/pan.camera.z,-1.5,1.7);trail.push({t:event.timeStamp,x:target.x,y:target.y});if(trail.length>8)trail.shift();}
-      camera={...target};
-      schedule();
-    }
-  });
-  function endPan(event){if(!contacts.has(event.pointerId))return;contacts.delete(event.pointerId);if(room.hasPointerCapture(event.pointerId))room.releasePointerCapture(event.pointerId);if(contacts.size===1){const p=[...contacts.values()][0];pan={x:p.x,y:p.y,camera:{...target}};pinch=null;}else if(!contacts.size){if(pan&&event.type==='pointerup'){throwCamera(event.timeStamp);if(Math.hypot(event.clientX-pan.x,event.clientY-pan.y)>40)document.dispatchEvent(new CustomEvent('found',{detail:'wander'}));}pan=null;pinch=null;room.classList.remove('dragging');classify();}schedule();}
-  // The newcomer's lesson (hints.js): the room drifts a breath toward the pages and settles back,
-  // the same coast a released drag makes, so the world shows that it moves before anyone is told.
-  document.addEventListener('hint:nudge',()=>{if(!motion||active!=='home'||pan||pinch||fling)return;target={...camera};fling={vx:-.00017,vy:.00002};schedule();});
-  room.addEventListener('pointerup',endPan);room.addEventListener('pointercancel',endPan);
-  room.addEventListener('pointerleave',()=>{pointer={x:0,y:0};schedule();});
-  document.addEventListener('keydown',event=>{
-    if(document.querySelector('#guitar-closeup').open)return;
-    if(event.ctrlKey||event.metaKey||event.altKey||event.target.matches('input,textarea,[contenteditable=true]'))return;
-    if(event.key==='Escape'||event.key==='Home'){event.preventDefault();go('home');return;}
-    if(event.target.closest('[data-room-control]'))return;
-    const note='asdfgh'.indexOf(event.key.toLowerCase());if(active==='music'&&note>=0&&!event.repeat){event.preventDefault();playGesture(note,.9);return;}
-    if(active==='music'&&event.code==='Space'&&!event.repeat&&!event.target.closest('button,a')){event.preventDefault();strum();return;}
-    const directions={ArrowLeft:[-.2,0],ArrowRight:[.2,0],ArrowUp:[0,-.2],ArrowDown:[0,.2]};
-    if(directions[event.key]){event.preventDefault();fling=null;const d=directions[event.key];target.x=clamp(target.x+d[0]/target.z,-1.65,1.72);target.y=clamp(target.y+d[1]/target.z,-1.5,1.7);classify();schedule();}
-  });
-  const motionButton=document.querySelector('#motion');
-  function setMotion(value){motion=value;document.body.dataset.motion=value?'on':'off';motionButton.setAttribute('aria-pressed',String(!value));motionButton.textContent=value?t("动态开","Motion on"):t("动态关","Motion off");if(!value)pointer={x:0,y:0};schedule();}
-  motionButton.addEventListener('click',()=>{guitarInteraction=!motion;setMotion(!motion);});reduced.addEventListener('change',e=>setMotion(!e.matches));
+// The registry: how to load each room, the rooms already mounted, and the ones on their way.
+const loaders = {}, mounted = new Map(), loading = new Map();
 
+export const ctx = {
+  room, world, t, english, places, sound,
+  get active() { return active; },
+  get camera() { return camera; },
+  get width() { return width; },
+  get height() { return height; },
+  get dpr() { return dpr; },
+  get motion() { return motion; },
+  // The afternoon (afternoon.js): {hour, gold, dusk}, shared by every room.
+  get light() { return window.qiuHour || {hour: 0, gold: 0, dusk: 0}; },
+  inView,
+  schedule,
+  go,
+  found: key => document.dispatchEvent(new CustomEvent('found', {detail: key})),
+  // Another room's public side, mounting it if needed: ctx.use('music').then(music => ...).
+  use: place => load(place),
+  on(type, fn) { listeners[type].push(fn); },
+};
 
-  const drawArea=document.querySelector('.draw-area');
-  function localPoint(event){const b=drawArea.getBoundingClientRect();return{x:clamp((event.clientX-b.left)/b.width,0,1),y:clamp((event.clientY-b.top)/b.height,0,1)};}
-  const found=key=>document.dispatchEvent(new CustomEvent('found',{detail:key}));
-  // Lengths and distances in drawing-area widths, so a line keeps its note at any window size.
-  const pxOf=(a,c)=>{const {bw,bh}=traceFrame();return Math.hypot((a.x-c.x)*bw,(a.y-c.y)*bh)/bw;};
-  function nearest(p,reach){let hit=null,distance=reach;lines.forEach(strand=>strand.points.forEach((point,i)=>{const d=pxOf(point,p);if(d<distance){distance=d;hit={strand,u:i/(strand.points.length-1)};}}));return hit;}
-  function sing(strand,strength){
-    if(!enabled||document.hidden||!audio||audio.state!=='running')return;
-    const hz=scale[strand.note],now=audio.currentTime;
-    rig.play(hz,strength*.85);
-    // A closed line is a bowl: the same note with its upper partials, slightly late, slightly apart.
-    if(strand.loop){rig.play(hz*2.01,strength*.3,now+.014);rig.play(hz*2.99,strength*.16,now+.03);}
-    audioTailUntil=now+(params.echo?12:strand.loop?5:3.3);
-  }
-  function strike(strand,u,strength,answer=false){
-    strand.amp=Math.max(strand.amp,strength);strand.at=u;ruler={note:strand.note,amp:Math.max(ruler.note===strand.note?ruler.amp:0,strength)};
-    sing(strand,strength);schedule();
-    if(answer)return;
-    // Where two lines cross, the other one answers, quietly, from the crossing point.
-    const partners=crossings.filter(c=>c.a===strand||c.b===strand);
-    partners.forEach((c,i)=>setTimeout(()=>{const other=c.a===strand?c.b:c.a;if(lines.includes(other))strike(other,c.a===strand?c.ub:c.ua,.34,true);},70+i*40));
-    if(partners.length)found('trace-cross');
-  }
-  function crossingsOf(strand){
-    const out=[],{bw,bh}=traceFrame(),P=strand.points.map(p=>({x:p.x*bw,y:p.y*bh}));
-    lines.forEach(other=>{
-      if(other===strand)return;let count=0;const Q=other.points.map(p=>({x:p.x*bw,y:p.y*bh}));
-      for(let i=1;i<P.length&&count<3;i++)for(let j=1;j<Q.length&&count<3;j++){
-        const a=P[i-1],b=P[i],c=Q[j-1],d=Q[j],den=(b.x-a.x)*(d.y-c.y)-(b.y-a.y)*(d.x-c.x);if(!den)continue;
-        const s=((c.x-a.x)*(d.y-c.y)-(c.y-a.y)*(d.x-c.x))/den,t=((c.x-a.x)*(b.y-a.y)-(c.y-a.y)*(b.x-a.x))/den;
-        if(s<0||s>1||t<0||t>1)continue;
-        out.push({a:strand,b:other,ua:(i-1+s)/(P.length-1),ub:(j-1+t)/(Q.length-1),x:(a.x+(b.x-a.x)*s)/bw,y:(a.y+(b.y-a.y)*s)/bh});count++;
-      }
-    });
-    return out;
-  }
-  function commitLine(){
-    const strand=drawing;drawing=null;
-    if(strand&&strand.points.length>3){
-      const pts=strand.points;let length=0;for(let i=1;i<pts.length;i++)length+=pxOf(pts[i-1],pts[i]);
-      // Ends that meet close the line into a ring.
-      strand.loop=pts.length>=14&&length>.22&&pxOf(pts[0],pts[pts.length-1])<Math.max(.035,length*.09);
-      if(strand.loop)pts.push({...pts[0]});
-      strand.note=tuneTo(strand.loop?length/2:length);strand.amp=0;strand.at=.5;
-      lines.push(strand);
-      if(lines.length>18){const gone=lines.shift();crossings=crossings.filter(c=>c.a!==gone&&c.b!==gone);}
-      crossings.push(...crossingsOf(strand));
-      strike(strand,.5,.62,true);
-      drawArea.classList.add('has-lines');drawArea.dataset.lines=lines.length;
-      found('trace-line');if(strand.loop)found('trace-loop');
-      // A new line can make the room's next lesson possible (a loop to close, two lines to cross).
-      document.dispatchEvent(new Event('hint:recheck'));
-    }
+export function define(place, loader) { loaders[place] = loader; }
+
+function load(place) {
+  if (mounted.has(place)) return Promise.resolve(mounted.get(place));
+  if (!loading.has(place)) loading.set(place, loaders[place]().then(module => {
+    const piece = module.default;
+    // A room's markup sleeps (no layout, no fonts, no images) until its module is ready to use it.
+    document.querySelectorAll(`[data-scene="${place}"][data-asleep], [data-asleep="${place}"]`).forEach(node => node.removeAttribute('data-asleep'));
+    piece.mount?.(ctx);
+    mounted.set(place, piece);
+    if (active === place) piece.enter?.();
     schedule();
+    return piece;
+  }).catch(error => { loading.delete(place); console.error(`Room ${place}:`, error); }));
+  return loading.get(place);
+}
+// Rooms the camera is about to reach load first; overview needs them all.
+function approach() {
+  const half = .5 / target.z;
+  for (const place of rooms) {
+    if (mounted.has(place) || loading.has(place) || !loaders[place]) continue;
+    const p = places[place];
+    if (target.z < .65 || (Math.abs(p.x - target.x) < half + .8 && Math.abs(p.y - target.y) < half + .8)) load(place);
   }
-  let lastMove=0;
-  drawArea.addEventListener('pointerdown',event=>{
-    if(event.button!==0)return;event.stopPropagation();drawArea.setPointerCapture(event.pointerId);
-    if(!audio)setSound(true);
-    lastMove=performance.now();drawing={points:[{...localPoint(event),w:1.4}],amp:0,pointer:event.pointerId};
-  });
-  drawArea.addEventListener('pointermove',event=>{
-    const p=localPoint(event);
-    if(drawing&&drawing.pointer===event.pointerId){
-      const last=drawing.points[drawing.points.length-1],step=pxOf(p,last),now=performance.now();
-      if(step>.004&&drawing.points.length<300){
-        // Pencil pressure: a slow hand leaves a darker, wider line than a quick one.
-        const pace=step*1000/Math.max(8,now-lastMove);lastMove=now;
-        drawing.points.push({...p,w:last.w+(clamp(2-pace*.9,.65,2)-last.w)*.35});
-      }
-      schedule();return;
-    }
-    const hit=nearest(p,.028),contact=hit?.strand??null;
-    if(hit&&(contact!==lineContact||performance.now()-lastLinePluck>350)){strike(hit.strand,hit.u,.7);lastLinePluck=performance.now();found('trace-pluck');}
-    lineContact=contact;
-  });
-  drawArea.addEventListener('pointerup',event=>{
-    event.stopPropagation();
-    if(drawing&&drawing.pointer===event.pointerId){
-      if(drawing.points.length<=3){const hit=nearest(localPoint(event),.055);if(hit){strike(hit.strand,hit.u,.85);found('trace-pluck');}}
-      commitLine();
-      if(drawArea.hasPointerCapture(event.pointerId))drawArea.releasePointerCapture(event.pointerId);
-    }
-  });
-  drawArea.addEventListener('pointercancel',()=>{drawing=null;schedule();});drawArea.addEventListener('pointerleave',()=>lineContact=null);
-  document.querySelector('#add-line').addEventListener('click',()=>{const k=lines.length;drawing={points:Array.from({length:65},(_,i)=>{const t=i/64;return{x:.08+.84*t,y:clamp(.5+Math.sin(t*Math.PI*2+k*.9)*(.17+(k%3)*.035)+(k%3-1)*.08,.05,.95),w:1.1+Math.sin(t*Math.PI)*.5}}),amp:0};commitLine();});
-  document.querySelector('#clear-lines').addEventListener('click',()=>{lines=[];crossings=[];drawing=null;drawArea.classList.remove('has-lines');drawArea.dataset.lines=0;schedule();});
-  // The quiet tutorial (hints.js). A pencil sketches a line by itself and the line hums; later the
-  // visitor's own line shivers once, waiting to be touched; later still the pencil closes a small
-  // ring that sends out ripples. None of it makes a sound.
-  const ghost=drawArea.querySelector('.trace-ghost path');
-  document.addEventListener('hint:sketch',()=>{
-    if(!motion||active!=='trace'||drawing||!ghost)return;
-    const svg=ghost.ownerSVGElement;svg.getAnimations({subtree:true}).forEach(a=>a.cancel());
-    ghost.animate([{clipPath:'inset(-20% 100% -20% 0)'},{clipPath:'inset(-20% -2% -20% 0)'}],{duration:1500,easing:'cubic-bezier(.45,.05,.4,1)',fill:'both'});
-    svg.animate([{opacity:0,offset:0},{opacity:1,offset:.04},{opacity:1,offset:.78},{opacity:0}],{duration:4300,fill:'both'});
-    // Once drawn, it is plucked by an invisible finger: a damped shiver across its length.
-    const ring=[1,1.5,.62,1.3,.82,1.12,.95,1];
-    svg.animate(ring.map((y,i)=>({scale:`1 ${y}`,offset:.4+.6*i/(ring.length-1)})),{duration:2600,easing:'ease-in-out'});
-  });
-  document.addEventListener('hint:quiver',()=>{if(!motion||active!=='trace'||!lines.length)return;const last=lines[lines.length-1];last.at=.3;last.amp=.42;schedule();});
-  const ghostRing=drawArea.querySelector('.trace-ghost-ring');
-  document.addEventListener('hint:ring',()=>{
-    if(!motion||active!=='trace'||drawing||!ghostRing)return;
-    ghostRing.getAnimations({subtree:true}).forEach(a=>a.cancel());
-    ghostRing.querySelector('path').animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:1300,easing:'cubic-bezier(.45,.05,.4,1)',fill:'both'});
-    ghostRing.animate([{opacity:0,offset:0},{opacity:1,offset:.04},{opacity:1,offset:.8},{opacity:0}],{duration:4200,fill:'both'});
-    ghostRing.querySelectorAll('circle').forEach((c,i)=>c.animate([{r:'11px',opacity:.55},{r:`${19+i*4}px`,opacity:0}],{duration:1500,delay:1350+i*260,easing:'cubic-bezier(.2,.6,.3,1)',fill:'both'}));
-  });
+}
+// After the first paint and the page's load, the rest of the house wakes one room at a time.
+export function wakeAll() {
+  const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1));
+  const order = rooms.filter(place => loaders[place]).sort((a, b) => Math.hypot(places[a].x - camera.x, places[a].y - camera.y) - Math.hypot(places[b].x - camera.x, places[b].y - camera.y));
+  const next = () => { const place = order.shift(); if (!place) return; load(place).finally(() => idle(next, {timeout: 600})); };
+  idle(next, {timeout: 600});
+}
 
-  const closeup=document.querySelector('#guitar-closeup'),guitarStage=document.querySelector('.guitar-stage');
-  const detailViews={body:[.79,2.12,t("SH-1n / SH-16\n换成了自己的声音。","SH-1n / SH-16\nA little closer to my own sound.")],neck:[.395,2.55,t("枫木指板，二十二品。","Maple fingerboard. Twenty-two frets.")],head:[.084,4.8,t("BanG Dream!\n乐奈的那把。","BanG Dream!\nRāna’s guitar.")],whole:[.5,.94,t("乐奈同款。也是我的这一把。","Rāna’s model. My own guitar.")]};
-  function showDetail(name) {
-    const [center,zoom,caption]=detailViews[name];
-    const size=Math.min(guitarStage.clientHeight,guitarStage.clientWidth*2.3)*zoom;
-    guitarStage.style.setProperty('--photo-size',`${size}px`);
-    guitarStage.style.setProperty('--photo-top',`${guitarStage.clientHeight/2-center*size}px`);
-    guitarStage.style.setProperty('--photo-pivot',`${center*100}%`);
-    guitarStage.dataset.view=name;
-    if(window.qiuGuitar)window.qiuGuitar.setDetail(name);
-    document.querySelector('#guitar-status').textContent=caption;
-    document.querySelectorAll('[data-guitar-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.guitarView===name)));
-  }
-  document.querySelectorAll('[data-open-guitar]').forEach(button=>button.addEventListener('click',()=>{closeup.showModal();showDetail('body');}));
-  document.querySelector('#close-guitar').addEventListener('click',()=>closeup.close());
-  document.querySelectorAll('[data-guitar-view]').forEach(button=>button.addEventListener('click',()=>showDetail(button.dataset.guitarView)));
-  new ResizeObserver(()=>{if(closeup.open)showDetail(guitarStage.dataset.view||'body');}).observe(guitarStage);
+function inView(place) {
+  const half = .5 / camera.z, p = places[place];
+  return Math.abs(p.x - camera.x) < half + .55 && Math.abs(p.y - camera.y) < half + .55;
+}
 
-  let audio=null,rig=null,enabled=false,audioTailUntil=0,overdub=false,layers=0,overdubStartCount=0,loopTimer=null;
-  let scheduledPulses=[],chord='open',lastSecond=-1,lastMeter=-1;
-  const params={...defaultRig},lastNotes=Array(6).fill(-Infinity);
-  const chords={open:[0,0,0,0,0,0],Em:[0,0,0,2,2,0],G:[3,3,0,0,2,3],C:[0,1,0,2,3,-1],D:[2,3,2,0,-1,-1]};
-  const soundButton=document.querySelector('.audio-toggle'),localSound=document.querySelector('.sound-local');
-  const overdubButton=document.querySelector('#loop-overdub'),loopPanel=document.querySelector('.loop-controls');
-  const loopBeats=[...document.querySelectorAll('.loop-beats i')],strings=[...document.querySelectorAll('.string')];
-  const loopProgress=document.querySelector('.loop-progress i'),layerLabel=document.querySelector('#loop-layer');
-  const meterFill=document.querySelector('.output-meter i'),meterLabel=document.querySelector('#output-level'),vuMeter=document.querySelector('.vu-meter');let vu=-48;
-  const descriptions={clean:t("干净的弦，留一点空气。","Clean strings. A little room to breathe."),gold:t("温热一点，保留拨弦的棱角。","A little warmth. Keep the edge."),blue:t("多一点沙砾，多一点冲动。","A little grit. Follow the impulse."),harm:t("每个音，都有人轻轻和着。","Every note gets a second voice."),night:t("弹完的音，也舍不得走。","Let the last note linger.")};
-  async function ensureAudio(){
-    if(!audio){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error('Audio unavailable');audio=new Audio();rig=createAudioRig(audio);rig.set({...params,volume:0});}
-    if(audio.state!=='running')await audio.resume();
+function thread(from, to, color = '#e83d2730') {
+  const x1 = from[0] * width, y1 = from[1] * height, x2 = to[0] * width, y2 = to[1] * height;
+  g.beginPath(); g.moveTo(x1, y1); g.bezierCurveTo(x1 + (x2 - x1) * .3, y1 + height * .12, x2 - (x2 - x1) * .25, y2 + height * .19, x2, y2); g.strokeStyle = color; g.lineWidth = .65; g.stroke();
+}
+function render(now) {
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, width, height);
+  g.save(); g.translate(width / 2 - camera.x * width * camera.z, height / 2 - camera.y * height * camera.z); g.scale(camera.z, camera.z); g.translate(-width / 2, -height / 2);
+  thread([.39, .77], [-.72, .67]); thread([.86, .93], [1.58, .46]); thread([.61, .15], [.77, -.6]);
+  thread([-.54, .84], [-.62, 1.46]); thread([1.67, .85], [1.65, 1.48]); thread([.48, .92], [.51, 1.55]);
+  thread([-.62, -.16], [-.62, .3]); thread([1.67, -.16], [1.65, .3]);
+  thread([-.3, -.56], [.33, -.5]); thread([.91, -.51], [1.38, -.54]);
+  for (const [place, piece] of mounted) if (piece.paint && inView(place)) piece.paint(g, now);
+  if (camera.z < .65) {
+    g.globalAlpha = clamp((.65 - camera.z) / .18, 0, 1); g.fillStyle = '#626b55'; g.font = `${11 / camera.z}px ${sans}`; g.textAlign = 'center';
+    [[-.56, .11, places.papers.name], [1.74, .12, places.music.name], [.69, -.87, places.trace.name], [-.62, -.87, places.paths.name], [1.64, -.87, places.blindspot.name], [-.62, 1.23, places.rethink.name], [.51, 1.23, places.idle.name], [1.64, 1.23, places.work.name]].forEach(([x, y, label]) => g.fillText(label, x * width, y * height)); g.textAlign = 'start';
+    g.globalAlpha = 1;
   }
-  function soundUI(){
-    soundButton.setAttribute('aria-pressed',String(enabled));soundButton.querySelector('span').textContent=enabled?t("声音开","Sound on"):t("声音关","Sound off");
-    localSound.setAttribute('aria-pressed',String(enabled));setControl(localSound,enabled?t("声音开","Sound on"):t("打开声音","Sound on"),enabled?'southwest':'northeast');
+  g.restore();
+  const transform = `translate(${-camera.x * width * camera.z}px,${-camera.y * height * camera.z}px) scale(${camera.z})`;
+  world.style.transform = transform; underlay.style.transform = transform; world.style.setProperty('--detail', clamp((camera.z - .45) / .35, 0, 1));
+}
+function frame(now) {
+  frameId = 0; const dt = Math.min(2.5, (now - (lastFrame || now - 16)) / 16.667); lastFrame = now;
+  const ease = motion ? 1 - Math.pow(.82, dt) : 1;
+  if (fling) coast(dt);
+  ['x', 'y', 'z'].forEach(k => camera[k] += (target[k] - camera[k]) * ease);
+  let busy = false;
+  for (const piece of mounted.values()) if (piece.frame?.(now, dt, ease)) busy = true;
+  render(now);
+  const moving = ['x', 'y', 'z'].some(k => Math.abs(camera[k] - target[k]) > .0003);
+  if (fling || moving || busy || sound.ringing) schedule();
+}
+function schedule() { if (!frameId && !document.hidden) frameId = requestAnimationFrame(frame); }
+sound.onChange(schedule);
+function resize() {
+  const rect = room.getBoundingClientRect(); width = rect.width; height = rect.height; dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+  setActive(active); listeners.resize.forEach(fn => fn()); schedule();
+}
+function setActive(place) {
+  const changed = active !== place, before = active;
+  active = place; room.dataset.place = place; room.classList.toggle('overviewing', place === 'overview');
+  document.querySelectorAll('.language-switch a').forEach(link => link.hash = place);
+  document.querySelector('#where-name').textContent = places[place].name;
+  document.querySelector('#where-hint').textContent = places[place].hint || wanderHint(width <= 600);
+  document.querySelectorAll('[data-scene]').forEach(node => node.inert = node.dataset.scene !== place);
+  document.querySelectorAll('.room-map button').forEach(node => { const current = node.dataset.place === place; node.classList.toggle('active', current); if (current) node.setAttribute('aria-current', 'location'); else node.removeAttribute('aria-current'); });
+  document.querySelectorAll('.portal').forEach(node => node.hidden = place !== 'overview');
+  if (changed) {
+    mounted.get(before)?.leave?.();
+    mounted.get(place)?.enter?.();
+    document.dispatchEvent(new CustomEvent('roomchange', {detail: {place}}));
   }
-  async function setSound(value){
-    try{soundButton.disabled=localSound.disabled=true;await ensureAudio();enabled=value;rig.set({volume:enabled?params.volume:0});soundUI();schedule();return true;}
-    catch{enabled=false;setControl(localSound,t("声音暂不可用","Sound is unavailable"),null);soundButton.querySelector('span').textContent=t("声音暂不可用","Sound is unavailable");soundButton.setAttribute('aria-pressed','false');localSound.setAttribute('aria-pressed','false');return false;}
-    finally{soundButton.disabled=localSound.disabled=false;}
-  }
-  soundButton.addEventListener('click',()=>setSound(!enabled));
-  // Small sounds from the rooms themselves, heard only when sound is on.
-  document.addEventListener('roomsound',event=>{if(!enabled||!rig||document.hidden)return;if(event.detail==='lamp')rig.click(.55,.58);if(event.detail==='crumple')rig.crumple?.();if(event.detail==='tick')rig.click(.16,1.7);});localSound.addEventListener('click',()=>setSound(!enabled));
-  function frequencyFor(index){const fret=active==='music'?chords[chord][index]:0;return fret<0?null:frequencies[index]*2**(fret/12);}
-  function pluck(index,strength=1,fromLoop=false){
-    const frequency=frequencyFor(index);if(!frequency)return;
-    pulses[index]=Math.max(pulses[index],strength);schedule();
-    if(!enabled||document.hidden||!audio||audio.state!=='running')return;
-    if(audio.currentTime-lastNotes[index]<.045)return;lastNotes[index]=audio.currentTime;
-    if(!fromLoop&&(recording||overdub)){
-      const time=recording?audio.currentTime-recordStart:((audio.currentTime-loopStart)%6+6)%6;
-      if(time>=0&&time<6)loopNotes.push({time,note:index,strength,frequency});
-    }
-    rig.play(frequency,strength);audioTailUntil=audio.currentTime+(params.echo?12:3.3);
-  }
-  const strummed=()=>document.dispatchEvent(new CustomEvent('found',{detail:'music-strings'}));
-  async function playGesture(index,strength=1){strummed();if(!audio&&!await setSound(true))return;pluck(index,strength);}
-  // The quiet tutorial (hints.js): the strings shiver one after another, as if brushed, without a sound.
-  document.addEventListener('hint:strings',()=>{if(!motion||active!=='music')return;for(let n=0;n<6;n++)setTimeout(()=>{if(active!=='music')return;pulses[n]=Math.max(pulses[n],.34-n*.02);schedule();},n*95);});
-  document.addEventListener('roompluck',async event=>{
-    const {index,strength=.5,wake=false}=event.detail||{};
-    if(active!=='paths'||!Number.isInteger(index)||index<0||index>5)return;
-    if(wake&&!await setSound(true))return;
-    if(active==='paths')pluck(index,clamp(strength,0,1),true);
-  });
-  async function strum(){
-    if(!audio&&!await setSound(true))return;
-    for(let n=5;n>=0;n--)setTimeout(()=>{if(!document.hidden)pluck(n,.76+(5-n)*.025);},(5-n)*31);
-  }
-  document.querySelector('#strum').addEventListener('click',strum);
-  document.querySelectorAll('[data-chord]').forEach(button=>button.addEventListener('click',()=>{
-    chord=button.dataset.chord;
-    document.querySelectorAll('[data-chord]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
-    strings.forEach((b,i)=>{b.dataset.muted=String(chords[chord][i]<0);b.setAttribute('aria-label',chords[chord][i]<0?t("这根弦在当前和弦中不发声","This string is muted in the current chord"):t(`拨动 ${['e','B','G','D','A','E'][i]} 弦，${chords[chord][i]} 品，键盘 ${'ASDFGH'[i]}`,`Pluck ${['e','B','G','D','A','E'][i]}, fret ${chords[chord][i]}, keyboard ${'ASDFGH'[i]}`));});
-  }));
-  strings.forEach(button=>{
-    const note=Number(button.dataset.note);let lastPointer=-Infinity;
-    button.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'&&enabled){lastPointer=performance.now();pluck(note,.67);strummed();}});
-    button.addEventListener('click',event=>{if(!event.detail||performance.now()-lastPointer>110||!audio)playGesture(note,1);});
-  });
-  const stringBed=document.querySelector('.string-bed');let touchString=-1;
-  stringBed.addEventListener('pointerdown',event=>{
-    if(event.pointerType==='mouse')return;event.preventDefault();event.stopPropagation();stringBed.setPointerCapture(event.pointerId);
-    touchString=Number(event.target.closest('.string')?.dataset.note??-1);if(touchString>=0)playGesture(touchString,.9);
-  });
-  stringBed.addEventListener('pointermove',event=>{
-    if(!stringBed.hasPointerCapture(event.pointerId))return;
-    const hit=document.elementFromPoint(event.clientX,event.clientY)?.closest('.string'),note=hit?Number(hit.dataset.note):-1;
-    if(note>=0&&note!==touchString)playGesture(note,.8);touchString=note;
-  });
-  for(const name of ['pointerup','pointercancel'])stringBed.addEventListener(name,event=>{touchString=-1;if(stringBed.hasPointerCapture(event.pointerId))stringBed.releasePointerCapture(event.pointerId);});
-  const formats={echoTime:v=>`${v} ms`,harmKey:v=>keyNames[v],harmShift:v=>harmonyShifts[v].label};
-  const echoPedal=document.querySelector('.pedal-echo'),echoReadout=document.querySelector('#echo-readout');
-  function refreshEffects(custom=false){
-    if(rig)rig.set({...params,volume:enabled?params.volume:0});
-    document.querySelectorAll('[data-effect]').forEach(pedal=>{
-      const on=params[pedal.dataset.effect];pedal.dataset.on=String(on);
-      pedal.querySelector('[data-pedal]').setAttribute('aria-pressed',String(on));
-    });
-    document.querySelectorAll('[data-param]').forEach(input=>{
-      const value=params[input.dataset.param],min=Number(input.min),max=Number(input.max);
-      input.value=value;input.closest('.dial-control').style.setProperty('--angle',`${-135+(value-min)/(max-min)*270}deg`);
-      const formatted=(formats[input.dataset.param]||(v=>(v/10).toFixed(1)))(value);
-      input.closest('.dial').querySelector('output').textContent=formatted;input.setAttribute('aria-valuetext',formatted);
-    });
-    echoReadout.textContent=params.echoTime;
-    // Shorter echoes run the tape faster.
-    echoPedal.style.setProperty('--reel',`${(.9+params.echoTime/800*2.8).toFixed(2)}s`);
-    if(custom){document.querySelectorAll('[data-tone]').forEach(b=>b.setAttribute('aria-pressed','false'));document.querySelector('#tone-caption').textContent=t("现在，是你拧出来的声音。","That’s your sound now.");}
-    schedule();
-  }
-  document.querySelectorAll('[data-pedal]').forEach(button=>{
-    const pedal=button.closest('.pedal'),release=()=>pedal.classList.remove('stomping');
-    // A footswitch engages under the foot, not on release; the click lands with the press.
-    button.addEventListener('pointerdown',event=>{if(event.button===0)pedal.classList.add('stomping');});
-    for(const type of ['pointerup','pointerleave','pointercancel','blur'])button.addEventListener(type,release);
-    button.addEventListener('keydown',event=>{if(event.key===' '||event.key==='Enter')pedal.classList.add('stomping');});
-    button.addEventListener('keyup',release);
-    button.addEventListener('click',()=>{
-      const key=button.dataset.pedal;params[key]=!params[key];refreshEffects(true);
-      if(enabled&&rig)rig.click();navigator.vibrate?.(12);
-      if(!pedal.classList.contains('stomping')){pedal.classList.add('stomping');setTimeout(release,110);}
-    });
-  });
-  document.querySelectorAll('[data-tone]').forEach(button=>button.addEventListener('click',()=>{
-    Object.assign(params,tones[button.dataset.tone],{volume:params.volume});refreshEffects();
-    document.querySelectorAll('[data-tone]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
-    document.querySelector('#tone-caption').textContent=descriptions[button.dataset.tone];
-  }));
-  document.querySelectorAll('[data-param]').forEach(input=>{
-    const dial=input.closest('.dial'),min=Number(input.min),max=Number(input.max),step=Number(input.step)||1;
-    // Stepped knobs (KEY, SHIFT) click into each detent.
-    const detented=(max-min)/step<=12;let drag=null;
-    function change(value){
-      const next=clamp(Math.round((value-min)/step)*step+min,min,max),key=input.dataset.param;
-      if(next===params[key])return;
-      params[key]=next;refreshEffects(true);
-      if(detented&&enabled&&rig)rig.click(.35,2.4);
-    }
-    const angleAt=e=>{const r=input.getBoundingClientRect();return Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2));};
-    input.addEventListener('input',()=>change(Number(input.value)));
-    input.addEventListener('pointerdown',e=>{
-      if(e.button!==0)return;e.preventDefault();e.stopPropagation();input.focus({preventScroll:true});input.setPointerCapture(e.pointerId);dial.classList.add('dragging');
-      const r=input.getBoundingClientRect();
-      drag={angle:Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2))>r.width*.22?angleAt(e):null,y:e.clientY,value:params[input.dataset.param],turned:0};
-    });
-    input.addEventListener('pointermove',e=>{
-      if(!drag)return;e.stopPropagation();
-      // Grab it like a real knob: going around the shaft turns it one to one across its 270° sweep.
-      // Far from the shaft, or moving straight up and down, a vertical drag also works.
-      const r=input.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
-      // Near the shaft the angle is meaningless, so it only counts once the pointer is out on the skirt.
-      if(Math.hypot(dx,dy)>r.width*.22){
-        const angle=Math.atan2(dy,dx);
-        if(drag.angle!==null){let delta=angle-drag.angle;if(delta>Math.PI)delta-=Math.PI*2;if(delta<-Math.PI)delta+=Math.PI*2;drag.turned+=delta/(Math.PI*1.5)*(max-min);}
-        drag.angle=angle;
-      }else drag.angle=null;
-      const vertical=(drag.y-e.clientY)/(e.shiftKey?600:180)*(max-min);
-      const value=drag.value+(Math.abs(drag.turned)>Math.abs(vertical)?drag.turned:vertical);
-      change(value);
-    });
-    function end(e){drag=null;dial.classList.remove('dragging');if(input.hasPointerCapture(e.pointerId))input.releasePointerCapture(e.pointerId);}
-    for(const type of ['pointerup','pointercancel','lostpointercapture'])input.addEventListener(type,end);
-    input.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();change(params[input.dataset.param]-Math.sign(e.deltaY)*step);},{passive:false});
-    input.addEventListener('dblclick',()=>change(defaultRig[input.dataset.param]));
-  });
-  const volume=document.querySelector('#master-volume');
-  const deck=document.querySelector('.pedal-deck');let deckDrag=null;
-  // The room captures touch gestures, so slide the mobile board explicitly.
-  deck.addEventListener('pointerdown',event=>{
-    if(event.pointerType!=='touch'||event.target.closest('input')||width>700)return;
-    deckDrag={id:event.pointerId,x:event.clientX,scroll:deck.scrollLeft,page:nearestPage(),moved:false};
-  });
-  deck.addEventListener('pointermove',event=>{
-    if(!deckDrag||deckDrag.id!==event.pointerId)return;
-    const delta=event.clientX-deckDrag.x;
-    if(Math.abs(delta)>7&&!deckDrag.moved){deckDrag.moved=true;deck.classList.add('sliding');deck.setPointerCapture(event.pointerId);}
-    if(deckDrag.moved){event.preventDefault();deck.scrollLeft=deckDrag.scroll-delta;}
-  });
-  for(const type of ['pointerup','pointercancel','lostpointercapture'])deck.addEventListener(type,event=>{
-    if(!deckDrag||deckDrag.id!==event.pointerId)return;
-    if(deckDrag.moved){event.preventDefault();const flick=deckDrag.scroll-deck.scrollLeft;pageTo(nearestPage()+(Math.abs(flick)>40&&nearestPage()===deckDrag.page?Math.sign(-flick):0));}
-    deckDrag=null;deck.classList.remove('sliding');if(deck.hasPointerCapture(event.pointerId))deck.releasePointerCapture(event.pointerId);
-  });
-  let wheelSnap=0;
-  deck.addEventListener('wheel',event=>{if(width>700||event.target.closest('input'))return;event.preventDefault();deck.scrollLeft+=event.deltaX||event.deltaY;clearTimeout(wheelSnap);wheelSnap=setTimeout(()=>pageTo(nearestPage()),160);},{passive:false});
-  // On phones the board pages one pedal at a time; the tabs above it show and choose the centred pedal.
-  const pages=[...deck.querySelectorAll('.pedal')],pageTabs=[...document.querySelectorAll('[data-pedal-page]')];
-  const pageCentre=pedal=>{const d=deck.getBoundingClientRect(),r=pedal.getBoundingClientRect();return r.left-d.left+deck.scrollLeft+r.width/2;};
-  function nearestPage(){const mid=deck.scrollLeft+deck.clientWidth/2;let best=0;pages.forEach((pedal,i)=>{if(Math.abs(pageCentre(pedal)-mid)<Math.abs(pageCentre(pages[best])-mid))best=i;});return best;}
-  function pageTo(index){index=clamp(index,0,pages.length-1);deck.scrollTo({left:pageCentre(pages[index])-deck.clientWidth/2,behavior:motion?'smooth':'auto'});markPage(index);}
-  function markPage(index){
-    if(width>700){delete deck.dataset.paged;pages.forEach(pedal=>delete pedal.dataset.current);return;}
-    deck.dataset.paged='';pages.forEach((pedal,i)=>{if(i===index)pedal.dataset.current='';else delete pedal.dataset.current;});
-    pageTabs.forEach((tab,i)=>tab.setAttribute('aria-current',String(i===index)));
-  }
-  pageTabs.forEach((tab,i)=>tab.addEventListener('click',()=>pageTo(i)));
-  let pageFrame=0;deck.addEventListener('scroll',()=>{cancelAnimationFrame(pageFrame);pageFrame=requestAnimationFrame(()=>markPage(nearestPage()));},{passive:true});
-  // Keyboard focus on a knob or stomp brings its pedal to the middle.
-  deck.addEventListener('focusin',event=>{if(width>700||deckDrag)return;const i=pages.indexOf(event.target.closest('.pedal'));if(i>=0&&i!==nearestPage())pageTo(i);});
-  addEventListener('resize',()=>requestAnimationFrame(()=>width>700?markPage(0):pageTo(nearestPage())));
-  requestAnimationFrame(()=>markPage(nearestPage()));
-  volume.addEventListener('input',()=>{params.volume=Number(volume.value);volume.nextElementSibling.value=volume.value;if(rig)rig.set({volume:enabled?params.volume:0});schedule();});
-  function updateMeter(){
-    const rms=enabled&&rig?rig.meter():0,db=rms>0?20*Math.log10(rms):-Infinity;
-    const level=clamp((db+60)/60,0,1);
-    meterFill.style.setProperty('--level',`${level*100}%`);
-    // A VU needle has weight: it rises quickly and settles back slowly.
-    // Calibrated so a clean strum sits near 0 VU and only a pushed Output knob or the volume swings it into the red.
-    const needle=Number.isFinite(db)?clamp((db+22.9)/14.35,0,1.1)*96-48:-48;vu+=(needle-vu)*(needle>vu?.32:.08);
-    vuMeter.style.setProperty('--vu',`${vu.toFixed(2)}deg`);vuMeter.dataset.on=String(enabled);
-    if(vu>39)vuMeter.dataset.hot='true';else if(vu<33)vuMeter.dataset.hot='false';
-    const number=Number.isFinite(db)&&db>-70?Math.round(db):null;
-    if(lastMeter!==number){meterLabel.textContent=number===null?'−∞ dB':`${number} dB`;lastMeter=number;}
-    strings.forEach((button,i)=>button.dataset.playing=String(pulses[i]>.15));
-  }
-  function closeOverdub(){if(overdub&&loopNotes.length>overdubStartCount)layers++;overdub=false;overdubButton.setAttribute('aria-pressed','false');setControl(overdubButton,t("叠一层","Overdub"),'plus');}
-  function loopUI(state){
-    loopPanel.dataset.state=state;loopClear.disabled=!loopNotes.length&&!recording;overdubButton.disabled=!looping;
-    layerLabel.textContent=t(`${String(layers).padStart(2,'0')} 层`,`${String(layers).padStart(2,'0')} ${layers===1?'LAYER':'LAYERS'}`);
-  }
-  function pauseLoop(){
-    closeOverdub();if(recording&&loopNotes.length)layers=1;recording=false;looping=false;clearInterval(loopTimer);loopTimer=null;
-    scheduledPulses=[];rig?.stopLoop();setControl(loopButton,loopNotes.length?t("播放","Play"):t("录一段","Record"),loopNotes.length?'replay':'record');
-    loopCaption.textContent=loopNotes.length?t("这一小段，还在这里。","Your little loop is still here."):t("录 6 秒，循环着接着弹。","Record six seconds. Play along.");
-    loopUI(loopNotes.length?'paused':'empty');schedule();
-  }
-  function scheduleLoop(){
-    if(!looping||!audio||audio.state!=='running'||document.hidden)return;
-    const end=audio.currentTime+.12,from=lastLoopPosition;
-    for(let cycle=Math.max(0,Math.floor((from-loopStart)/6));cycle<=Math.floor((end-loopStart)/6);cycle++){
-      for(const note of loopNotes){const at=loopStart+cycle*6+note.time;if(at>from&&at<=end&&at>=audio.currentTime){
-        rig.play(note.frequency,note.strength,at,'loop');scheduledPulses.push({at,note:note.note,strength:note.strength});
-      }}
-    }
-    lastLoopPosition=end;
-  }
-  function playLoop(){
-    recording=false;looping=true;loopStart=audio.currentTime+.03;lastLoopPosition=loopStart-.001;
-    setControl(loopButton,t("暂停","Pause"),'pause');loopCaption.textContent=t("循环着。可以换和弦，叠一层。","Looping. Try another chord or layer.");
-    loopUI('playing');clearInterval(loopTimer);scheduleLoop();loopTimer=setInterval(scheduleLoop,25);schedule();
-  }
-  function runLoop(){
-    if(!audio)return;const now=audio.currentTime;
-    if(recording){
-      const elapsed=now-recordStart;loopProgress.style.width=`${Math.min(100,elapsed/6*100)}%`;
-      const seconds=Math.max(0,Math.ceil(6-elapsed));if(seconds!==lastSecond){loopCaption.textContent=t(`正在录下 · ${seconds} 秒`,`Recording · ${seconds}s left`);lastSecond=seconds;}
-      loopBeats.forEach((b,i)=>b.classList.toggle('lit',i<=Math.floor(elapsed/.75)));
-      if(elapsed>=6){if(loopNotes.length){layers=1;playLoop();}else pauseLoop();}
-    }
-    if(looping){
-      const pos=Math.max(0,(now-loopStart)%6);loopProgress.style.width=`${pos/6*100}%`;
-      loopBeats.forEach((b,i)=>b.classList.toggle('lit',i===Math.floor(pos/.75)));
-      scheduledPulses=scheduledPulses.filter(p=>{if(p.at<=now){pulses[p.note]=Math.max(pulses[p.note],p.strength);return false;}return true;});
-    }
-  }
-  loopButton.addEventListener('click',async()=>{
-    if(recording||looping){pauseLoop();return;}
-    if(!await setSound(true))return;
-    if(loopNotes.length)playLoop();
-    else{recording=true;recordStart=audio.currentTime;lastSecond=-1;setControl(loopButton,t("收好","Finish"),'stop');loopUI('recording');}
-    schedule();
-  });
-  overdubButton.addEventListener('click',()=>{
-    if(!looping)return;
-    if(overdub){closeOverdub();loopCaption.textContent=t("这一层收好了。继续弹吧。","Layer saved. Keep playing.");loopUI('playing');}
-    else{overdub=true;overdubStartCount=loopNotes.length;overdubButton.setAttribute('aria-pressed','true');setControl(overdubButton,t("收好这一层","Keep layer"),'check');loopCaption.textContent=t("继续拨弦，新声音会加入循环。","Keep playing. Add to the loop.");loopUI('overdub');}
-  });
-  loopClear.addEventListener('click',()=>{loopNotes=[];layers=0;pauseLoop();loopProgress.style.width='0%';loopBeats.forEach(b=>b.classList.remove('lit'));});
-  document.addEventListener('visibilitychange',()=>{
-    if(document.hidden){cancelAnimationFrame(frameId);frameId=0;pauseLoop();if(rig)rig.set({volume:0});}
-    else{if(rig)rig.set({volume:enabled?params.volume:0});lastFrame=0;schedule();}
-  });
-  document.querySelector('.language-switch a[aria-current="page"]').addEventListener('click',event=>event.preventDefault());
-  refreshEffects();
-  document.fonts.ready.then(schedule);
-  new ResizeObserver(resize).observe(room);setMotion(motion);setActive('home');resize();
-  const entry=location.hash.slice(1);if(Object.hasOwn(places,entry))go(entry);
-  window.addEventListener('hashchange',()=>{const place=location.hash.slice(1);if(Object.hasOwn(places,place))go(place);});
-})();
+  if (place !== 'overview' && loaders[place]) load(place);
+}
+function go(place) {
+  fling = null; const p = places[place]; target = {x: p.x, y: p.y, z: p.z};
+  setActive(place); history.replaceState(null, '', `#${place}`); approach(); schedule();
+}
+function classify() {
+  approach();
+  if (target.z < .61) { setActive('overview'); return; }
+  let best = 'home', distance = Infinity;
+  rooms.forEach(k => { const p = places[k], d = Math.hypot(target.x - p.x, target.y - p.y); if (d < distance) { distance = d; best = k; } });
+  setActive(best);
+}
+for (const name of rooms) {
+  const portal = document.createElement('button'); portal.type = 'button'; portal.className = 'portal'; portal.dataset.place = name; portal.setAttribute('aria-label', t(`走近${places[name].name}`, `Explore: ${places[name].name}`)); portal.hidden = true;
+  Object.assign(portal.style, {position: 'absolute', left: `${(places[name].x + .04) * 100}%`, top: `${(places[name].y + .05) * 100}%`, width: '92%', height: '88%', pointerEvents: 'auto', zIndex: '30', background: 'transparent'}); world.append(portal);
+}
+document.querySelectorAll('[data-place]').forEach(button => button.addEventListener('click', () => go(button.dataset.place)));
+function zoomAt(factor, x = width / 2, y = height / 2) {
+  fling = null;
+  const old = target.z, next = clamp(old * factor, .2, 1.75);
+  target.x = clamp(target.x + (x - width / 2) / width * (1 / old - 1 / next), -1.65, 1.72);
+  target.y = clamp(target.y + (y - height / 2) / height * (1 / old - 1 / next), -1.5, 1.7); target.z = next; classify(); schedule();
+}
+document.querySelector('#zoom-in').addEventListener('click', () => zoomAt(1.2)); document.querySelector('#zoom-out').addEventListener('click', () => zoomAt(1 / 1.2));
+room.addEventListener('wheel', event => { if (event.ctrlKey || event.metaKey || event.target.closest('input,.pedal-deck,[data-room-control]')) return; event.preventDefault(); const r = room.getBoundingClientRect(); zoomAt(Math.exp(-clamp(event.deltaY, -120, 120) * .002), event.clientX - r.left, event.clientY - r.top); }, {passive: false});
+const contacts = new Map(); let pan = null, pinch = null, trail = [];
+// Letting go keeps the room moving: the release speed carries on and bleeds away.
+// Only a camera that drifts to rest beside a corner is drawn the last bit of the way.
+function throwCamera(now) {
+  const recent = trail.filter(p => now - p.t < 90);
+  if (!motion || recent.length < 2 || now - recent[recent.length - 1].t > 45) return;
+  const a = recent[0], b = recent[recent.length - 1], span = Math.max(16, b.t - a.t);
+  let vx = (b.x - a.x) / span, vy = (b.y - a.y) / span; const speed = Math.hypot(vx, vy), max = .006;
+  if (speed < .00025) return;
+  if (speed > max) { vx *= max / speed; vy *= max / speed; }
+  fling = {vx, vy};
+}
+function coast(dt) {
+  const ms = dt * 16.667, decay = Math.pow(.945, dt);
+  const nx = target.x + fling.vx * ms, ny = target.y + fling.vy * ms;
+  target.x = clamp(nx, -1.65, 1.72); target.y = clamp(ny, -1.5, 1.7);
+  if (target.x !== nx) fling.vx *= -.25; if (target.y !== ny) fling.vy *= -.25;
+  fling.vx *= decay; fling.vy *= decay;
+  approach();
+  if (Math.hypot(fling.vx, fling.vy) > .00006) return;
+  fling = null; classify();
+  const p = places[active]; if (p && active !== 'overview' && Math.hypot(target.x - p.x, target.y - p.y) < .14) { target.x = p.x; target.y = p.y; }
+}
+room.addEventListener('pointerdown', event => {
+  if (event.button !== 0 || event.target.closest('button,a,input,label,.pedal-deck,.loose-paper,.draw-area,[data-room-control]')) return;
+  fling = null; contacts.set(event.pointerId, {x: event.clientX, y: event.clientY}); room.setPointerCapture(event.pointerId); room.classList.add('dragging');
+  if (contacts.size === 1) { target = {...camera}; pan = {x: event.clientX, y: event.clientY, camera: {...camera}}; trail = []; }
+  else if (contacts.size === 2) { const [a, b] = [...contacts.values()]; pinch = {distance: Math.hypot(a.x - b.x, a.y - b.y), z: camera.z}; pan = null; }
+});
+room.addEventListener('pointermove', event => {
+  if (!contacts.has(event.pointerId)) return;
+  const bounds = room.getBoundingClientRect();
+  contacts.set(event.pointerId, {x: event.clientX, y: event.clientY});
+  if (pinch && contacts.size === 2) { const [a, b] = [...contacts.values()]; const next = clamp(pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / pinch.distance, .2, 1.75); zoomAt(next / target.z, (a.x + b.x) / 2 - bounds.left, (a.y + b.y) / 2 - bounds.top); }
+  else if (pan) { target.x = clamp(pan.camera.x - (event.clientX - pan.x) / width / pan.camera.z, -1.65, 1.72); target.y = clamp(pan.camera.y - (event.clientY - pan.y) / height / pan.camera.z, -1.5, 1.7); trail.push({t: event.timeStamp, x: target.x, y: target.y}); if (trail.length > 8) trail.shift(); approach(); }
+  camera = {...target};
+  schedule();
+});
+function endPan(event) { if (!contacts.has(event.pointerId)) return; contacts.delete(event.pointerId); if (room.hasPointerCapture(event.pointerId)) room.releasePointerCapture(event.pointerId); if (contacts.size === 1) { const p = [...contacts.values()][0]; pan = {x: p.x, y: p.y, camera: {...target}}; pinch = null; } else if (!contacts.size) { if (pan && event.type === 'pointerup') { throwCamera(event.timeStamp); if (Math.hypot(event.clientX - pan.x, event.clientY - pan.y) > 40) document.dispatchEvent(new CustomEvent('found', {detail: 'wander'})); } pan = null; pinch = null; room.classList.remove('dragging'); classify(); } schedule(); }
+// The newcomer's lesson (hints.js): the room drifts a breath toward the pages and settles back,
+// the same coast a released drag makes, so the world shows that it moves before anyone is told.
+document.addEventListener('hint:nudge', () => { if (!motion || active !== 'home' || pan || pinch || fling) return; target = {...camera}; fling = {vx: -.00017, vy: .00002}; schedule(); });
+room.addEventListener('pointerup', endPan); room.addEventListener('pointercancel', endPan);
+document.addEventListener('keydown', event => {
+  if (document.querySelector('#guitar-closeup').open) return;
+  if (event.ctrlKey || event.metaKey || event.altKey || event.target.matches('input,textarea,[contenteditable=true]')) return;
+  if (event.key === 'Escape' || event.key === 'Home') { event.preventDefault(); go('home'); return; }
+  if (event.target.closest('[data-room-control]')) return;
+  const directions = {ArrowLeft: [-.2, 0], ArrowRight: [.2, 0], ArrowUp: [0, -.2], ArrowDown: [0, .2]};
+  if (directions[event.key]) { event.preventDefault(); fling = null; const d = directions[event.key]; target.x = clamp(target.x + d[0] / target.z, -1.65, 1.72); target.y = clamp(target.y + d[1] / target.z, -1.5, 1.7); classify(); schedule(); }
+});
+const motionButton = document.querySelector('#motion');
+function setMotion(value, byButton = false) { motion = value; document.body.dataset.motion = value ? 'on' : 'off'; motionButton.setAttribute('aria-pressed', String(!value)); motionButton.textContent = value ? t("动态开", "Motion on") : t("动态关", "Motion off"); listeners.motion.forEach(fn => fn(value, byButton)); schedule(); }
+motionButton.addEventListener('click', () => setMotion(!motion, true)); reduced.addEventListener('change', e => setMotion(!e.matches));
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { cancelAnimationFrame(frameId); frameId = 0; }
+  else { lastFrame = 0; schedule(); }
+});
+document.querySelector('.language-switch a[aria-current="page"]').addEventListener('click', event => event.preventDefault());
+document.fonts.ready.then(schedule);
+
+export function start() {
+  new ResizeObserver(resize).observe(room); setMotion(motion); setActive('home'); resize();
+  const entry = location.hash.slice(1); if (Object.hasOwn(places, entry)) go(entry);
+  window.addEventListener('hashchange', () => { const place = location.hash.slice(1); if (Object.hasOwn(places, place)) go(place); });
+}

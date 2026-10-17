@@ -1,0 +1,16 @@
+/* The personal homepage's styles, in cascade order. Shared layers first, then one file per room:
+   a room's look (and its English variant, under html[lang=en]) is explained by its own file. */
+@import './fonts.css';
+@import './base.css';
+@import './chrome.css';
+@import './atmosphere.css';
+@import './notes.css';
+@import './rooms/home.css';
+@import './rooms/papers.css';
+@import './rooms/music.css';
+@import './rooms/trace.css';
+@import './rooms/rethink.css';
+@import './rooms/work.css';
+@import './rooms/idle.css';
+@import './rooms/paths.css';
+@import './rooms/blindspot.css';

@@ -8,24 +8,66 @@
 
 ## Source
 
+2026-10-17 (open-world step 4): the homepage is organised **one room per module**. Each room has one script (`src/scripts/me/rooms/<place>.js`) and one stylesheet (`src/styles/me/rooms/<place>.css`); shared systems sit behind a context object. No visual or behavioural change came with this; computed styles and screenshots were compared room by room.
+
+Pages and markup:
+
 - `src/pages/index.astro` and `src/pages/en/index.astro`: production homepage entries.
-- `src/layouts/PersonalHome.astro`: the homepage's own layout, bilingual SEO, share image and no-JavaScript reading entry.
-- `src/components/me/Room.astro`, `MoreRooms.astro`, `Pedalboard.astro`: shared bilingual page and pedal markup, with initial copy emitted at build time; interactive copy continues to use `language.js`, with no translation library.
-- `src/styles/me/`: the approved space, guitar, music and English typography; `site.css` holds site-navigation integration details.
-- `src/styles/me/fonts.css`, `icons.css`: homepage-only fonts and shared SVG sizing; `Icon.astro` and `icons.js` let initial markup and dynamic state share the same graphics.
-- `src/scripts/me/scene.js`: space (including the coast after a released pan), line drawing, tone controls and loop recording.
-- `src/scripts/me/papers.js`: loose pages as paper: throwing, landing in other rooms, and the window light that shows each page's back and pencil draft.
+- `src/layouts/PersonalHome.astro`: the homepage's own layout, bilingual SEO, share image and no-JavaScript reading entry. It imports `src/styles/me/home.css` and `src/scripts/me/boot.js` only.
+- `src/components/me/Room.astro`, `MoreRooms.astro`, `Pedalboard.astro`: shared bilingual page and pedal markup, with initial copy emitted at build time; interactive copy uses `language.js`, with no translation library. Every room except home is emitted with `data-asleep` (and the loose pages' layer with `data-asleep="papers"`): `content-visibility: hidden` until its module wakes it, so its fonts and images are not fetched on first load.
+
+The room contract (`src/scripts/me/scene.js`, top of file):
+
+```js
+export default {
+  place: 'music',
+  mount(ctx) {},      // once, the first time the room is needed
+  enter() {},         // the camera has arrived here
+  leave() {},         // the camera has gone elsewhere
+  frame(now, dt) {},  // every camera frame while mounted; return true to ask for another
+  paint(g, now) {},   // draw on the shared world canvas (world space), when in view
+};
+```
+
+All hooks but `place` are optional. `ctx` offers: `room`/`world` (DOM), `t`/`english`, `places`, `active`, `camera`, `width`/`height`/`dpr`, `motion`, `light` (the afternoon hour), `inView(place)`, `schedule()` (ask for a camera frame), `go(place)`, `found(key)` (retire a lesson, see `hints.js`), `sound` (below), `use(place)` (another room's public side, mounting it if needed, e.g. the paths room plays through `ctx.use('music')`), and `on('motion' | 'resize', fn)`. Rooms never reach into each other's DOM or state; cross-room effects go through `ctx`.
+
+Scripts:
+
+- `src/scripts/me/boot.js`: registers the rooms (`define(place, loader)`) and starts the scene. Home is bundled with the first paint; every other room is its own chunk, loaded and woken after the page's `load` event on idle (nearest first), or immediately when the camera heads toward it, enters it by `#hash`, or zooms out to the overview. The 3D guitar (`guitar-model.js`, Three.js and its textures) loads on idle or on the first touch, move or key in the room, or when the close-up opens; until then `guitar-home.webp` stands in at the same place.
+- `src/scripts/me/scene.js`: camera, drag and coast, pinch and wheel zoom, keyboard travel, routing by `#hash`, the room bar, portals, and the room registry.
+- `src/scripts/me/places.js`: where each room sits (room-size units from home), its name and the room bar hint.
+- `src/scripts/me/sound.js`: the audio context, the shared pedal rig (`sound.params`), the two Sound switches and small room sounds (`roomsound` events).
+- `src/scripts/me/room-kit.js`: helpers several rooms share (`surface`, `sway`, `dragInput`, `clamp`, `still`).
+- `src/scripts/me/rooms/home.js`: the guitar on the world canvas, mouse-follow tilt, the close-up dialog, and when the 3D model loads.
+- `src/scripts/me/rooms/papers.js`: loose pages as paper: throwing, landing in other rooms, and the window light that shows each page's back and pencil draft.
+- `src/scripts/me/rooms/music.js`: the strings (photo plus `#jam-strings` canvas), chords, A S D F G H and Space, the four pedals and their knobs, the phone pedal pager, the looper and the VU meter.
+- `src/scripts/me/rooms/trace.js`: pencil lines that become tuned strings, drawn on the world canvas.
+- `src/scripts/me/rooms/rethink.js`, `work.js` (+ `work-specimen.js`, the on-demand Three.js sculptures), `idle.js`, `paths.js`, `blindspot.js`: the step-3 rooms.
 - `src/scripts/me/hints.js`: the quiet tutorial: every room's ordered lessons (one-time demonstration, then the pencil note), and the `me-found` record that retires both.
-- `src/styles/me/paper-stock.css`: the loose pages as real paper (manuscript grid, typewritten index card, engineering pad) and their four subset faces.
 - `src/scripts/me/afternoon.js`: 不赶时间 ("No hurry"): time that passes only while the visitor is still, the clock, dust, lamp and evening line, and the hour (`--hour`, `--gold`, `--dusk`) shared with every room.
-- `src/scripts/me/boot.js`: starts the space and controls first, then dynamically loads 3D and the added areas.
-- `src/scripts/me/extra-rooms.js`, `nine-rooms.js`: Möbius paper strip, putting down paper slips, path playing and offset text; state stays only within the current visit.
-- `src/scripts/me/work-specimen.js`: four on-demand project sculptures whose cross-sections show origin, approach and boundaries.
-- `src/scripts/me/guitar-model.js`: the Three.js guitar built from photo projection plus geometry.
-- `src/scripts/me/guitar-surface.js`, `guitar-surface-worker.js`, `guitar-batches.js`: compute the same body surface in the background and merge static hardware draws, without reducing geometry or texture resolution.
+- `src/scripts/me/guitar-model.js`: the Three.js guitar built from photo projection plus geometry; `guitar-surface.js`, `guitar-surface-worker.js`, `guitar-batches.js` compute the same body surface in the background and merge static hardware draws.
 - `src/scripts/me/audio-engine.js`: native Web Audio plucked-string synthesis, overdrive, filtering and feedback echo.
+- `src/scripts/me/icons.js`, `language.js`: shared SVG paths and the zh/en switch for runtime copy.
+
+Assets:
+
 - `src/assets/me/`: four local textures and two lossless model previews; Vite emits content-hashed static URLs with no dependency on the prototype directory.
-- `src/vendor/three/`: Three.js 0.180.0 carried over from the prototype, keeping its MIT LICENSE. No npm dependencies were added.
+- `src/vendor/three/`: Three.js 0.180.0 carried over from the prototype, keeping its MIT LICENSE. The site has no runtime npm dependencies beyond Astro; `@playwright/test` is a development dependency for the checks below.
+
+Styles (`src/styles/me/home.css` imports them in cascade order):
+
+- `fonts.css`: homepage-only fonts. `base.css`: tokens, reset, the world and what rooms share (headings, small actions). `chrome.css`: masthead, room bar and map, view tools, language switch, sleeping rooms. `atmosphere.css`: window light, the afternoon hour and the lamp, shared by every room. `notes.css`: pencil notes shared parts.
+- `rooms/<place>.css`: everything that is only that room's, including its English variant (`html[lang=en] …`), its light and shadow, and its pencil notes. The loose pages' paper stock and subset faces live in `rooms/papers.css`.
+
+Checks (`tests/home/`):
+
+- `npm run test:home`: Playwright smoke test (`smoke.spec.mjs`, `playwright.config.mjs`): builds, serves with `astro preview`, then in zh and en at 1280×800 and 390×844 visits every room by hash and performs its main interaction (see the list below), failing on console errors, page errors, failed requests or HTTP errors. It uses the installed Chrome (`PW_CHANNEL=chromium` for Playwright's own) and reduced motion. It takes about 1.5 minutes locally, so it is not in CI.
+- `parity.mjs`: reference screenshots of every room (zh/en, desktop/phone, reduced motion, lessons already found) and a pixel comparison. `styles.mjs`: the computed style of every element in every room, and a comparison. Use both before and after any refactor that should not change the look.
+- `weight.mjs`: first-load transfer by type at the `load` event and after idle, against `astro preview`.
+
+Main interaction per room (what the smoke test does): home, open and close the guitar close-up; papers, turn a page; music, stomp the Centaur and strum (sound turns on); trace, "Give me a starting point" adds a line; rethink, "Think again" walks the thought; work, choose the "limits" depth (reading 100); idle, toss a slip into the hollow; paths, "Listen to this path"; blindspot, "Another angle" (20°) and turn the test card; overview, the portals appear.
+
+First load (2026-10-17, `astro preview`, compressed transfer at the `load` event): `/` 1808 KB in 20 requests before step 4, 529 KB in 9 after; `/en/` 1617 KB → 359 KB. Everything else still arrives after load and idle (about 2.1–2.3 MB in total, unchanged).
 
 Run `npm ci`, `npm run dev`. Before release run `npm run build`, `npm run preview` and check the real build output. Homepage code loads only on the homepage; reading pages keep their existing layout and themes.
 
@@ -60,7 +102,7 @@ The guitar model is the user-confirmed **BanG Dream! POTBELLY FM Rāna**, with t
 
 PNGs are kept as texture source files; the homepage and the Three.js runtime load same-size high-quality WebP (quality 95). The four textures dropped from 4.95 MB to 1.05 MB in total, about 79% smaller.
 
-The entry preview is about 194 KB and loads with priority; the three model-only textures are requested early at low priority, and the official reference image reuses the page image directly to avoid duplicate transfer. The surface is computed in a Worker bundled by Vite, and when Workers are unavailable it yields the main thread in batches; static geometry is merged by material, and texture sizes, vertices, normals and UVs match the prototype. The project 3D code loads only when the showcase is visible and stops rendering off-screen. The prototype's local performance comparison is kept as development evidence and must not be taken as a speed promise on visitors' networks.
+The entry preview is about 211 KB and loads with priority; since step 4 the model's textures load with the model (on idle or first touch), not on first paint, and the official reference image (`#guitar-photo`, `loading="lazy"`) is fetched only when the model or the close-up needs it. The surface is computed in a Worker bundled by Vite, and when Workers are unavailable it yields the main thread in batches; static geometry is merged by material, and texture sizes, vertices, normals and UVs match the prototype. The project 3D code loads only when the showcase is visible and stops rendering off-screen. The prototype's local performance comparison is kept as development evidence and must not be taken as a speed promise on visitors' networks.
 
 Official sources: [model page](https://espguitars.co.jp/collaborate/33185/), [front image](https://espguitars.co.jp/wp-content/uploads/2023/11/BanGDream_POTBELLY_FM_Rana_front.png). Official images and brand marks belong to their respective rights holders and are not covered by the repository code's MIT license.
 

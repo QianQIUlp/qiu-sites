@@ -1,0 +1,244 @@
+/* 几张散页 ("Loose pages"): three real sheets of paper and the window light. Behaviour: scripts/me/rooms/papers.js. */
+
+/* — Composition and controls — */
+.papers{left:-112%;top:1%;width:100%;height:100%}
+.loose-paper{position:absolute;width:27%;height:58%;perspective:1100px;cursor:grab;pointer-events:auto;touch-action:none;transform:translate(var(--dx,0px),var(--dy,0px)) rotate(var(--rotation));z-index:2;filter:drop-shadow(0 15px 16px #20251d0c)}
+.loose-paper:active{cursor:grabbing}
+.paper-a{left:36%;top:20%}
+.paper-b{left:61%;top:30%;z-index:3}
+.paper-c{left:19%;top:47%;height:39%;width:24%}
+.paper-turn{width:100%;height:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.2,.75,.2,1)}
+.loose-paper.flipped .paper-turn{transform:rotateY(180deg)}
+.paper-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;padding:25px;border:1px solid #777d6240;background:#e3e5d9;display:flex;flex-direction:column;overflow:hidden}
+.paper-b .paper-front{background:var(--red);color:var(--paper);border-color:#e83d2740}
+.paper-c .paper-front{background:#faf8ec}
+.paper-back{transform:rotateY(180deg);background:#daddce}
+.paper-index{font:8px/1.5 var(--mono);letter-spacing:.035em;opacity:.75}
+.paper-front p{font-size:clamp(19px,2.1vw,34px);line-height:1.65;letter-spacing:-.055em;margin:auto 0}
+.paper-front p em{font-style:normal;border-bottom:1px solid}
+.paper-front s{font-size:.6em;opacity:.65;text-decoration-thickness:1px}
+.turn-hint{font-size:9px;text-align:right}
+.paper-back h3{font-weight:400;line-height:1.5;font-size:clamp(17px,1.8vw,28px);margin:30px 0 12px}
+.paper-back p{font-size:11px;line-height:1.9;color:#606651;margin:0}
+.paper-back a{margin-top:auto;font-size:11px;color:var(--red);padding:14px 0;align-self:flex-start}
+.turn-back{align-self:flex-start;padding:6px 0;font-size:9px;color:var(--muted)}
+.paper-reset{position:absolute;right:7%;bottom:6%}
+@media(max-width:950px){.paper-face{padding:19px}.paper-front p{font-size:21px}.paper-back h3{font-size:19px}.paper-back p{font-size:10px}}
+@media(max-width:600px){.loose-paper{width:46%;height:32%}.paper-a{left:3%;top:35%}.paper-b{left:51%;top:42%;width:45%;height:28%}.paper-c{left:7%;top:71%;height:22%;width:56%}.paper-face{padding:17px}.paper-front p{font-size:19px;line-height:1.5}.paper-front .paper-index{font-size:7px}.paper-c .paper-front p{font-size:20px}.turn-hint{font-size:8px}.paper-back h3{font-size:16px;margin:18px 0 9px}.paper-back p{font-size:9px}.paper-back a{font-size:10px;padding:8px 0}.turn-back{font-size:8px}.paper-c .paper-back h3{font-size:14px;line-height:1.3;margin:8px 0 5px}.paper-c .paper-back p{display:none}.paper-c .paper-back a{margin-top:3px;padding:3px 0}.paper-c .turn-back{padding:2px 0}.paper-reset{bottom:9%;right:7%;font-size:9px}}
+.paper-reset{opacity:var(--detail,1)}
+@media(max-height:570px) and (min-width:601px){.paper-front p{font-size:19px}.paper-face{padding:17px}.paper-back h3{margin:15px 0 8px;font-size:17px}.paper-back p{font-size:9px}}
+
+/* — English (html[lang=en]) — */
+html[lang=en] .paper-front p{font:400 clamp(19px,2.4vw,34px)/1.3 var(--serif);letter-spacing:-.025em}
+html[lang=en] .paper-front s{font:10px/1.6 var(--sans);letter-spacing:0}
+html[lang=en] .paper-back h3{font:400 clamp(18px,2.2vw,28px)/1.12 var(--serif);letter-spacing:-.02em}
+html[lang=en] .paper-back p{font-size:11px;line-height:1.7}
+html[lang=en] .paper-back a{font-size:10px}
+@media(max-width:1000px) and (min-width:701px){
+  html[lang=en] .paper-back h3{font-size:20px}
+}
+@media(max-width:600px){
+  html[lang=en] .paper-front p{font-size:20px;line-height:1.25}
+  html[lang=en] .paper-front s{font-size:8px;line-height:1.35}
+  html[lang=en] .paper-c .paper-front p{font-size:20px}
+  html[lang=en] .paper-back h3{font-size:19px;margin:12px 0 8px}
+  html[lang=en] .paper-back p{font-size:9px;line-height:1.5}
+  html[lang=en] .paper-back a{font-size:9px}
+  html[lang=en] .paper-c .paper-back h3{font-size:15px;margin:8px 0 5px}
+}
+
+/* — Composition and controls — */
+.archive-links {
+  position: absolute;
+  top: 7%;
+  right: 7%;
+  display: flex;
+  gap: 24px;
+  font: 10px var(--mono);
+}
+.archive-links a { padding: 12px 0; }
+.archive-links a:hover { color: var(--red); }
+@media (max-width: 600px) {
+  .archive-links { top: 2%; right: 7%; gap: 16px; font-size: 9px; }
+}
+
+/* — Light and shadow — */
+#room[data-place=papers] .daylight{--sun-x:58%;--sun-y:12%}
+.loose-paper{filter:drop-shadow(-14px 22px 20px rgba(58,40,20,.2)) drop-shadow(-2px 3px 3px rgba(58,40,20,.12))}
+.paper-face{background-image:var(--grain),linear-gradient(118deg,rgba(255,255,255,.4),rgba(255,255,255,0) 42%,rgba(0,0,0,.035));background-size:180px,auto;background-blend-mode:multiply}
+
+/* — Paper that flies and holds the light — */
+.paper-layer{position:absolute;left:-112%;top:1%;width:100%;height:100%;pointer-events:none}
+.loose-paper{
+  transform:translate(var(--dx,0px),var(--dy,0px)) rotate(calc(var(--rotation) + var(--spin,0deg))) scale(calc(1 + var(--lift,0) * .045));
+  filter:
+    drop-shadow(calc(-14px - var(--lift,0) * 20px) calc(22px + var(--lift,0) * 30px) calc(20px + var(--lift,0) * 20px - var(--sunlit,0) * 7px) rgba(58,40,20,calc(.2 + var(--sunlit,0) * .07 - var(--lift,0) * .05)))
+    drop-shadow(calc(-2px - var(--lift,0) * 2px) calc(3px + var(--lift,0) * 3px) calc(3px + var(--lift,0) * 3px) rgba(58,40,20,calc(.12 - var(--lift,0) * .06)));
+}
+.loose-paper.held{cursor:grabbing}
+/* The window's light on the floor: four panes, skewed by the low afternoon sun. */
+.paper-sun{position:absolute;left:59%;top:3%;width:37%;height:52%;display:grid;grid-template:1fr 1fr/1fr 1fr;gap:6% 6.5%;transform-origin:100% 0;transform:skewX(calc(-19deg - var(--gold,0) * 14deg)) rotate(-5deg) scale(calc(1 + var(--gold,0) * .16),1);opacity:calc(1 - var(--dusk,0) * .3);pointer-events:none}
+.paper-sun i{display:block;border-radius:2px;filter:blur(2.5px);animation:sun-breathe 19s ease-in-out infinite alternate;background:linear-gradient(162deg,color-mix(in oklab,rgba(255,246,222,.95),rgba(255,190,124,.94) calc(var(--gold,0) * 100%)),color-mix(in oklab,rgba(255,234,192,.84),rgba(255,160,104,.86) calc(var(--gold,0) * 100%)) 62%,color-mix(in oklab,rgba(255,224,174,.76),rgba(244,128,96,.8) calc(var(--gold,0) * 100%)));box-shadow:0 0 0 2px rgba(255,192,122,.26),0 0 44px 8px rgba(255,204,136,.24)}
+.paper-sun::before{content:"";position:absolute;inset:-80% -70%;background:radial-gradient(closest-side,rgba(66,48,28,0) 30%,rgba(66,48,28,.055) 56%,rgba(66,48,28,0) 100%)}
+.paper-sun::after{content:"";position:absolute;inset:-8% -10% 0 0;background:var(--dapple) no-repeat 100% 0/86% auto;filter:blur(7px);opacity:.36;mix-blend-mode:multiply;transform-origin:100% 0;animation:dapple-sway 11s ease-in-out infinite alternate}
+@keyframes dapple-sway{from{transform:rotate(-2.2deg) translate(0,0)}to{transform:rotate(2.6deg) translate(-2%,1.5%)}}
+/* What only the light shows. Each face blends only with itself, never with the desk below. */
+.paper-face{isolation:isolate}
+.paper-face>*{position:relative;z-index:1}
+.paper-face>.paper-light{position:absolute;inset:0;z-index:0;padding:inherit;pointer-events:none;opacity:var(--glow,0)}
+.paper-face::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background-image:var(--fibre);background-size:260px;mix-blend-mode:multiply;opacity:calc(var(--glow,0) * .3)}
+.paper-face::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(140% 105% at 94% -8%,rgba(255,240,206,.95),rgba(255,216,156,.55) 44%,rgba(255,200,130,0) 86%);mix-blend-mode:screen;opacity:max(calc(var(--glow,0) * .78),calc(var(--sunlit,0) * .26))}
+.paper-face>.paper-dapple{position:absolute;inset:-25% -25% auto auto;width:120%;height:120%;z-index:3;pointer-events:none;background:var(--dapple) no-repeat 100% 0/100% auto;filter:blur(10px);mix-blend-mode:multiply;opacity:calc(var(--glow,0) * .42);transform-origin:100% 0;animation:dapple-sway 9s ease-in-out infinite alternate}
+.paper-through{position:absolute;inset:0;padding:inherit;display:flex;flex-direction:column;justify-content:center;gap:10px;transform:scaleX(-1);opacity:.17;filter:blur(.7px)}
+.paper-through b{display:block;font-weight:400;font-size:clamp(17px,1.8vw,28px);line-height:1.4}
+.paper-through span{display:block;font-size:11px;line-height:1.8}
+.paper-back .paper-through{justify-content:center}
+.paper-back .paper-through span{font-size:clamp(19px,2.1vw,34px);line-height:1.6;letter-spacing:-.05em}
+.paper-back .paper-through s{font-size:.6em}
+.paper-draft{position:absolute;inset:0;font-family:"Me Hand","Me CJK Serif",var(--serif);color:rgba(60,62,56,.82);font-weight:400;letter-spacing:0;text-shadow:0 0 .5px rgba(60,62,56,.4)}
+.paper-b .paper-draft{color:rgba(74,24,14,.78);text-shadow:0 0 .5px rgba(74,24,14,.4)}
+.draft-struck{position:absolute;left:9%;top:12.5%;font-size:clamp(14px,1.25vw,21px);line-height:1.2;white-space:nowrap;opacity:.68;transform:rotate(-2.2deg);transform-origin:0 50%}
+.draft-struck svg{position:absolute;left:-4%;top:30%;width:108%;height:44%;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.15;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.draft-struck svg path+path{stroke-width:.8;opacity:.7}
+.draft-kept{position:absolute;left:11%;top:20.5%;font-size:clamp(14px,1.25vw,21px);line-height:1.2;white-space:nowrap;transform:rotate(-1.1deg);transform-origin:0 50%}
+.draft-note{position:absolute;left:10%;bottom:12%;display:flex;align-items:flex-end;gap:5px;font-size:clamp(13px,1.1vw,18px);line-height:1;white-space:nowrap;transform:rotate(-5deg);transform-origin:0 100%}
+.draft-note svg{width:2.1em;height:1.25em;flex:none;fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;transform:translateY(-.35em)}
+html[lang=en] .draft-struck,html[lang=en] .draft-kept{font-size:clamp(16px,1.45vw,24px)}
+html[lang=en] .draft-note{font-size:clamp(15px,1.3vw,21px)}
+/* The short page has room for one line above its text: the rewrite goes below it. */
+.paper-b .draft-kept{font-size:clamp(12px,1.05vw,18px)}
+html[lang=en] .paper-b .draft-kept{font-size:clamp(15px,1.35vw,22px)}
+.paper-c .draft-struck{top:21%}
+.paper-c .draft-kept{top:72%}
+.paper-c .draft-note{bottom:5%}
+body[data-motion=off] .paper-sun i,body[data-motion=off] .paper-sun::after,body[data-motion=off] .paper-face>.paper-dapple{animation:none}
+@media(max-width:600px){
+  .paper-sun{left:52%;top:15%;width:42%;height:21%}
+  .draft-struck,.draft-kept,html[lang=en] .draft-struck,html[lang=en] .draft-kept{font-size:12px}
+  .draft-note,html[lang=en] .draft-note{font-size:11px;bottom:15%}
+  .paper-c .draft-kept{display:none}
+  .paper-c .draft-note{bottom:4%}
+}
+
+/* — Pencil notes — */
+.note-papers{left:37%;top:6.5%;--note-angle:-3deg}
+.note-papers svg{transform:translateY(-.25em) rotate(12deg)}
+@media(max-width:600px){
+  .note-papers{left:7%;top:29.5%}
+  .note-papers svg{transform:translateY(-.45em) rotate(-6deg)}
+}
+
+/* — Paper stock — */
+/* Paper stock: three real kinds of paper, each with its own hand. Page 01 is Chinese manuscript
+   grid paper (原稿纸) written in blue-black fountain-pen ink, a teacher's red circles under the
+   line that matters. Page 02 is a red index card fed through a typewriter: Song type for Chinese,
+   Courier for English, a struck phrase typed over with x's, the catalogue punch hole. Page 03 is
+   a green engineering computation pad: its grid printed on the back so it only shows through,
+   lettered in long Fangsong (the Chinese drafting standard) or an architect's hand, the answer
+   boxed. `.paper-stock` carries each sheet's printing; text sits on its rows. */
+@font-face{font-family:"Me Kai";src:url("../../../assets/me/fonts/lxgw-wenkai-paper.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Me Fangsong";src:url("../../../assets/me/fonts/zhuque-fangsong-paper.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+3000-9FFF,U+FF00-FFEF}
+@font-face{font-family:"Me Typewriter";src:url("../../../assets/me/fonts/courier-prime-paper.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0020-02FF,U+2000-206F}
+@font-face{font-family:"Me Drafting";src:url("../../../assets/me/fonts/architects-daughter-paper.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0020-02FF,U+2000-206F}
+.loose-paper{container-type:size}
+.paper-face>.paper-stock{position:absolute;z-index:0;pointer-events:none}
+.loose-paper .turn-hint,.loose-paper .paper-index{position:relative;z-index:1}
+/* ── 01 · Manuscript grid paper ───────────────────────────────────────────────────────────── */
+.loose-paper.paper-a .paper-face{
+  --pad:9cqw;--cell:calc((100cqw - 2 * var(--pad)) / 12);--row:calc(var(--cell) * 1.25);
+  --grid:rgba(196,92,64,.42);--ink:#25324a;
+  padding:var(--pad);background-color:#f3eee0;border-color:rgba(160,120,90,.22)
+}
+.loose-paper.paper-a .paper-back{background-color:#efe9da}
+/* Square cells with a narrow blank strip under every row, inside a heavier frame. */
+.paper-a .paper-stock{
+  left:var(--pad);top:calc(var(--pad) + var(--row));width:calc(var(--cell) * 12);
+  height:calc(var(--row) * 9);height:round(down,calc(100% - 2 * var(--pad) - 2.4 * var(--row)),var(--row));
+  box-shadow:0 0 0 1px var(--grid),0 0 0 2.5px rgba(243,238,224,.9),0 0 0 3.5px var(--grid);
+  background:linear-gradient(to bottom,var(--grid) 0 1px,transparent 1px calc(var(--cell) - 1px),var(--grid) calc(var(--cell) - 1px) var(--cell),transparent var(--cell)) 0 0/100% var(--row)
+}
+.paper-a .paper-stock::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(to right,var(--grid) 0 1px,transparent 1px) 0 0/var(--cell) 100%;
+  -webkit-mask:linear-gradient(to bottom,#000 var(--cell),transparent var(--cell)) 0 0/100% var(--row);
+  mask:linear-gradient(to bottom,#000 var(--cell),transparent var(--cell)) 0 0/100% var(--row)
+}
+.paper-a .paper-stock::after{content:"12 × 16 = 192";position:absolute;right:0;top:calc(100% + .9cqw);font:2.6cqw/1 var(--mono);letter-spacing:.06em;color:var(--grid)}
+.paper-a .paper-back .paper-stock{opacity:.32;transform:scaleX(-1)}
+.paper-a .paper-back .paper-stock::after{content:none}
+.loose-paper.paper-a .paper-front .paper-index{position:absolute;left:var(--pad);top:calc(var(--pad) * .9);color:var(--grid);opacity:1}
+.loose-paper.paper-a .paper-front p{
+  margin:calc(var(--row) * 2 - var(--cell) * .125) 0 0;font:400 calc(var(--cell) * .74)/var(--row) "Me Kai","Me CJK Serif",var(--serif);
+  letter-spacing:calc(var(--cell) - 1em);text-indent:calc((var(--cell) - 1em) / 2);
+  color:var(--ink);text-shadow:0 0 .6px rgba(37,50,74,.45)
+}
+/* A teacher's red circles under a good line, as on any school essay. */
+.loose-paper.paper-a .paper-front p em{border:0;font-style:normal;-webkit-text-emphasis:open circle #d2402a;text-emphasis:open circle #d2402a;-webkit-text-emphasis-position:under;text-emphasis-position:under right}
+html[lang=en] .loose-paper.paper-a .paper-front p{font-size:calc(var(--cell) * .82);letter-spacing:0;text-indent:0;padding-left:calc(var(--cell) * .25);position:relative;top:calc(var(--cell) * .1)}
+html[lang=en] .loose-paper.paper-a .paper-front p em{-webkit-text-emphasis:none;text-emphasis:none;text-decoration:underline wavy #d2402a;text-decoration-thickness:1px;text-underline-offset:.28em}
+.loose-paper.paper-a .turn-hint{position:absolute;right:var(--pad);bottom:calc(var(--pad) * .55);color:var(--grid)}
+.loose-paper.paper-a .paper-back h3,html[lang=en] .loose-paper.paper-a .paper-back h3{font-family:"Me Kai","Me CJK Serif",var(--serif);color:var(--ink);letter-spacing:.02em}
+.loose-paper.paper-a .paper-back p{font-family:"Me Kai","Me CJK Serif",var(--serif);color:#4f5b6b}
+/* The date as a round red rubber stamp, pressed slightly crooked. */
+.loose-paper.paper-a .paper-back .paper-index{align-self:flex-end;display:grid;place-items:center;width:17cqw;height:17cqw;border:1.5px solid rgba(210,64,42,.72);border-radius:50%;box-shadow:inset 0 0 0 2.5px rgba(239,233,218,.9),inset 0 0 0 3.5px rgba(210,64,42,.55);color:rgba(210,64,42,.85);font-size:2.4cqw;letter-spacing:0;opacity:1;transform:rotate(-12deg);text-align:center;mix-blend-mode:multiply}
+/* ── 02 · Typewritten index card ──────────────────────────────────────────────────────────── */
+.loose-paper.paper-b .paper-face{
+  --pad:8cqw;--rule:10.6cqw;--top:calc(var(--pad) + 13cqw);--line:rgba(96,14,6,.3);--type:#26120e;
+  padding:var(--pad);border-radius:1.6cqw;background-color:#df4429;color:var(--type);border-color:rgba(120,24,10,.35);
+  -webkit-mask:radial-gradient(circle at 50% calc(100% - 7cqw),transparent 2.3cqw,#000 calc(2.3cqw + .6px));
+  mask:radial-gradient(circle at 50% calc(100% - 7cqw),transparent 2.3cqw,#000 calc(2.3cqw + .6px))
+}
+.loose-paper.paper-b .paper-back{background-color:#e04a30}
+/* A heavier head rule (doubled), then evenly ruled lines to the foot. */
+.paper-b .paper-front .paper-stock{
+  --head:calc(var(--pad) + 6cqw);left:0;right:0;top:var(--head);bottom:15cqw;
+  border-top:1.5px solid rgba(96,14,6,.48);
+  /* Each rule falls just under a typed baseline: 8.1cqw below the top of its line of type. */
+  background:linear-gradient(to bottom,rgba(96,14,6,.42) 0 1px,transparent 1px) 0 2.2cqw/100% 100% no-repeat,
+    linear-gradient(to bottom,transparent calc(var(--rule) - 1px),var(--line) calc(var(--rule) - 1px)) 0 calc(var(--top) + 8.1cqw - var(--rule) - var(--head))/100% var(--rule) repeat-y
+}
+.paper-b .paper-back .paper-stock{display:none}
+.loose-paper.paper-b .paper-front .paper-index{position:absolute;left:var(--pad);top:var(--pad);font-family:"Me Typewriter",var(--mono);font-size:3.2cqw;opacity:.82;letter-spacing:.02em}
+.loose-paper.paper-b .paper-front p{
+  margin:calc(var(--top) - var(--pad)) 0 0;font:400 6.4cqw/var(--rule) "Me Typewriter","Me CJK Serif",var(--mono);letter-spacing:.04em;
+  color:var(--type);text-shadow:.25px 0 0 rgba(38,18,14,.5),0 0 .8px rgba(38,18,14,.35)
+}
+/* Typed over: the same struck phrase, x'd out key by key. */
+.loose-paper.paper-b .paper-front s{font-size:1em;color:rgba(38,18,14,.5);text-decoration:none;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 12'><path d='M2 3.2 8 9.4M8 3.2 2 9.4' stroke='rgb(38,18,14)' stroke-width='1.15' stroke-linecap='round' opacity='.92'/></svg>") repeat-x 0 55%/.5em .95em}
+html[lang=en] .loose-paper.paper-b .paper-front p{font-size:5.9cqw;letter-spacing:0}
+html[lang=en] .loose-paper.paper-b .paper-front s{font:inherit;background-size:.6em .95em}
+.loose-paper.paper-b .turn-hint{position:absolute;right:var(--pad);bottom:calc(var(--pad) * .6);font-family:"Me Typewriter",var(--mono);color:var(--type);opacity:.8}
+.loose-paper.paper-b .paper-back h3,html[lang=en] .loose-paper.paper-b .paper-back h3{font-family:"Me Typewriter","Me CJK Serif",var(--mono);color:var(--type);letter-spacing:0}
+.loose-paper.paper-b .paper-back p{font-family:"Me Typewriter","Me CJK Serif",var(--mono);color:rgba(38,18,14,.78)}
+.loose-paper.paper-b .paper-back a{color:#fff3e4}
+.loose-paper.paper-b .paper-back .turn-back{color:rgba(38,18,14,.7)}
+.loose-paper.paper-b .paper-back .paper-index{font-family:"Me Typewriter",var(--mono);opacity:.8}
+/* ── 03 · Engineering computation pad ─────────────────────────────────────────────────────── */
+.loose-paper.paper-c .paper-face{
+  --pad:7cqw;--sq:calc(100cqw / 18);--grid:rgba(64,118,82,.2);--lead:#3a3f3b;
+  padding:var(--pad) var(--pad) var(--pad) 15cqw;background-color:#e6eedb;border-color:rgba(70,110,80,.25)
+}
+/* The grid is on the back of the sheet: the front only sees it through the paper. */
+.paper-c .paper-stock{inset:0;background:
+    linear-gradient(to right,transparent calc(12.5cqw - 1px),rgba(64,118,82,.5) calc(12.5cqw - 1px) 12.5cqw,transparent 12.5cqw) 0 0/100% 100% no-repeat,
+    linear-gradient(to bottom,transparent 15cqh,rgba(64,118,82,.55) 15cqh calc(15cqh + 1.5px),transparent calc(15cqh + 1.5px)) 0 0/100% 100% no-repeat,
+    linear-gradient(to right,var(--grid) 0 1px,transparent 1px) 0 0/var(--sq) var(--sq),
+    linear-gradient(to bottom,var(--grid) 0 1px,transparent 1px) 0 0/var(--sq) var(--sq)}
+.paper-c .paper-front .paper-stock{opacity:.55;filter:blur(.35px)}
+.paper-c .paper-stock::after{content:"DATE ______  SHEET 3 OF 3";position:absolute;right:var(--pad);top:4.5cqh;font:2.5cqw/1 var(--mono);letter-spacing:.08em;color:rgba(50,96,66,.75)}
+.paper-c .paper-back .paper-stock::after{content:none}
+.loose-paper.paper-c .paper-back{--grid:rgba(64,118,82,.32);background-color:#e3ebd7;padding-left:var(--pad)}
+.paper-c .paper-back .paper-stock{background:linear-gradient(to right,var(--grid) 0 1px,transparent 1px) 0 0/var(--sq) var(--sq),linear-gradient(to bottom,var(--grid) 0 1px,transparent 1px) 0 0/var(--sq) var(--sq),linear-gradient(to right,rgba(64,118,82,.2) 0 1px,transparent 1px) 0 0/calc(var(--sq) * 5) calc(var(--sq) * 5),linear-gradient(to bottom,rgba(64,118,82,.2) 0 1px,transparent 1px) 0 0/calc(var(--sq) * 5) calc(var(--sq) * 5)}
+.loose-paper.paper-c .paper-front .paper-index{position:absolute;left:15cqw;top:3.6cqh;font:400 3.6cqw/1 "Me Fangsong","Me Drafting",var(--serif);letter-spacing:.06em;color:var(--lead);opacity:.9}
+.loose-paper.paper-c .paper-front p{margin:auto 0;font:400 11cqw/1.5 "Me Fangsong","Me CJK Serif",var(--serif);letter-spacing:.08em;color:var(--lead);transform:scaleX(.86);transform-origin:0 50%;width:116%;text-shadow:0 0 .5px rgba(58,63,59,.5)}
+/* The result, boxed, as on any page of working. */
+.loose-paper.paper-c .paper-front p em{border:1.5px solid rgba(58,63,59,.78);border-radius:2px;padding:0 .12em .04em;margin-left:-.12em;box-shadow:.12em .12em 0 -.06em rgba(58,63,59,.18)}
+html[lang=en] .loose-paper.paper-c .paper-front p{font:400 7.6cqw/1.4 "Me Drafting",var(--sans);text-transform:uppercase;letter-spacing:.02em;transform:none;width:auto}
+html[lang=en] .loose-paper.paper-c .paper-front .paper-index{font-family:"Me Drafting",var(--sans);font-size:3.3cqw;text-transform:uppercase}
+.loose-paper.paper-c .turn-hint{position:absolute;right:var(--pad);bottom:calc(var(--pad) * .7);font-family:"Me Fangsong","Me Drafting",var(--serif);color:var(--lead)}
+.loose-paper.paper-c .paper-back h3{font-family:"Me Fangsong","Me CJK Serif",var(--serif);color:var(--lead);letter-spacing:.06em}
+html[lang=en] .loose-paper.paper-c .paper-back h3{font-family:"Me Drafting",var(--sans);color:var(--lead);text-transform:uppercase;letter-spacing:.02em}
+.loose-paper.paper-c .paper-back p{font-family:"Me Fangsong","Me CJK Serif",var(--serif);color:#4b544c}
+html[lang=en] .loose-paper.paper-c .paper-back p{font-family:"Me Drafting",var(--sans)}
+.loose-paper.paper-c .paper-back .paper-index{font-family:"Me Drafting",var(--mono);opacity:.75}
+@media(max-width:600px){.paper-c .paper-stock::after{content:"SHEET 3 OF 3"}}
