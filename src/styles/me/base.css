@@ -1,7 +1,7 @@
 /* Shared base: tokens, reset, the world and what every room has in common (headings, small actions). */
 
 /* — Composition and controls — */
-:root{--paper:#eeede7;--ink:#252825;--muted:#73756b;--red:#e83d27;--line:#25282530;--sans:"Me Sans","Me CJK",Arial,"Microsoft YaHei",sans-serif;--serif:"Me Serif","Me CJK Serif",Georgia,"Times New Roman","SimSun",serif;--mono:"Me Mono","Me CJK","Courier New",Consolas,monospace}
+:root{--paper:#eeede7;--ink:#252825;--muted:#5f6157;--red:#e83d27;--red-ink:#c02b18;--line:#25282530;--sans:"Me Sans","Me CJK",Arial,"Microsoft YaHei",sans-serif;--serif:"Me Serif","Me CJK Serif",Georgia,"Times New Roman","SimSun",serif;--mono:"Me Mono","Me CJK","Courier New",Consolas,monospace}
 *{box-sizing:border-box}
 html,body{width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
 body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;display:grid;grid-template-rows:90px minmax(0,1fr) 72px}
@@ -19,10 +19,10 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid 
 .place-heading{position:absolute;left:6%;top:8%;pointer-events:none}
 .eyebrow{font:10px var(--mono);color:var(--muted);letter-spacing:.05em}
 .place-heading h2{font-size:clamp(25px,3.6vw,58px);font-weight:400;line-height:1.3;letter-spacing:-.045em;margin:19px 0 12px}
-.place-heading h2 em{font-weight:400;color:var(--red);font-style:normal}
+.place-heading h2 em{font-weight:400;color:var(--red-ink);font-style:normal}
 .place-heading>p{font-size:11px;line-height:1.8;color:var(--muted);margin:0}
 .small-action{font-size:11px;border-bottom:1px solid;padding:10px 0;display:inline-block}
-.small-action:hover{color:var(--red)}
+.small-action:hover{color:var(--red-ink)}
 .sound-caption{display:block;font:8px var(--mono);color:var(--muted);margin-top:10px}
 body[data-motion=off] *,body[data-motion=off] *:before,body[data-motion=off] *:after{transition:none!important}
 @media(max-width:950px){body{grid-template-rows:80px minmax(0,1fr) 68px}.place-heading h2{font-size:34px}.place-heading>p{font-size:10px;max-width:200px}}
@@ -52,8 +52,8 @@ html[lang=en] .place-heading>p{max-width:250px;font-size:11px;line-height:1.75}
 .extra-footer{position:absolute;left:6%;right:6%;bottom:4%;display:flex;align-items:center;justify-content:space-between;gap:22px;font-size:9px;color:var(--muted)}
 .extra-footer>a,.extra-footer>button{padding:12px 0;line-height:1.8}
 .extra-footer>button{display:flex;gap:17px;align-items:center}
-.extra-footer>button span{font-size:20px;color:var(--red)}
-.extra-footer>a:hover,.extra-footer>button:hover{color:var(--red)}
+.extra-footer>button span{font-size:20px;color:var(--red-ink)}
+.extra-footer>a:hover,.extra-footer>button:hover{color:var(--red-ink)}
 .overviewing .extra-footer{opacity:0}
 @media(max-height:760px) and (min-width:701px){.extra-footer{bottom:2%;font-size:8px}}
 @media(max-width:1000px){.extra-footer{font-size:8px}}

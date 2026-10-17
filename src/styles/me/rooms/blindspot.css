@@ -14,12 +14,12 @@
 .blind-bearing>span{font:6px var(--mono);letter-spacing:.1em}
 .blind-guide{position:absolute;bottom:2%;left:5%;font-size:9px;letter-spacing:.025em;color:var(--muted);pointer-events:none}
 .blind-caption{position:absolute;left:6%;top:53%;width:26%;max-width:320px}
-.blind-caption>span{font:9px var(--mono);color:var(--red)}
+.blind-caption>span{font:9px var(--mono);color:var(--red-ink)}
 .blind-caption h3{font:400 clamp(16px,1.6vw,24px)/1.6 var(--serif);margin:17px 0 10px}
 .blind-caption p{font-size:11px;line-height:1.95;margin:0;color:var(--muted)}
 .blind-controls{position:absolute;left:38%;right:6%;bottom:12%;display:flex;gap:30px;align-items:center;pointer-events:auto}
 .blind-controls button{display:flex;gap:18px;align-items:center;white-space:nowrap;font-size:11px;padding:10px 0}
-.blind-controls button span{font-size:20px;color:var(--red)}
+.blind-controls button span{font-size:20px;color:var(--red-ink)}
 .blind-controls label{display:flex;align-items:center;gap:12px;flex:1;font-size:8px;color:var(--muted)}
 .blind-controls label span{white-space:nowrap}
 .overviewing .blind-caption,.overviewing .blind-controls,.overviewing .blind-bearing,.overviewing .blind-guide{opacity:0;pointer-events:none}
@@ -65,7 +65,7 @@
 /* The marks sit 200px apart (about 5 cm on a desktop screen): the dot vanishes at roughly 15 cm. */
 .eye-marks b{font:400 26px/1 var(--serif);color:#1d1e1b;width:26px;text-align:center}
 .eye-dot{display:block;width:15px;height:15px;border-radius:50%;background:#1d1e1b}
-.eye-front small,.eye-back small{font:7px/1.5 var(--mono);letter-spacing:.12em;color:rgba(70,66,56,.62);text-align:center;padding:0 10px 9px}
+.eye-front small,.eye-back small{font:7px/1.5 var(--mono);letter-spacing:.12em;color:rgba(70,66,56,.88);text-align:center;padding:0 10px 9px}
 .eye-back{transform:rotateY(180deg);justify-content:center;gap:6px;padding:12px 18px;text-align:left}
 .eye-back b{font-weight:400;font-size:13px;line-height:1.35;color:var(--ink)}
 .eye-back small{text-align:left;padding:0;font:10px/1.6 var(--sans);letter-spacing:0;color:#5f6151}

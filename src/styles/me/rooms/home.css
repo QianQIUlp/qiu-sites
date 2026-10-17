@@ -8,7 +8,7 @@
 .name span:first-child{transform:rotate(-3deg)}
 .name span:last-child{color:transparent;-webkit-text-stroke:1.4px var(--ink);transform:rotate(3deg);margin-right:.08em}
 .art-caption{position:absolute;left:40%;top:8%;display:flex;gap:8px;align-items:flex-start;pointer-events:none}
-.art-caption>span{font-size:22px;color:var(--red);line-height:1}
+.art-caption>span{font-size:22px;color:var(--red-ink);line-height:1}
 .art-caption>p{font:8px/1.7 var(--mono);color:var(--muted);margin:0}
 .enter{position:absolute;right:16%;top:65%;padding:7px;display:flex;align-items:center;gap:12px;text-align:left}
 .round-arrow{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--red);color:var(--paper);font-size:27px;box-shadow:0 0 0 7px #eeede766;transition:transform .25s}
@@ -24,7 +24,7 @@
 .door-left{left:4.3%}
 .door-right{right:4.3%}
 .door-right>span:first-child{font-size:10px}
-.door:hover{color:var(--red)}
+.door:hover{color:var(--red-ink)}
 @media(max-width:950px){.home-meta{font-size:10px}.home-bottom .welcome{font-size:24px}.name{font-size:min(31vw,62vh)}.enter{right:13%;top:65%}}
 @media(max-width:600px){.home-meta{left:6%;right:6%;top:20px;display:block;font-size:10px}.home-meta>span:last-child{display:block;font-size:9px;margin-top:6px}.name{font-size:45vw;top:15%;left:2%;right:6%}.name span:last-child{margin-top:70px;margin-right:0;-webkit-text-stroke:1px var(--ink)}.art-caption{display:none}.enter{right:8%;top:64%;gap:8px}.round-arrow{width:45px;height:45px;font-size:22px}.enter>span:last-child{font-size:12px}.enter small{font-size:8px}.door{top:58%;padding:10px 0;font-size:8px;gap:6px}.door-left{left:6%}.door-right{right:6%;top:43%}.door-right>span:first-child{font-size:8px}.door>span:first-child,.door-right>span:last-child{font-size:17px}.home-bottom{left:6%;right:6%;bottom:6%}.home-bottom>p{font-size:10px}.home-bottom .welcome{font-size:22px}}
 .home-meta,.home-bottom,.art-caption,.enter,.door{opacity:var(--detail,1)}
@@ -32,7 +32,7 @@
 @media(max-height:570px) and (min-width:601px){.home-meta{top:14px}.home-bottom>p{font-size:10px}.home-bottom .welcome{font-size:22px}}
 /* The guitar uses an unaltered product photograph, shared by the room and close view. */
 .art-caption{pointer-events:auto;text-align:left;padding:8px;margin:-8px;z-index:3}
-.art-caption:hover p{color:var(--red)}
+.art-caption:hover p{color:var(--red-ink)}
 .guitar-touch{position:absolute;left:42%;top:3%;width:17%;height:87%;transform:rotate(18.3deg);cursor:zoom-in;z-index:2;border-radius:45%}
 #guitar-closeup{width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;overflow:hidden;background:#171a18;color:#e8e5db;color-scheme:dark}
 #guitar-closeup::backdrop{background:#171a18}
@@ -128,8 +128,8 @@ html[lang=en] .guitar-views button span{font-size:11px}
 
 /* — Composition and controls — */
 .deeper-door{position:absolute;bottom:4%;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:13px;padding:12px 0;font-size:9px;color:var(--muted);white-space:nowrap}
-.deeper-door span{font-size:20px;color:var(--red)}
-.deeper-door:hover{color:var(--red)}
+.deeper-door span{font-size:20px;color:var(--red-ink)}
+.deeper-door:hover{color:var(--red-ink)}
 .overviewing .deeper-door{opacity:0}
 @media(max-width:700px){.deeper-door{font-size:8px;bottom:2%;left:58%;gap:8px}}
 

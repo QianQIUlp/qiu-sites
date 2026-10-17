@@ -10,9 +10,9 @@
 .field-axis{position:absolute;right:5%;top:15%;font-size:9px;line-height:1.8;text-align:right;color:var(--muted);pointer-events:none}
 .path-choices{position:absolute;left:6%;top:45%;width:24%;display:flex;flex-direction:column;gap:1px;z-index:3}
 .path-choices button{display:flex;align-items:center;gap:16px;padding:11px 0;border-bottom:1px solid #2528251c;text-align:left;font-size:12px;color:var(--muted)}
-.path-choices button>span{font:8px var(--mono);opacity:.7}
+.path-choices button>span{font:8px var(--mono);opacity:.88}
 .path-choices button>i{font-style:normal;margin-left:auto;font-size:20px;line-height:1}
-.path-choices button[aria-pressed=true]{color:var(--red);border-color:#e83d2740}
+.path-choices button[aria-pressed=true]{color:var(--red-ink);border-color:#e83d2740}
 .path-thought{position:absolute;left:6%;top:72%;width:29%}
 .path-thought>span{font-size:8px;color:var(--muted)}
 .path-thought blockquote{margin:10px 0 0;font:clamp(11px,1.13vw,17px)/1.9 var(--serif)}
