@@ -10,7 +10,7 @@
 | 1 · Guitar | Done, merged | PR #84 |
 | 2 · Pedalboard room 琴弦之间 ("Between the Strings") | Done, merged | PR #85 |
 | 3 · Every room gets its own idea | Done, merged (rounds 3–6 merged without Qiu's review; treated as accepted) | PR #86 |
-| 4 · Solid ground | Not started | branch `feat/me-open-world-foundation` |
+| 4 · Solid ground | Done: one module + one stylesheet per room behind the room contract, `npm run test:home` smoke test, parity screenshots and computed styles identical; first load `/` 1808 → 529 KB (20 → 9 requests), `/en/` 1617 → 359 KB | branch `feat/me-open-world-foundation`, PR #87 |
 | 5 · One world, not nine rooms | Not started | same branch |
 | 6 · Polish and launch checks | Not started | same branch |
 
@@ -68,6 +68,20 @@ Qiu's energy is limited and decisions are more tiring than execution. So:
 - **Docs:** bring `ink-and-light-study.md`, `me-home.md` and the frontend-design skill up to date; mark the brief's old "Branch state" table as historical.
 - **Final hand-off** to Qiu as described above, and the PR ready to merge.
 
+## Notes for step 5 (from step 4)
+
+- The contract, file layout and checks are documented in `docs/me-home.md` (Source). Cross-room effects: use `ctx.use(place)` to reach another room's public side (the paths room already plays through `ctx.use('music').pluckFrom(...)`), `ctx.light` for the afternoon, `ctx.sound` for anything audible.
+- Rooms other than home mount after load (idle) or on approach. A connection must not assume the other room is mounted: `ctx.use()` mounts it on demand.
+- Found by the smoke test, left for step 5 because step 4 changes no behaviour: at desktop size the paths room's three route buttons (「穿过去 / 绕一段 / 停一下」, "Through / Around / A pause") sit under `.path-instrument` and cannot be clicked (same before step 4). The smoke test uses "Listen to this path" there until it is fixed; switch it back to a route button then.
+- Run `node tests/home/parity.mjs capture <dir>` before changing a room and `compare` after; a deliberate change should show only in the rooms it meant to touch. Reference screenshots from before step 4 are in the shared session notes folder (`step4-parity-before/`), not in the repo.
+
 ## Decisions log
 
 Record defaults taken without asking Qiu, one line each: date, step, decision, why.
+
+- 2026-10-17 · 4 · Rooms other than home load and wake (module plus `data-asleep` → `content-visibility`) after the page's load event on idle, nearest first, and at once on approach, `#hash` entry or overview, rather than only on approach: every room neighbours home, so approach-only would show room fonts arriving on the first drag. Reversible in `boot.js` / `scene.js`.
+- 2026-10-17 · 4 · The 3D guitar (Three.js plus textures) loads on idle or on the first pointer move, press or key in the room, or when the close-up opens; `guitar-home.webp` stays the instant preview. The texture preloads in `PersonalHome.astro` were removed and `#guitar-photo` is `loading="lazy"`.
+- 2026-10-17 · 4 · Room markup stays in `Room.astro` / `MoreRooms.astro` (no per-room components yet), so the rendered HTML is unchanged apart from `data-asleep`. Splitting it is cheap later if a room grows.
+- 2026-10-17 · 4 · The lessons table stays in `hints.js` (a shared system per this roadmap) instead of moving into each room module.
+- 2026-10-17 · 4 · The smoke test runs on a production build with reduced motion and the installed Chrome (`PW_CHANNEL` overrides): software rendering is too slow for eased camera travel. It takes about 1.5 minutes including the build, so it is not in CI.
+- 2026-10-17 · 4 · Added `@playwright/test` as a dev dependency; deleted `src/styles/home-room.css`, which nothing imported.
