@@ -23,3 +23,6 @@
 @media (max-width: 600px) {
   .archive-links { top: 2%; right: 7%; gap: 16px; font-size: 9px; }
 }
+
+/* A room sleeps (no layout, fonts or images) until its module wakes it (scene.js). */
+[data-asleep]{content-visibility:hidden}

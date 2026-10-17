@@ -61,7 +61,7 @@ const crossNote = t('让两根线交叉试试', 'let two lines cross');
         <button class="deeper-door" data-place="rethink">{t('小屋深处，还有一些东西', 'There’s more, a little further in')} <span><Icon name="down" /></span></button>
       </section>
 
-      <section class="place papers" data-scene="papers" aria-labelledby="paper-title" inert>
+      <section class="place papers" data-scene="papers" data-asleep aria-labelledby="paper-title" inert>
         <div class="place-heading"><span class="eyebrow">{t("散落在这里的几句话", "THINGS I’VE WRITTEN DOWN")}</span><h2 id="paper-title"><Fragment set:html={t("拿起来，<br>翻到另一面。", "Pick a page.<br>Turn it over.")} /></h2><p>{t("随手扔开也行。把一张举到窗边的光里看看。", "Toss them around. Hold one up to the window light.")}</p></div>
         <div class="paper-sun" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <p class="pencil-note note-papers" data-note="papers-light" aria-hidden="true"><span>{papersNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
@@ -72,7 +72,7 @@ const crossNote = t('让两根线交叉试试', 'let two lines cross');
         <button class="paper-reset small-action" type="button">{t("把纸放回去", "Put the pages back")} <Icon name="southwest" /></button>
       </section>
 
-      <section class="place music" data-scene="music" aria-labelledby="music-title" inert>
+      <section class="place music" data-scene="music" data-asleep aria-labelledby="music-title" inert>
         <div class="place-heading"><span class="eyebrow">QIU / A LITTLE JAM</span><h2 id="music-title"><Fragment set:html={t("把这一刻，<br><em>弹成自己的。</em>", "Make a little<br><em>noise.</em>")} /></h2><p><Fragment set:html={t("划过六根弦，拧一拧旋钮。<br>好听就多待一会儿。", "Pick a chord. See where it goes.<br>Turn a knob. Stay for another song.")} /></p></div>
         <div class="tone-presets" role="group" aria-label={t("音色起点", "Starting tones")}><span>{t("从一个声音开始", "Start with a sound")}</span><div><button data-tone="clean" aria-pressed="true">{t("清音", "Clean")}</button><button data-tone="gold" aria-pressed="false">{t("暖金", "Gold")}</button><button data-tone="blue" aria-pressed="false">{t("微醺", "Blue")}</button><button data-tone="harm" aria-pressed="false">{t("和声", "Harmony")}</button><button data-tone="night" aria-pressed="false">{t("夜游", "After hours")}</button></div><small id="tone-caption" role="status">{t("干净的弦，留一点空气。", "Clean strings. A little room to breathe.")}</small></div>
         <div class="playing-strip"><div class="chord-picker" role="group" aria-label={t("选择和弦", "Choose a chord")}><button data-chord="open" aria-pressed="true">{t("空弦", "Open")}</button><button data-chord="Em" aria-pressed="false">Em</button><button data-chord="G" aria-pressed="false">G</button><button data-chord="C" aria-pressed="false">C</button><button data-chord="D" aria-pressed="false">D</button></div><button id="strum" type="button">{t("扫一下", "Strum")} <span><Icon name="southeast" /></span></button></div>
@@ -94,7 +94,7 @@ const crossNote = t('让两根线交叉试试', 'let two lines cross');
         <div class="board-caption"><span>{t("经典踏板的灵感，自己的声音。", "Classic inspiration. Your own sound.")}</span><span>{t("A S D F G H 拨弦 · 空格扫弦", "A S D F G H to pluck · Space to strum")}</span></div>
       </section>
 
-      <section class="place trace" data-scene="trace" aria-labelledby="trace-title" inert>
+      <section class="place trace" data-scene="trace" data-asleep aria-labelledby="trace-title" inert>
         <div class="place-heading"><span class="eyebrow">{t("你也可以留一笔", "A LITTLE SOMETHING FROM YOU")}</span><h2 id="trace-title"><Fragment set:html={t("把一条线，<br>变成一根弦。", "Draw a line.<br>Give it a voice.")} /></h2><p>{t("在空白处画下去。松手后，再拨动它。", "Draw in the empty space. Let go, then pluck.")}</p></div>
         <div class="draw-area" tabindex="0" role="group" aria-label={t("临时画布，拖动画线，松手后触碰线条使它振动", "Temporary canvas. Drag to draw a line, then touch it to hear it ring.")}><span class="drawing-hint">{t("从这里，随手划一下。", "A line can start anywhere.")}</span><svg class="trace-ghost" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M6 27C17 13 27 11 38 19S58 33 70 22 88 9 95 14" /></svg><svg class="trace-ghost-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="11" /><circle cx="20" cy="20" r="11" /><path pathLength="1" d="M21 9.5C28 9 31.5 15 30.6 21.5S22.5 31.4 16.4 29.8 8.6 21 10.4 15.6 17 9.2 22.6 10.6" /></svg></div>
         <p class="pencil-note note-trace-line" data-note="trace-line" aria-hidden="true"><span>{sketchNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p><p class="pencil-note note-trace-pluck" data-note="trace-pluck" aria-hidden="true"><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg><span>{pluckNote}</span></p><p class="pencil-note note-trace-loop" data-note="trace-loop" aria-hidden="true"><span>{loopNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p><p class="pencil-note note-trace-cross" data-note="trace-cross" aria-hidden="true"><span>{crossNote}</span><svg viewBox="0 0 48 30"><path pathLength="1" d="M3 25C14 24 28 19 40 8M40 8l-7.6 1.3M40 8l-1.2 7.4" /></svg></p>
@@ -102,7 +102,7 @@ const crossNote = t('让两根线交叉试试', 'let two lines cross');
       </section>
       <MoreRooms lang={lang} />
       {/* paper-font:start (scripts/subset-me-fonts.py: every character on the three pages) */}
-      <div class="paper-layer">
+      <div class="paper-layer" data-asleep="papers">
           <div class="loose-paper paper-a" data-paper="0" style="--rotation:-10deg" tabindex="0" role="button" aria-label={t("翻看第一张散页：关于命运的随笔", "Turn over the first page: thoughts on fate")} aria-pressed="false">
             <div class="paper-turn"><div class="paper-face paper-front"><div class="paper-light" aria-hidden="true"><div class="paper-through"></div><div class="paper-draft"><span class="draft-struck">{paperDrafts[0].struck}<svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M1 6.2C14 4.4 22 7 35 5.1S61 3.8 74 5.6 91 4.6 99 4.9"/><path d="M3 4.8C20 6.4 41 3.9 58 5.4S86 6.5 98 5.7"/></svg></span><span class="draft-kept">{paperDrafts[0].kept}</span><span class="draft-note"><svg viewBox="0 0 40 24"><path d="M37 21C27 20 15 15 8 5M8 5l.4 7.2M8 5l6.8 2.6"/></svg>{paperDrafts[0].note}</span></div></div><i class="paper-stock" aria-hidden="true"></i><span class="paper-index">{t("01 / 写在故事之后", "01 / AFTER A STORY")}</span><p><Fragment set:html={t("至少我今天<br>认真地活过一回，<br><em>这就够了。</em>", "At least today,<br>I lived with intention.<br><em>That’s enough.</em>")} /></p><span class="turn-hint">{t("翻面", "Turn over")} <Icon name="northeast" /></span><i class="paper-dapple" aria-hidden="true"></i></div><div class="paper-face paper-back" inert><div class="paper-light" aria-hidden="true"><div class="paper-through"></div></div><i class="paper-stock" aria-hidden="true"></i><span class="paper-index">2026.05.17</span><h3>{t("启喻鸟之章", "On fate and fear")}</h3><p><Fragment set:html={t("游戏里的命运、恐惧，<br>和没有那么容易想通的事。", "A game, a sense of fate,<br>and things I’m still figuring out.")} /></p><a href="/blog/posts/2026-05-17-qiyuniao/" target="_blank" rel="noopener noreferrer">{t("去读原文", "Read in Chinese")} <Icon name="northeast" /></a><button type="button" class="turn-back">{t("翻回来", "Turn back")} <Icon name="southwest" /></button><i class="paper-dapple" aria-hidden="true"></i></div></div>
           </div>
@@ -143,7 +143,7 @@ const crossNote = t('让两根线交叉试试', 'let two lines cross');
           <button data-guitar-view="whole" aria-pressed="false"><Icon name="southwest" /> <span>{t("整琴", "Whole")}</span></button>
         </nav>
       </div>
-      <div class="guitar-stage" data-view="body"><img id="guitar-photo" src={guitarPhoto.src} width="2400" height="2400" decoding="async" fetchpriority="low" alt={t("模型载入前的 BanG Dream! POTBELLY FM Rāna 官方外形参考", "Official BanG Dream! POTBELLY FM Rāna reference photograph, shown while the model loads")} draggable="false"></div>
+      <div class="guitar-stage" data-view="body"><img id="guitar-photo" src={guitarPhoto.src} width="2400" height="2400" loading="lazy" decoding="async" fetchpriority="low" alt={t("模型载入前的 BanG Dream! POTBELLY FM Rāna 官方外形参考", "Official BanG Dream! POTBELLY FM Rāna reference photograph, shown while the model loads")} draggable="false"></div>
     </div>
     <div class="guitar-handling"><ul class="guitar-controls" aria-label={t("怎么看这把琴", "How to look around")}>
       <li class="for-mouse"><svg viewBox="0 0 12 16" aria-hidden="true"><rect x="1" y="1" width="10" height="14" rx="5"/><path d="M1 7h10M6 1v6"/><path class="lit" d="M6 1.2V7H1.2V6A4.8 4.8 0 0 1 6 1.2Z"/></svg><span><b>{t("左键拖动", "Left-drag")}</b>{t("转动", "to turn")}</span></li>

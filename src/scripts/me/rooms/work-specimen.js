@@ -1,4 +1,4 @@
-import * as THREE from '../../vendor/three/three.module.min.js';
+import * as THREE from '../../../vendor/three/three.module.min.js';
 
 // A symbolic section through each project's architecture, not a hardware model.
 export function createWorkSpecimen(canvas) {

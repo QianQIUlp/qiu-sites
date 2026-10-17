@@ -50,7 +50,7 @@ async function capture(file) {
     await context.addInitScript(keys => { try { localStorage.setItem('me-found', JSON.stringify(keys)); } catch {} }, lessons);
     const page = await context.newPage();
     await page.goto(base + path);
-    await page.waitForFunction(() => document.body.classList.contains('guitar-home-ready'), null, {timeout: 60000});
+    await page.waitForFunction(() => document.body.classList.contains('guitar-home-ready') && !document.querySelector('[data-asleep]'), null, {timeout: 60000});
     await page.waitForTimeout(800);
     for (const room of rooms) {
       await page.evaluate(place => { location.hash = place; }, room);

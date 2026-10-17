@@ -20,9 +20,6 @@ import '../styles/me/hints.css';
 import '../styles/me/paper-stock.css';
 import '../styles/me/afternoon.css';
 import guitarPreview from '../assets/me/guitar-home.webp';
-import guitarHardware from '../assets/me/qiu-potbelly-stringless.webp';
-import guitarBody from '../assets/me/qiu-potbelly-bare-body.webp';
-import guitarNeck from '../assets/me/bangdream-potbelly-stringless.webp';
 import sansFont from '../assets/me/fonts/arimo-latin.woff2?url';
 import serifFont from '../assets/me/fonts/gelasio-latin.woff2?url';
 
@@ -45,9 +42,6 @@ const socialImage = new URL(`/assets/og/me-${lang}.jpg`, Astro.site);
     <link rel="preload" as="font" type="font/woff2" href={sansFont} crossorigin="anonymous" />
     {english && <link rel="preload" as="font" type="font/woff2" href={serifFont} crossorigin="anonymous" />}
     <link rel="preload" as="image" href={guitarPreview.src} fetchpriority="high" />
-    {[guitarHardware, guitarBody, guitarNeck].map(texture => (
-      <link rel="preload" as="image" href={texture.src} crossorigin="anonymous" fetchpriority="low" />
-    ))}
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon-96x96.png" type="image/png" sizes="96x96" />
