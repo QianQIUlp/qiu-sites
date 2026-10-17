@@ -12,3 +12,5 @@ node_modules/
 
 # Local tooling artifacts
 .playwright-cli/
+test-results/
+playwright-report/

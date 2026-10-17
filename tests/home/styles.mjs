@@ -46,6 +46,7 @@ async function capture(file) {
   const browser = await chromium.launch({channel: process.env.PW_CHANNEL || 'chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']});
   const result = {};
   for (const [name, path, options] of configs) {
+    if (process.env.STATES && !process.env.STATES.split(',').some(s => s.startsWith(name))) continue;
     const context = await browser.newContext({...options, deviceScaleFactor: 1, reducedMotion: 'reduce'});
     await context.addInitScript(keys => { try { localStorage.setItem('me-found', JSON.stringify(keys)); } catch {} }, lessons);
     const page = await context.newPage();
@@ -53,11 +54,13 @@ async function capture(file) {
     await page.waitForFunction(() => document.body.classList.contains('guitar-home-ready') && !document.querySelector('[data-asleep]'), null, {timeout: 60000});
     await page.waitForTimeout(800);
     for (const room of rooms) {
+      const only = process.env.STATES?.split(',');
       await page.evaluate(place => { location.hash = place; }, room);
       await page.waitForTimeout(room === 'work' ? 2500 : 1000);
+      if (only && !only.includes(`${name}/${room}`) && !only.includes(name)) continue;
       const shot = await page.evaluate(snapshot, skip.source);
       // Full detail for the home state; hashes elsewhere keep the file small.
-      result[`${name}/${room}`] = room === 'home' ? shot : Object.fromEntries(Object.entries(shot).map(([k, v]) => [k, createHash('sha1').update(JSON.stringify(v)).digest('hex').slice(0, 12)]));
+      result[`${name}/${room}`] = room === 'home' || process.env.STATES ? shot : Object.fromEntries(Object.entries(shot).map(([k, v]) => [k, createHash('sha1').update(JSON.stringify(v)).digest('hex').slice(0, 12)]));
     }
     await context.close();
   }
