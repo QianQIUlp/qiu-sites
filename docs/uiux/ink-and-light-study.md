@@ -1,5 +1,14 @@
 # 现代房间 · Modern Room
 
+## 2026-10-17 · Polish and launch checks (open-world step 6, pending Qiu's review)
+
+No new rooms or mechanics; the homepage was audited and tightened (`docs/me-home.md` has the checks and budgets).
+
+- **Contrast.** `--muted` `#73756b` → `#5f6157` (4.0 → 5.0:1 on the paper); small red text uses `--red-ink` `#c02b18` instead of `--red` (3.5:1); in the dark strings room the muted ink is `#c4bcab`, red text `#ff7a59`, chord chips have a dark backing over the lit photo and the string letters a stronger shadow; faint index numerals (paths, blind-spot card) are raised from 0.62–0.7 to 0.88 opacity. `--red` itself, the room's colours and compositions are unchanged.
+- **Reduced motion.** The 不赶时间 ("No hurry") lamp no longer flickers when it lights under `prefers-reduced-motion` or Motion off (a flashing flicker); everything else already stopped. `tests/home/motion.mjs` proves it for every room.
+- **Share images.** `me-zh.jpg` / `me-en.jpg` (and the copies on QStudio) are recaptured from the current home (window light, tilted guitar); the old ones showed the pre-light composition. `twitter:title`, `twitter:description` and `twitter:image` were added.
+- **Budgets and audits.** First-load and idle budgets are enforced by `weight.mjs`; `a11y.mjs` covers names, Tab order, focus rings and contrast.
+
 ## 2026-10-17 · One world, not nine rooms (open-world step 5, pending Qiu's review)
 
 The rooms now answer each other. Every connection goes through the room contract's `ctx` (`sound`, `light`, `use(place)`, `link`); no room reaches into another's DOM.

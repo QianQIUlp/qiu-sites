@@ -12,7 +12,7 @@
 | 3 · Every room gets its own idea | Done, merged (rounds 3–6 merged without Qiu's review; treated as accepted) | PR #86 |
 | 4 · Solid ground | Done, merged: one module + one stylesheet per room behind the room contract, `npm run test:home` smoke test, parity screenshots and computed styles identical; first load `/` 1808 → 529 KB (20 → 9 requests), `/en/` 1617 → 359 KB | PR #87 |
 | 5 · One world, not nine rooms | Done: four connections (a route becomes a line in the trace room; the pedals show in the trace room and the path threads; evening softens the sound in every room; thrown pages and routes leave threads on the overview), two rough edges fixed; `npm run test:home` covers each (8/8) | branch `feat/me-open-world-foundation`, PR #88 |
-| 6 · Polish and launch checks | Not started | same branch, PR #88 |
+| 6 · Polish and launch checks | Done: contrast fixed (muted ink, red text, dark strings room), idle lamp flicker stopped under reduced motion, every control named in zh/en and reachable by Tab with a visible ring, share images recaptured, load budgets set and enforced, checklist run and updated; `a11y.mjs`, `motion.mjs`, `weight.mjs`, `phone.mjs` and `npm run test:home` pass | same branch, PR #88 (ready for Qiu's review) |
 
 ## How we work (Qiu's rule, 2026-10-17)
 
@@ -83,6 +83,15 @@ Qiu's energy is limited and decisions are more tiring than execution. So:
 - Performance: the overview adds a few dashed lines at most; trace imports `audio-engine.js` (already in the music chunk) for the harmony note name.
 - Step 5 changed no room's resting look except the phone Motion toggle's position (now in the room bar); use `tests/home/parity.mjs` if a visual regression is suspected.
 
+## Step 6 results (2026-10-17)
+
+- **Keyboard / screen readers:** `a11y.mjs` found every control named in both languages (proper names such as pedal and project names and chord letters are allowed on the zh page), Tab reaches every control in every room (the loop's Overdub and Clear are disabled until a loop exists), every focused control shows a ring, no pointer-only objects. Nothing needed changing. The overview threads stay decorative (no text alternative); the trace caption already speaks the board connection.
+- **Contrast:** fixed the real misses (see `ink-and-light-study.md`, 2026-10-17 step 6). Remaining `a11y.mjs` hits are measured against pixels that include the afternoon light and ink lines, 4.2–4.5:1 on 6–8 px mono labels, left as they are; the pedal faceplate print is object art.
+- **Reduced motion:** one fix (lamp flicker); `motion.mjs` clean in every room, zh and en.
+- **Performance:** budgets in `docs/me-home.md`. Mid-range phone profile: usable ~2.9 s, 3D guitar swaps in ~15 s with one ~1.7 s long task under software WebGL; the photograph is interactive meanwhile. Not improved further (no real GPU to measure against); see the batched question in the hand-off.
+- **Metadata:** copy still describes the home; share images were stale (pre-light composition) and are replaced, twitter tags added.
+- **Docs:** `ink-and-light-study.md`, `me-home.md`, the skill, the checklist updated; the brief's Branch state table is marked historical.
+
 ## Decisions log
 
 Record defaults taken without asking Qiu, one line each: date, step, decision, why.
@@ -98,3 +107,7 @@ Record defaults taken without asking Qiu, one line each: date, step, decision, w
 - 2026-10-17 · 5 · Connections chosen: route → line, the board shown in the trace room and path threads, evening warms the sound, threads on the overview. Left out on purpose: pages thrown into the idle hollow (they would vanish and could block reading), more links per pedal (clutter on the overview), a visited-rooms checklist (reads as a game and boxes the visitor in).
 - 2026-10-17 · 5 · Evening softening is a fixed, gentle curve (cabinet −3.4 kHz, room +0.15 at full dusk) with a desktop-only label; reversible in `audio-engine.js` `warm` and `music.css`.
 - 2026-10-17 · 5 · The route you send is the thread you chose, or the red route as it stands when none is chosen, so the footer button always does something. The received line does not retire the "draw a line yourself" lesson.
+- 2026-10-17 · 6 · Darkened `--muted` and added `--red-ink` for small red text rather than changing `--red`: fills and large display keep Qiu's red; only text moved. Reversible in `base.css`.
+- 2026-10-17 · 6 · Audits are local scripts under `tests/home/` (not CI), like the smoke test: they need a production build and Chrome, and contrast hits need a human eye.
+- 2026-10-17 · 6 · Load budgets set to ~15% above the step-4 measurements, the same for `/` and `/en/` at load (en varies 360–530 KB with whether the first idle font lands before `load`).
+- 2026-10-17 · 6 · Recaptured the share images from the current home and updated the QStudio evidence copies too, as `developer-workbench.md` requires them in sync.

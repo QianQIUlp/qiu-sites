@@ -1,6 +1,28 @@
 # Visual QA Checklist
 
-## me.qiu.works homepage (2026-09-29 nine-grid)
+## me.qiu.works homepage (open-world, 2026-10-17)
+
+The current homepage: nine rooms in one free-dragging house, the 3D guitar at home, the pedalboard in 琴弦之间 ("Between the Strings"), and the step-5 connections. Contract: `docs/uiux/open-world-brief.md`, `open-world-roadmap.md`, `ink-and-light-study.md` and `docs/me-home.md`. The two sections below ("2026-09-29 nine-grid" and "Homepage") describe earlier rounds; where they disagree with this section, this one wins. Last run: 2026-10-17 (step 6, results in the roadmap's Status), against `npm run build` + `astro preview`.
+
+Automated (all must pass; run against the production build):
+
+- `npm run test:home`: every room in zh/en at 1280×800 and 390×844 (main interaction, no console or page errors, no failed requests), plus the four step-5 connections.
+- `node tests/home/a11y.mjs`: every control has a zh/en accessible name, is reached by Tab and shows a focus ring; no pointer-only objects; text contrast ≥ 4.5:1 (3:1 large). Skipped on purpose: pedal faceplate print and string letters over the photo.
+- `node tests/home/motion.mjs`: with reduced motion nothing animates in any room and Motion starts off.
+- `node tests/home/weight.mjs /` and `/en/`: inside the budgets in `docs/me-home.md`. `node tests/home/phone.mjs` for the mid-range phone profile.
+
+Manual, desktop (1440) and phone (390 × 844, plus 375 × 667 and 320), zh and en:
+
+- Overview, every room by map and by keyboard (Tab to the map, Enter), skip link first, no page-level horizontal scroll at 1440, 768, 375 and 320.
+- Free drag and its coast, pinch and wheel zoom; a stopped drag never coasts; nothing reacts to mere mouse movement except the guitar's turn.
+- Home guitar: follows the mouse, click picks it up, turn, zoom, detail views, Esc returns; it never makes a sound.
+- Strings room: dark, lamp-lit; every knob turns by drag and arrow keys, stomps press and light, Em/G/C/D chips legible over the photo; sound starts only after a gesture.
+- Connections: a route sent from 未走之路 ("Paths untaken") is written in 留一笔 ("Leave a line"); the board's pedals colour the trace sound; evening (after ~35 s in 不赶时间 / "No hurry") softens the sound and says so in the strings room; a thrown page and a sent route leave threads on the overview. Each degrades silently when the other room has not loaded.
+- Reduced motion (OS setting or the Motion button): no flicker, coast, throw or camera ease; every room readable and operable.
+- Share images: `me-zh.jpg` / `me-en.jpg` match the current home, and the QStudio copies in `developer/public/assets/evidence/` are the same files.
+- Reading routes (`/blog/`, `/projects/`, articles) unchanged in Light and Dark.
+
+## me.qiu.works homepage (2026-09-29 nine-grid) — historical
 
 The homepage `/` and `/en/` use the approved fixed light space and dark guitar close-up; the old homepage's day/night background and three project-entry checks below do not apply. Inner pages still check their existing Light/Dark reading experience.
 
@@ -63,7 +85,9 @@ When a change touches color, fonts, motion or the room scene, go through this se
 - Room walls keep the physical feel of snow-white matte paint; wall, wood, metal, fabric, leather and rubber share no grain,
   embossed worm-like squiggles, paper texture or repeated generated noise.
 
-## Homepage
+## Homepage (the 2026-07 photo room) — historical
+
+The photo-room composition (curtain, three project devices, hotspots) was replaced by the nine-room house. Kept for the quotes and audits it records; do not apply it to the current homepage.
 
 - At first glance only Qianqiu's name/short introduction, the guitar and a little breath of life carry visual focus; full navigation, desk, workbench and content counts do not all jump out at once.
 - In both Light and Dark, the initial background is fully covered by the left and right shaded areas for articles and projects, leaving only the personal introduction, the guitar above the shading layer and necessary controls;
