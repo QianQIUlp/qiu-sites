@@ -298,6 +298,10 @@ export default {
     jamCanvas = $('#jam-strings'); jamCtx = jamCanvas.getContext('2d');
     mountStrings(); mountPedals(); mountDeck(); mountLooper();
     refreshEffects();
+    // The afternoon (afternoon.js) reaches the board: late in the day the whole house sounds softer
+    // (sound.js darkens the rig), and the label under the strings says so.
+    const late = () => $('.music').toggleAttribute('data-evening', ctx.light.dusk > .45);
+    document.addEventListener('timeofday', late); late();
   },
   frame(now, dt) {
     pulses.forEach((v, i) => pulses[i] = v * Math.pow(ctx.motion ? .946 : .65, dt));

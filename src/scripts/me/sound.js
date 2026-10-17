@@ -5,6 +5,8 @@ import {t} from './language.js';
 import {setControl} from './icons.js';
 import {createAudioRig, defaultRig} from './audio-engine.js';
 
+// The four pedals in signal order: key, name, and the colour a room tints its strings with.
+const pedals = [['gold', 'Centaur', '186,160,100'], ['blue', 'BD-2', '40,117,180'], ['harm', 'Harmonist', '128,140,152'], ['echo', 'After Hours', '58,122,114']];
 const soundButton = document.querySelector('.audio-toggle'), localSound = document.querySelector('.sound-local');
 let audio = null, rig = null, enabled = false, tailUntil = 0, wake = () => {};
 
@@ -17,6 +19,12 @@ export const sound = {
   // Ready to make a sound right now.
   get live() { return enabled && !document.hidden && Boolean(audio) && audio.state === 'running'; },
   // Still ringing out: the scene keeps drawing (the VU needle) until the tail has gone.
+  // What the strings room's pedals are doing right now, for rooms that show it: the engaged pedals'
+  // names in signal order and the first one's colour (`rgb` is null with every pedal off).
+  get board() {
+    const on = pedals.filter(([key]) => sound.params[key]);
+    return {names: on.map(pedal => pedal[1]), rgb: on[0]?.[2] ?? null, echo: sound.params.echo, harmony: sound.params.harm};
+  },
   get ringing() { return enabled && Boolean(audio) && audio.currentTime < tailUntil; },
   tail(seconds) { if (audio) tailUntil = audio.currentTime + seconds; },
   apply() { if (rig) rig.set({...sound.params, volume: enabled ? sound.params.volume : 0}); },
@@ -28,7 +36,7 @@ async function ensureAudio() {
   if (!audio) {
     const Audio = window.AudioContext || window.webkitAudioContext;
     if (!Audio) throw Error('Audio unavailable');
-    audio = new Audio(); rig = createAudioRig(audio); rig.set({...sound.params, volume: 0});
+    audio = new Audio(); rig = createAudioRig(audio); rig.set({...sound.params, volume: 0}); rig.warm(window.qiuHour?.dusk || 0);
   }
   if (audio.state !== 'running') await audio.resume();
 }
@@ -45,4 +53,6 @@ soundButton.addEventListener('click', () => set(!enabled));
 localSound.addEventListener('click', () => set(!enabled));
 // Small sounds from the rooms themselves, heard only when sound is on.
 document.addEventListener('roomsound', event => { if (!enabled || !rig || document.hidden) return; if (event.detail === 'lamp') rig.click(.55, .58); if (event.detail === 'crumple') rig.crumple?.(); if (event.detail === 'tick') rig.click(.16, 1.7); });
+// The afternoon reaches every sound: the later it gets, the softer the house sounds (afternoon.js).
+document.addEventListener('timeofday', event => rig?.warm(event.detail.dusk));
 document.addEventListener('visibilitychange', () => { if (rig) rig.set({volume: !document.hidden && enabled ? sound.params.volume : 0}); });

@@ -378,3 +378,9 @@ body[data-motion=off] .reel-spin{animation:none}
   .note-music-strings{left:5%;top:50.2%}
   .note-music-strings svg{transform:translateY(-.35em) rotate(-12deg)}
 }
+
+/* Late in the day the house sounds softer (sound.js warms the rig with the afternoon hour); the board says so. */
+@media(min-width:701px){
+  .music[data-evening] .board-heading>span:first-child::after{content:" · 晚了，声音也软了";color:#f2ebdcb3;font-size:9px;letter-spacing:.02em}
+  html[lang=en] .music[data-evening] .board-heading>span:first-child::after{content:" · It's late; the sound has softened"}
+}

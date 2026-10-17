@@ -28,6 +28,9 @@ const listeners = {motion: [], resize: []};
 
 // The registry: how to load each room, the rooms already mounted, and the ones on their way.
 const loaders = {}, mounted = new Map(), loading = new Map();
+// What has travelled between rooms in this visit (a page that landed elsewhere, a route that became a
+// line): the overview draws each as a pencil thread with a bead where it ended. See ctx.link.
+const links = new Map();
 
 export const ctx = {
   room, world, t, english, places, sound,
@@ -43,6 +46,14 @@ export const ctx = {
   schedule,
   go,
   found: key => document.dispatchEvent(new CustomEvent('found', {detail: key})),
+  // Remember that something travelled: `link(key, from, to)`, where each end is a place or a point
+  // {x, y} in room units from the home room's centre. Linking the same key again moves it.
+  link(key, from, to) {
+    const sig = JSON.stringify([from, to]);
+    if (links.get(key)?.sig === sig) return;
+    links.set(key, {from, to, sig}); noted(); schedule();
+  },
+  unlink(key) { if (links.delete(key)) { noted(); schedule(); } },
   // Another room's public side, mounting it if needed: ctx.use('music').then(music => ...).
   use: place => load(place),
   on(type, fn) { listeners[type].push(fn); },
@@ -90,6 +101,23 @@ function thread(from, to, color = '#e83d2730') {
   const x1 = from[0] * width, y1 = from[1] * height, x2 = to[0] * width, y2 = to[1] * height;
   g.beginPath(); g.moveTo(x1, y1); g.bezierCurveTo(x1 + (x2 - x1) * .3, y1 + height * .12, x2 - (x2 - x1) * .25, y2 + height * .19, x2, y2); g.strokeStyle = color; g.lineWidth = .65; g.stroke();
 }
+// From far away the house shows what travelled: a dashed pencil thread from where it left to where it
+// landed, a bead at the landing. Ends that are rooms sit at the room's edge, facing the other end.
+// The keys, readable from outside (the smoke test, CSS): <div id="room" data-links="route page-2">.
+const noted = () => { if (links.size) room.dataset.links = [...links.keys()].join(' '); else delete room.dataset.links; };
+function drawLinks() {
+  if (!links.size) return;
+  const point = end => typeof end === 'string' ? {x: places[end].x, y: places[end].y} : end;
+  g.save(); g.globalAlpha = clamp((.65 - camera.z) / .18, 0, 1) * .8; g.strokeStyle = g.fillStyle = '#e83d27'; g.lineWidth = 1 / camera.z; g.setLineDash([4 / camera.z, 4 / camera.z]);
+  for (const {from, to} of links.values()) {
+    let a = point(from), b = point(to); const d = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = (b.x - a.x) / d, uy = (b.y - a.y) / d;
+    if (typeof from === 'string') a = {x: a.x + ux * .4, y: a.y + uy * .4};
+    if (typeof to === 'string') b = {x: b.x - ux * .4, y: b.y - uy * .4};
+    g.beginPath(); g.moveTo((a.x + .5) * width, (a.y + .5) * height); g.lineTo((b.x + .5) * width, (b.y + .5) * height); g.stroke();
+    g.beginPath(); g.setLineDash([]); g.arc((b.x + .5) * width, (b.y + .5) * height, 3 / camera.z, 0, Math.PI * 2); g.fill(); g.setLineDash([4 / camera.z, 4 / camera.z]);
+  }
+  g.restore();
+}
 function render(now) {
   g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, width, height);
   g.save(); g.translate(width / 2 - camera.x * width * camera.z, height / 2 - camera.y * height * camera.z); g.scale(camera.z, camera.z); g.translate(-width / 2, -height / 2);
@@ -102,6 +130,7 @@ function render(now) {
     g.globalAlpha = clamp((.65 - camera.z) / .18, 0, 1); g.fillStyle = '#626b55'; g.font = `${11 / camera.z}px ${sans}`; g.textAlign = 'center';
     [[-.56, .11, places.papers.name], [1.74, .12, places.music.name], [.69, -.87, places.trace.name], [-.62, -.87, places.paths.name], [1.64, -.87, places.blindspot.name], [-.62, 1.23, places.rethink.name], [.51, 1.23, places.idle.name], [1.64, 1.23, places.work.name]].forEach(([x, y, label]) => g.fillText(label, x * width, y * height)); g.textAlign = 'start';
     g.globalAlpha = 1;
+    drawLinks();
   }
   g.restore();
   const transform = `translate(${-camera.x * width * camera.z}px,${-camera.y * height * camera.z}px) scale(${camera.z})`;

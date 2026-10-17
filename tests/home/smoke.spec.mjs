@@ -40,7 +40,9 @@ const rooms = {
     await expect(page.locator('[data-slip][hidden]')).toHaveCount(1);
   },
   paths: async page => {
-    // (The route buttons are covered by the thread instrument at desktop size: a step-5 fix.)
+    // The route buttons used to sit under the thread instrument at desktop size: they must be reachable.
+    await page.locator('[data-route="1"]').click();
+    await expect(page.locator('[data-route="1"]')).toHaveAttribute('aria-pressed', 'true');
     await page.locator('#path-play').click();
     await expect(page.locator('#path-play')).toHaveAttribute('aria-pressed', 'true');
   },
@@ -89,6 +91,72 @@ for (const [lang, path] of [['zh', '/'], ['en', '/en/']]) {
         await act(page);
       });
     }
+    expect(problems).toEqual([]);
+  });
+}
+
+// The rooms answer each other (open-world step 5). Each connection goes through the room contract's ctx.
+for (const [lang, path] of [['zh', '/'], ['en', '/en/']]) {
+  test(`rooms answer each other (${lang})`, async ({page}) => {
+    const problems = [];
+    page.on('console', message => { if (message.type() === 'error') problems.push(`console: ${message.text()}`); });
+    page.on('pageerror', error => problems.push(`page error: ${error.message}`));
+    await page.goto(path);
+    await page.waitForFunction(() => !document.querySelector('[data-asleep]'), null, {timeout: 60_000});
+    const go = async place => {
+      await page.evaluate(hash => { location.hash = hash; }, place);
+      await expect(page.locator('#room')).toHaveAttribute('data-place', place);
+      await settle(page);
+    };
+
+    // 1 · The board is in the house: the pedals you switch on in the strings room show in the trace room.
+    await test.step('the board shows in the trace room', async () => {
+      await go('music');
+      await page.locator('.pedal-gold [data-pedal]').click();
+      await page.locator('.pedal-echo [data-pedal]').click();
+      await go('trace');
+      await expect(page.locator('.trace-through')).toBeVisible();
+      await expect(page.locator('.trace-through')).toContainText('Centaur · After Hours');
+    });
+
+    // 2 · A route you walked becomes a line: "Leave a line of your own" hands it to the trace room.
+    await test.step('the paths route is written as a line', async () => {
+      await go('trace');
+      await page.locator('#clear-lines').click();
+      await go('paths');
+      await page.locator('[data-scene="paths"] .extra-footer [data-place="trace"]').click();
+      await expect(page.locator('#room')).toHaveAttribute('data-place', 'trace');
+      await expect(page.locator('.draw-area')).toHaveAttribute('data-lines', '1', {timeout: 10_000});
+      await expect(page.locator('#room')).toHaveAttribute('data-links', /route/);
+      await page.locator('#clear-lines').click();
+      await expect(page.locator('#room')).not.toHaveAttribute('data-links', /route/);
+    });
+
+    // 3 · Things that travel: a page thrown out of its corner lies where it landed, and the overview keeps the thread.
+    await test.step('a thrown page leaves a thread', async () => {
+      await go('papers');
+      // Throwing needs motion (reduced motion only lets pages be moved, never thrown).
+      await page.locator('#motion').click();
+      await expect(page.locator('body')).toHaveAttribute('data-motion', 'on');
+      const paper = page.locator('.loose-paper').nth(2), box = await paper.boundingBox(), size = page.viewportSize();
+      const x = box.x + box.width / 2, y = box.y + box.height / 2, reach = size.width * .9;
+      await page.mouse.move(x, y); await page.mouse.down();
+      for (let i = 1; i <= 14; i++) { await page.mouse.move(x + reach * i / 14, y - i * 3); await page.waitForTimeout(6); }
+      await page.mouse.up();
+      await expect(page.locator('.loose-paper.strayed')).toHaveCount(1, {timeout: 10_000});
+      await expect(page.locator('#room')).toHaveAttribute('data-links', /page-2/, {timeout: 10_000});
+      await page.locator('#motion').click();
+      await page.locator('.paper-reset').click();
+      await expect(page.locator('.loose-paper.strayed')).toHaveCount(0, {timeout: 10_000});
+      await expect(page.locator('#room')).not.toHaveAttribute('data-links', /page-/);
+    });
+
+    // 4 · The afternoon reaches the sound: still in the idle corner it turns to evening, and the board says so.
+    await test.step('evening softens the board', async () => {
+      await go('idle');
+      await go('music');
+      await expect(page.locator('.music')).toHaveAttribute('data-evening', '');
+    });
     expect(problems).toEqual([]);
   });
 }

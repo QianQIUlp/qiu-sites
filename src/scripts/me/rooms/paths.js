@@ -1,5 +1,7 @@
 // 未走之路 ("Paths untaken"): a ruled surface. Every filament shares two ends, but no two take the
-// same route. Brushed, the threads ring like harp strings; clicked, one becomes your path.
+// same route. Brushed, the threads ring like harp strings; clicked, one becomes your path. The route
+// you chose can leave with you: "Leave a line of your own" hands it to the trace room, which writes it
+// there as a string of its own. The threads ring through whatever the strings room's pedals are doing.
 import {t as localize} from '../language.js';
 import {setIcon} from '../icons.js';
 import {$, clamp, mix, still, found, surface, sway, dragInput} from '../room-kit.js';
@@ -10,6 +12,7 @@ const red = '#e83d27', paper = '#eeede7';
 const room = {
   place: 'paths',
   mount(ctx) {
+    const house = ctx;
     const pathCanvas = $('#path-field'), bendInput = $('#path-bend'), pathPlay = $('#path-play');
     const routes = [localize("穿过去", "Through"), localize("绕一段", "Around"), localize("停一下", "A pause")];
     const routeNotes = [[5, 4, 3, 2, 1, 0], [5, 2, 4, 1, 3, 0], [5, 3, 3, 2, 1, 0]];
@@ -17,7 +20,7 @@ const room = {
     // Every thread is a way through. Brushed, they ring like harp strings (when sound is on); clicked,
     // one becomes your path, and the red route and the listening follow it. `chosen` is its offset.
     const STRANDS = 76, glow = new Float32Array(STRANDS);
-    let chosen = null, strandLines = [];
+    let chosen = null, strandLines = [], view = null;
 
     function routePoint(t, variant, offset = null) {
       const envelope = Math.pow(Math.sin(Math.PI * t), .85);
@@ -53,6 +56,7 @@ const room = {
         [x, y] = [x * .93 + y * .37, -x * .37 + y * .93];
         return {x: width * .51 + x * scale, y: height * .47 + y * scale, z};
       };
+      view = project;
       ctx.save();
       ctx.translate(width * .51, height * .8);
       ctx.scale(1, .13);
@@ -61,6 +65,7 @@ const room = {
       ctx.fillStyle = shadow;ctx.fillRect(-width / 2, -width / 2, width, width);
       ctx.restore();
 
+      const tint = house.sound.board.rgb;
       // Order the hairlines by depth; the front strands catch more light.
       const strands = Array.from({length: STRANDS}, (_, i) => ({i, z: pathPoint(.5, i / STRANDS).z})).sort((a, b) => a.z - b.z);
       strandLines = [];
@@ -75,7 +80,7 @@ const room = {
         strandLines[i] = line;
         ctx.strokeStyle = i % 13 === 0 ? '#a28c646b' : `rgba(61,68,52,${.2 + (z + .7) * .19})`;
         ctx.lineWidth = i % 13 === 0 ? .95 : .6;ctx.stroke();
-        if (glow[i] > .02) { ctx.strokeStyle = `rgba(232,61,39,${.25 + glow[i] * .7})`;ctx.lineWidth = .7 + glow[i] * 1.3;ctx.stroke(); }
+        if (glow[i] > .02) { ctx.strokeStyle = `rgba(${tint || '232,61,39'},${.25 + glow[i] * .7})`;ctx.lineWidth = .7 + glow[i] * 1.3;ctx.stroke(); }
       }
       const progress = playback ? playback.progress : 1;
       ctx.beginPath();
@@ -207,6 +212,15 @@ const room = {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {cancelAnimationFrame(pathFrame);pathFrame = pathLast = 0;stopPath();}
       else schedulePaths();
+    });
+    // "Leave a line of your own": the chosen thread (or the route as it stands) goes to the trace room.
+    $('[data-scene="paths"] .extra-footer [data-place="trace"]').addEventListener('click', () => {
+      const line = chosen !== null ? strandLines[Math.round(chosen * STRANDS)] : Array.from({length: 131}, (_, j) => view(pathPoint(j / 130, null)));
+      if (!line?.length) return;
+      const step = Math.ceil(line.length / 100), points = line.filter((_, i) => i % step === 0 || i === line.length - 1);
+      const x0 = Math.min(...points.map(p => p.x)), x1 = Math.max(...points.map(p => p.x)), y0 = Math.min(...points.map(p => p.y)), y1 = Math.max(...points.map(p => p.y));
+      const w = Math.max(1, x1 - x0), h = Math.max(w * .06, y1 - y0);
+      ctx.use('trace').then(trace => trace?.receive({from: 'paths', aspect: w / h, shape: points.map(p => ({x: (p.x - x0) / w, y: (p.y - y0) / h}))}));
     });
     new ResizeObserver(() => drawPaths()).observe(ctx.room);
     document.fonts.ready.then(() => drawPaths());
